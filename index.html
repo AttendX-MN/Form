@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MyNuqobaPass - Hub</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
-    <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -124,13 +121,16 @@
 
         .view-hidden { display: none !important; }
         .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+
+        /* Fullscreen White Background Fix */
+        :fullscreen { background-color: #f8fafc !important; padding: 2rem !important; overflow-y: auto !important; }
+        :-webkit-full-screen { background-color: #f8fafc !important; padding: 2rem !important; overflow-y: auto !important; }
     </style>
 </head>
 <body class="antialiased bg-slate-50 text-slate-800 flex flex-col min-h-screen">
 
     <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- MAIN NAV -->
     <nav class="glass-nav sticky top-0 z-40 px-4 md:px-6 py-3 flex justify-between items-center w-full">
         <div class="flex items-center gap-2 cursor-pointer shrink-0" onclick="routeTo('hub')">
             <div class="p-1.5 bg-gradient-to-br from-[#203a70] to-[#15274d] rounded-lg text-white shadow-md border border-slate-700">
@@ -145,9 +145,6 @@
 
     <div class="flex-1 w-full max-w-7xl mx-auto flex flex-col relative pb-24">
 
-        <!-- ============================================== -->
-        <!-- VIEW: LANDING / AUTH HUB                       -->
-        <!-- ============================================== -->
         <div id="view-landing" class="container mx-auto px-4 py-10 md:py-20 flex flex-col items-center justify-center min-h-[70vh] animate-pop">
             <div class="text-center mb-10">
                 <div class="w-20 h-20 mx-auto bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6 border border-slate-100">
@@ -181,9 +178,6 @@
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- VIEW: MAIN DASHBOARD (THE HUB)                 -->
-        <!-- ============================================== -->
         <div id="view-hub" class="container mx-auto px-4 py-6 flex flex-col gap-8 view-hidden animate-pop w-full max-w-3xl">
             <div class="flex justify-between items-end px-2">
                 <div>
@@ -192,7 +186,6 @@
                 </div>
             </div>
 
-            <!-- Banner Carousel -->
             <div class="w-full h-44 md:h-56 rounded-[28px] overflow-hidden relative shadow-xl border border-slate-200/50 bg-slate-100">
                 <img id="hub-banner-img" src="" class="w-full h-full object-cover transition-opacity duration-700 ease-in-out"/>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -202,18 +195,13 @@
                 </div>
             </div>
 
-            <!-- App Launcher Grid -->
             <div>
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 px-2">Apps & Tools</h3>
                 <div id="hub-app-grid" class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 gap-y-6 gap-x-2 justify-items-center">
-                    <!-- Apps injected via JS -->
-                </div>
+                    </div>
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- VIEW: USER PROFILE                             -->
-        <!-- ============================================== -->
         <div id="view-profile" class="container mx-auto px-4 py-6 flex flex-col gap-6 view-hidden animate-pop w-full max-w-lg">
             <div class="ios-card p-6 flex flex-col items-center text-center mt-8">
                 <div class="avatar-container -mt-16 mb-4 relative group">
@@ -237,16 +225,12 @@
                         <label class="block text-xs font-semibold text-slate-500 mb-1">Phone Number</label>
                         <input type="tel" id="prof-phone" class="w-full input-style rounded-xl px-4 py-2 text-sm" placeholder="+60123456789">
                     </div>
-                    <!-- Dynamic Custom Fields Injected Here -->
                     <div id="prof-custom-fields" class="flex flex-col gap-4"></div>
                     <button type="submit" class="mt-4 w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-md transition active:scale-95">Save Profile</button>
                 </form>
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- VIEW: VIP DASHBOARD                            -->
-        <!-- ============================================== -->
         <div id="view-vip-dashboard" class="container mx-auto px-4 py-6 flex flex-col gap-6 view-hidden animate-pop w-full max-w-lg">
             <div class="ios-card p-6 text-center bg-gradient-to-br from-yellow-50 to-amber-100 border-amber-200">
                 <div class="w-12 h-12 bg-yellow-400 text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md shadow-yellow-500/30"><i data-lucide="crown"></i></div>
@@ -254,14 +238,12 @@
                 <p class="text-xs font-bold text-amber-700 uppercase tracking-widest mt-1" id="vip-dash-event">Event Name</p>
             </div>
 
-            <!-- VIP QR SECTION (Hides when timer starts) -->
             <div class="ios-card p-6 flex flex-col items-center transition-all duration-700 overflow-hidden" id="vip-qr-section">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Your Access Pass</h3>
                 <div class="p-3 border-2 border-slate-100 rounded-2xl bg-white shadow-sm" id="vip-qr-box"></div>
                 <p class="text-[10px] text-slate-400 mt-4 text-center">Scan this at the entrance for access.</p>
             </div>
 
-            <!-- VIP RED & WHITE TIMER -->
             <div class="ios-card p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Event Timer</h3>
@@ -279,23 +261,16 @@
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- OVERLAYS & MODALS                              -->
-        <!-- ============================================== -->
-        
-        <!-- My Passes Modal (Triggered by FAB) -->
         <div id="modal-passes" class="fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm hidden flex-col justify-end opacity-0 transition-opacity duration-300">
             <div class="bg-slate-50 w-full rounded-t-3xl p-6 relative max-h-[85vh] flex flex-col transform translate-y-full transition-transform duration-300" id="modal-passes-inner">
                 <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-6"></div>
                 <button onclick="closeModal('modal-passes')" class="absolute top-5 right-5 bg-slate-200 text-slate-600 rounded-full p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button>
                 <h2 class="text-2xl font-black text-slate-800 mb-6">My Digital Passes</h2>
                 <div id="hub-qr-container" class="flex flex-col gap-4 overflow-y-auto pb-8 px-1">
-                    <!-- QRs injected here -->
-                </div>
+                    </div>
             </div>
         </div>
 
-        <!-- Admin VIP Zoom Modal -->
         <div id="modal-vip-zoom" class="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
             <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full relative flex flex-col items-center transform scale-95 transition-transform duration-300" id="modal-vip-zoom-inner">
                 <button onclick="closeModal('modal-vip-zoom')" class="absolute top-4 right-4 bg-slate-100 text-slate-600 rounded-full p-2 hover:bg-slate-200 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -307,20 +282,19 @@
             </div>
         </div>
 
-        <!-- VIP Timer Announcement Overlay -->
-        <div id="vip-timer-announcement" class="fixed inset-0 z-[9999] bg-sky-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white text-center animate-pop">
+        <div id="vip-timer-announcement" class="fixed inset-0 z-[9999] bg-sky-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white text-center opacity-0 transition-opacity duration-300">
             <i data-lucide="clock" class="w-24 h-24 mb-6 animate-pulse text-white/80"></i>
-            <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight px-4" id="vip-timer-announce-msg">Masa Diberi, Terima Kasih</h1>
+            <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight px-4 animate-pop" id="vip-timer-announce-msg">Masa Diberi, Terima Kasih</h1>
         </div>
 
-        <!-- VIP Live Broadcast Overlay -->
-        <div id="vip-broadcast-overlay" class="fixed inset-0 z-[9999] bg-rose-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white cursor-pointer px-6 text-center animate-pop" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
-            <i data-lucide="radio" class="w-20 h-20 mb-6 animate-pulse text-white/80"></i>
-            <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight" id="vip-broadcast-msg">MESSAGE</h1>
-            <p class="text-sm mt-8 font-semibold opacity-70 bg-black/20 px-4 py-2 rounded-full">(Tap anywhere to dismiss)</p>
+        <div id="vip-broadcast-overlay" class="fixed inset-0 z-[9999] bg-rose-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white cursor-pointer px-6 text-center opacity-0 transition-opacity duration-300" onclick="closeModal('vip-broadcast-overlay')">
+            <div id="vip-broadcast-overlay-inner" class="flex flex-col items-center transform scale-95 transition-transform duration-300">
+                <i data-lucide="radio" class="w-20 h-20 mb-6 animate-pulse text-white/80"></i>
+                <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight" id="vip-broadcast-msg">MESSAGE</h1>
+                <p class="text-sm mt-8 font-semibold opacity-70 bg-black/20 px-4 py-2 rounded-full">(Tap anywhere to dismiss)</p>
+            </div>
         </div>
 
-        <!-- AUTH VIEWS (Register, Login, VIP Login, Admin Login) -->
         <div id="view-register" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
             <div class="ios-card w-full max-w-md p-6 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-2 hub-gradient"></div>
@@ -370,9 +344,6 @@
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- VIEW: TOOLS SHELL (Admin Dash & Scanner)       -->
-        <!-- ============================================== -->
         <div id="view-tools" class="w-full flex-1 flex flex-col md:flex-row gap-4 md:gap-6 view-hidden animate-pop px-2 md:px-4 py-4 md:py-8 h-full">
             <aside id="admin-sidebar" class="ios-card p-4 w-full md:w-64 flex flex-col gap-2 shrink-0 h-fit md:h-full md:overflow-y-auto">
                 <h3 class="font-bold text-slate-400 text-[10px] tracking-widest uppercase mb-2 px-2">Terminal Ops</h3>
@@ -386,8 +357,7 @@
 
             <main class="flex-1 w-full overflow-hidden relative h-full flex flex-col">
                 
-                <!-- SCANNER TAB (FULL DASHBOARD LAYOUT RESTORED) -->
-                <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col relative">
+                <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col relative bg-slate-50">
                     <input type="text" id="scanner-input" class="opacity-0 absolute -z-10 w-0 h-0" autofocus autocomplete="off">
                     
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2 md:px-0 shrink-0">
@@ -407,9 +377,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto pb-6 pr-2 h-full">
-                        <!-- LEFT COLUMN -->
                         <div class="lg:col-span-2 flex flex-col gap-6">
-                            <!-- SCAN TARGET BOX -->
                             <div class="scan-target-box rounded-3xl p-8 relative flex flex-col items-center justify-center min-h-[360px] cursor-pointer overflow-hidden shrink-0" onclick="document.getElementById('scanner-input').focus()">
                                 <div class="scan-line" id="scan-line-anim"></div>
                                 <p class="text-[#76a8d1] font-bold tracking-widest text-sm mb-6 z-20 uppercase">Scan Event QR Code</p>
@@ -422,7 +390,6 @@
                                 </div>
                             </div>
 
-                            <!-- RECENT SCANS TABLE -->
                             <div class="ios-card p-5 shrink-0 flex-1">
                                 <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Recently Scanned Participants</h3>
                                 <div class="overflow-x-auto">
@@ -443,9 +410,7 @@
                             </div>
                         </div>
 
-                        <!-- RIGHT COLUMN -->
                         <div class="flex flex-col gap-6 shrink-0 h-full">
-                            <!-- EVENT OVERVIEW -->
                             <div class="ios-card p-6">
                                 <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Overview</h3>
                                 <div class="flex items-center gap-4 mb-6">
@@ -463,7 +428,6 @@
                                 </div>
                             </div>
 
-                            <!-- EVENT INFO -->
                             <div class="ios-card p-6 flex flex-col justify-between grow">
                                 <div>
                                     <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Info</h3>
@@ -480,9 +444,8 @@
                         </div>
                     </div>
 
-                    <!-- SCAN RESULT OVERLAY -->
-                    <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl">
-                        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
+                    <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 rounded-2xl opacity-0 transition-opacity duration-300">
+                        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transform scale-95 transition-transform duration-300">
                             <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
                                 <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2"><i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS</span>
                                 <i data-lucide="book-user" class="w-6 h-6 opacity-80"></i>
@@ -505,8 +468,7 @@
                     </div>
                 </div>
 
-                <!-- LIVE BOARD TAB -->
-                <div id="tab-live" class="admin-content view-hidden animate-pop w-full h-full flex flex-col">
+                <div id="tab-live" class="admin-content view-hidden animate-pop w-full h-full flex flex-col bg-slate-50">
                     <div class="ios-card p-0 flex flex-col h-full overflow-hidden border-slate-200">
                         <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
                             <div class="flex items-center gap-3">
@@ -533,10 +495,8 @@
                     </div>
                 </div>
 
-                <!-- ADMIN VIP MGMT -->
                 <div id="tab-speaker" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Generate VIP Pass -->
                         <div class="ios-card p-6 flex flex-col">
                             <div class="flex items-center gap-3 mb-6"><div class="p-2 bg-yellow-50 rounded-xl text-yellow-600"><i data-lucide="crown" class="w-6 h-6"></i></div><h2 class="text-xl font-black text-slate-800">Generate VIP Pass</h2></div>
                             <form onsubmit="handleSpeakerReg(event)">
@@ -553,12 +513,10 @@
                             <div class="mt-6 border-t border-slate-100 pt-4 flex-1">
                                 <h3 class="text-sm font-bold text-slate-800 mb-3">Generated VIP Passes</h3>
                                 <div id="vip-admin-list" class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-2">
-                                    <!-- Injected via JS -->
-                                </div>
+                                    </div>
                             </div>
                         </div>
 
-                        <!-- VIP Live Controls -->
                         <div class="ios-card p-6 flex flex-col gap-6">
                             <div>
                                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="clock" class="text-sky-500 w-4 h-4"></i> Live Timer Control</h3>
@@ -590,7 +548,6 @@
                     </div>
                 </div>
 
-                <!-- SUB EVENTS TAB -->
                 <div id="tab-subevents" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
                     <div class="ios-card p-6 mb-6">
                         <div class="flex items-center gap-2 mb-4"><i data-lucide="calendar-plus" class="text-[#76a8d1] w-5 h-5"></i><h2 class="text-lg font-black text-slate-800">Add Session</h2></div>
@@ -615,7 +572,6 @@
                     </div>
                 </div>
 
-                <!-- PARTICIPANTS TAB -->
                 <div id="tab-participants" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
                     <div class="ios-card p-0 overflow-hidden h-full flex flex-col">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 border-b border-slate-100 bg-slate-50 gap-4 shrink-0">
@@ -636,7 +592,6 @@
                     </div>
                 </div>
 
-                <!-- HUB SETUP TAB -->
                 <div id="tab-hubconfig" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="ios-card p-6">
@@ -664,7 +619,6 @@
         </div>
     </div>
 
-    <!-- BOTTOM NAVIGATION (Shows only on Hub & Profile) -->
     <div id="bottom-nav" class="fixed bottom-0 w-full bottom-nav-bar z-[45] hidden justify-around items-center px-6 pt-4 h-16 transition-transform">
         <button onclick="routeTo('hub')" class="flex flex-col items-center text-[#203a70] w-16 group"><i data-lucide="home" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span class="text-[9px] font-bold mt-1">Home</span></button>
         
@@ -893,7 +847,6 @@
                 state.adminPass = pass; 
                 appSession = { type: 'admin', name: 'Administrator', profile: {} }; 
                 localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
-                loadAdminData(); // Load data on successful login
                 initApp(); 
             } 
             else showToast("Incorrect password", "error");
@@ -1033,7 +986,7 @@
                        const ov = document.getElementById('vip-broadcast-overlay');
                        if (ov && (appSession.type === 'vip' || appSession.type === 'admin')) {
                            document.getElementById('vip-broadcast-msg').innerText = newState.broadcast.msg;
-                           ov.classList.remove('hidden'); ov.classList.add('flex');
+                           openModal('vip-broadcast-overlay');
                            playSound('scan');
                        }
                     }
@@ -1050,15 +1003,12 @@
                         const announceMsg = document.getElementById('vip-timer-announce-msg');
                         if (announceMsg) announceMsg.innerText = `Masa diberi ${mins} minit, terima kasih`;
                         
-                        const overlay = document.getElementById('vip-timer-announcement');
-                        if (overlay) {
-                            overlay.classList.remove('hidden'); overlay.classList.add('flex');
-                            playSound('success');
-                            
-                            setTimeout(() => {
-                                overlay.classList.add('hidden'); overlay.classList.remove('flex');
-                            }, 3000);
-                        }
+                        openModal('vip-timer-announcement');
+                        playSound('success');
+                        
+                        setTimeout(() => {
+                            closeModal('vip-timer-announcement');
+                        }, 3000);
                     }
                     
                     // Hide VIP QR Section if timer is active
@@ -1378,7 +1328,7 @@
         }
 
         function triggerScannerUI(res) {
-            const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
+            const cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
             if(res.scan_result === 'SUCCESS') state.localSessionCount++; updateScannerEventInfo();
             
             if (res.scan_result === 'SUCCESS') {

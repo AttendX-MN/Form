@@ -96,12 +96,12 @@
         /* Fullscreen Background Fix */
         :fullscreen {
             background-color: #f8fafc !important;
-            padding: 2rem !important;
+            padding: 1.5rem !important;
             overflow-y: auto !important;
         }
         :-webkit-full-screen {
             background-color: #f8fafc !important;
-            padding: 2rem !important;
+            padding: 1.5rem !important;
             overflow-y: auto !important;
         }
 
@@ -272,7 +272,8 @@
         <main class="flex-1 w-full overflow-hidden">
             
             <!-- TAB: SCANNER DASHBOARD -->
-            <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col">
+            <!-- ADDED: relative positioning so fullscreen modals lock inside perfectly -->
+            <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col relative">
                 
                 <!-- Invisible Scanner Input (Hardware Scanners type here) -->
                 <input type="text" id="scanner-input" class="opacity-0 absolute -z-10 w-0 h-0" autofocus autocomplete="off">
@@ -401,6 +402,59 @@
 
                     </div>
                 </div>
+
+                <!-- ============================================== -->
+                <!-- MODAL: SCAN RESULT (SCOPED OVERLAY)            -->
+                <!-- ============================================== -->
+                <!-- Moved completely INSIDE the scanner dashboard container to persist during Fullscreen -->
+                <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl">
+                    <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
+                        
+                        <!-- Header Bar -->
+                        <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
+                            <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2">
+                                <i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS
+                            </span>
+                            <i data-lucide="plane-landing" class="w-6 h-6 opacity-80"></i>
+                        </div>
+
+                        <!-- Ticket Body -->
+                        <div class="p-6 relative bg-white">
+                            <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
+                            <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
+                            <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
+
+                            <div class="flex flex-col items-center mt-4">
+                                <div id="scan-icon" class="mb-4 z-10 relative"></div>
+                                <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
+                                <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight"></h3>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p>
+                                    <p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Flight / Event</p>
+                                    <p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================== -->
+                <!-- FULLSCREEN ANNOUNCEMENT                        -->
+                <!-- ============================================== -->
+                <!-- Moved here so it works even when scanner dashboard is fullscreen -->
+                <div id="fullscreen-announcement" class="hidden absolute inset-0 z-[100] bg-yellow-400/95 backdrop-blur-md flex-col items-center justify-center text-yellow-900 cursor-pointer rounded-2xl" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
+                    <i data-lucide="plane-landing" class="w-32 h-32 mb-6 animate-bounce"></i>
+                    <h1 class="text-6xl font-black mb-4 text-center uppercase tracking-wider">VIP ARRIVED</h1>
+                    <h2 id="fs-name" class="text-5xl font-bold text-center"></h2>
+                    <p class="text-2xl mt-4 font-semibold opacity-80">(Click anywhere to dismiss)</p>
+                </div>
+
             </div>
 
             <!-- TAB: LIVE DISPLAY -->
@@ -536,47 +590,6 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- MODAL: SCAN RESULT (GLOBAL OVERLAY)            -->
-    <!-- ============================================== -->
-    <!-- This has been moved OUTSIDE of the scanner box so it never gets cut off! -->
-    <div id="scan-result-card" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4">
-        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
-            
-            <!-- Header Bar -->
-            <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
-                <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2">
-                    <i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS
-                </span>
-                <i data-lucide="plane-landing" class="w-6 h-6 opacity-80"></i>
-            </div>
-
-            <!-- Ticket Body -->
-            <div class="p-6 relative bg-white">
-                <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
-                <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
-                <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
-
-                <div class="flex flex-col items-center mt-4">
-                    <div id="scan-icon" class="mb-4 z-10 relative"></div>
-                    <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
-                    <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight"></h3>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
-                    <div>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p>
-                        <p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Flight / Event</p>
-                        <p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================== -->
     <!-- MODAL: QR RESULT (DOWNLOAD)                    -->
     <!-- ============================================== -->
     <div id="modal-qr" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -602,16 +615,6 @@
                 </button>
             </div>
         </div>
-    </div>
-
-    <!-- ============================================== -->
-    <!-- FULLSCREEN ANNOUNCEMENT                        -->
-    <!-- ============================================== -->
-    <div id="fullscreen-announcement" class="fixed inset-0 z-[100] bg-yellow-400/95 backdrop-blur-md hidden flex flex-col items-center justify-center text-yellow-900 cursor-pointer" onclick="this.classList.add('hidden')">
-        <i data-lucide="plane-landing" class="w-32 h-32 mb-6 animate-bounce"></i>
-        <h1 class="text-6xl font-black mb-4 text-center uppercase tracking-wider">VIP ARRIVED</h1>
-        <h2 id="fs-name" class="text-5xl font-bold text-center"></h2>
-        <p class="text-2xl mt-4 font-semibold opacity-80">(Click anywhere to dismiss)</p>
     </div>
 
     <script>
@@ -701,9 +704,21 @@
 
         const toggleFullscreen = (id) => {
             const el = document.getElementById(id);
-            if (!document.fullscreenElement) el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
-            else document.exitFullscreen();
+            if (!document.fullscreenElement) {
+                // Ensure Toast Notifications move to fullscreen view so they aren't hidden
+                el.appendChild(document.getElementById('toast-container'));
+                el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
+            } else {
+                document.exitFullscreen();
+            }
         };
+
+        // When exiting fullscreen, put toast container back to body
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                document.body.appendChild(document.getElementById('toast-container'));
+            }
+        });
 
         const playSound = (type) => {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1042,6 +1057,7 @@
             badge.className = "hidden";
 
             resultWrapper.classList.remove('hidden');
+            resultWrapper.classList.add('flex');
             setTimeout(() => { 
                 cardInner.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
                 cardInner.classList.add('scale-100', 'opacity-100', 'translate-y-0');
@@ -1085,10 +1101,12 @@
                     playSound('speaker');
                     headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-yellow-400 to-amber-600";
                     confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, zIndex: 100 });
+                    
                     const fs = document.getElementById('fullscreen-announcement');
                     document.getElementById('fs-name').innerText = res.name;
                     fs.classList.remove('hidden');
-                    setTimeout(() => fs.classList.add('hidden'), 5000);
+                    fs.classList.add('flex');
+                    setTimeout(() => { fs.classList.add('hidden'); fs.classList.remove('flex'); }, 5000);
                 } else {
                     playSound('success');
                 }
@@ -1125,6 +1143,7 @@
 
             // Show popup with Tailwind classes for robust animation
             resultWrapper.classList.remove('hidden');
+            resultWrapper.classList.add('flex');
             setTimeout(() => { 
                 cardInner.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
                 cardInner.classList.add('scale-100', 'opacity-100', 'translate-y-0');
@@ -1141,6 +1160,7 @@
                 cardInner.classList.add('scale-95', 'opacity-0', 'translate-y-8');
                 setTimeout(() => {
                     resultWrapper.classList.add('hidden');
+                    resultWrapper.classList.remove('flex');
                     document.getElementById('scanner-input').focus();
                 }, 500); // Wait for transition
             }, 3000);

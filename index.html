@@ -140,43 +140,43 @@
     <!-- ============================================== -->
     <!-- VIEW: REGISTRATION (PUBLIC)                    -->
     <!-- ============================================== -->
-    <div id="view-register" class="container mx-auto px-4 py-12 flex flex-col items-center animate-pop">
-        <div class="card w-full max-w-md p-8 relative overflow-hidden">
+    <div id="view-register" class="container mx-auto px-4 py-6 md:py-12 flex flex-col items-center animate-pop">
+        <div class="card w-full max-w-md p-6 md:p-8 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 airline-gradient"></div>
-            <div class="text-center mb-8">
-                <p class="text-xs font-bold text-sky-600 uppercase tracking-widest mb-1">Participant Check-In</p>
-                <h2 class="text-3xl font-black text-slate-800">Registration</h2>
-                <p class="text-sm text-slate-500 mt-2">Generate your digital attendance pass instantly.</p>
+            <div class="text-center mb-6">
+                <p class="text-[10px] md:text-xs font-bold text-sky-600 uppercase tracking-widest mb-1">Participant Check-In</p>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800">Registration</h2>
+                <p class="text-xs md:text-sm text-slate-500 mt-1">Generate your digital attendance pass instantly.</p>
             </div>
             
             <form id="form-register" onsubmit="handleRegistration(event)">
-                <div class="mb-5">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Participant Name</label>
-                    <input type="text" id="reg-name" required class="w-full input-style rounded-xl px-4 py-3" placeholder="Enter your full name">
+                <div class="mb-4">
+                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Participant Name</label>
+                    <input type="text" id="reg-name" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base" placeholder="Enter your full name">
                 </div>
                 
-                <div class="mb-8">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Lajnah</label>
-                    <select id="reg-lajnah" required class="w-full input-style rounded-xl px-4 py-3 appearance-none">
+                <div class="mb-4">
+                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Lajnah</label>
+                    <select id="reg-lajnah" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base appearance-none">
                         <option value="" disabled selected>Select Lajnah</option>
                         <!-- Injected via JS -->
                     </select>
                 </div>
                 
-                <div class="mb-8">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Create Password</label>
-                    <input type="password" id="reg-password" required class="w-full input-style rounded-xl px-4 py-3" placeholder="Set a password for future access">
-                    <p class="text-xs text-slate-400 mt-2">You will need this to log in and retrieve your pass later.</p>
+                <div class="mb-6">
+                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Create Password</label>
+                    <input type="password" id="reg-password" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base" placeholder="Set a password for future access">
+                    <p class="text-[10px] md:text-xs text-slate-400 mt-1 leading-tight">You will need this to log in and retrieve your pass later.</p>
                 </div>
                 
-                <button type="submit" id="btn-register" class="w-full airline-gradient hover:shadow-lg text-white font-bold py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5">
-                    <i data-lucide="qr-code"></i> Generate Attendance Pass
+                <button type="submit" id="btn-register" class="w-full airline-gradient hover:shadow-lg text-white font-bold py-3 md:py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5 text-sm md:text-base">
+                    <i data-lucide="qr-code" class="w-5 h-5"></i> Generate Attendance Pass
                 </button>
             </form>
 
-            <div class="mt-8 text-center border-t border-slate-100 pt-6">
-                <p class="text-sm text-slate-500">Already registered?</p>
-                <button type="button" onclick="switchView('user-login')" class="text-sky-600 font-bold hover:underline mt-1">Log in to retrieve your pass</button>
+            <div class="mt-6 text-center border-t border-slate-100 pt-4">
+                <p class="text-xs md:text-sm text-slate-500">Already registered?</p>
+                <button type="button" onclick="switchView('user-login')" class="text-sky-600 text-sm md:text-base font-bold hover:underline mt-0.5">Log in to retrieve your pass</button>
             </div>
         </div>
     </div>
@@ -184,31 +184,31 @@
     <!-- ============================================== -->
     <!-- VIEW: PARTICIPANT LOGIN                        -->
     <!-- ============================================== -->
-    <div id="view-user-login" class="container mx-auto px-4 py-12 flex flex-col items-center view-hidden animate-pop">
-        <div class="card w-full max-w-md p-8 relative overflow-hidden">
+    <div id="view-user-login" class="container mx-auto px-4 py-6 md:py-12 flex flex-col items-center view-hidden animate-pop">
+        <div class="card w-full max-w-md p-6 md:p-8 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 airline-gradient"></div>
-            <div class="text-center mb-8">
-                <p class="text-xs font-bold text-sky-600 uppercase tracking-widest mb-1">Retrieve Pass</p>
-                <h2 class="text-3xl font-black text-slate-800">Log In</h2>
-                <p class="text-sm text-slate-500 mt-2">Enter your details to get your QR codes.</p>
+            <div class="text-center mb-6">
+                <p class="text-[10px] md:text-xs font-bold text-sky-600 uppercase tracking-widest mb-1">Retrieve Pass</p>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800">Log In</h2>
+                <p class="text-xs md:text-sm text-slate-500 mt-1">Enter your details to get your QR codes.</p>
             </div>
             
             <form id="form-user-login" onsubmit="handleUserLogin(event)">
-                <div class="mb-5">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Participant Name</label>
-                    <input type="text" id="login-name" required class="w-full input-style rounded-xl px-4 py-3" placeholder="Enter your registered name">
+                <div class="mb-4">
+                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Participant Name</label>
+                    <input type="text" id="login-name" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base" placeholder="Enter your registered name">
                 </div>
-                <div class="mb-8">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-                    <input type="password" id="login-password" required class="w-full input-style rounded-xl px-4 py-3" placeholder="Enter your password">
+                <div class="mb-6">
+                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+                    <input type="password" id="login-password" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base" placeholder="Enter your password">
                 </div>
-                <button type="submit" id="btn-user-login" class="w-full airline-gradient hover:shadow-lg text-white font-bold py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5">
-                    <i data-lucide="log-in"></i> Access Passes
+                <button type="submit" id="btn-user-login" class="w-full airline-gradient hover:shadow-lg text-white font-bold py-3 md:py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5 text-sm md:text-base">
+                    <i data-lucide="log-in" class="w-5 h-5"></i> Access Passes
                 </button>
             </form>
 
-            <div class="mt-6 text-center">
-                <button type="button" onclick="switchView('register')" class="text-slate-500 text-sm font-semibold hover:text-slate-800 transition">← Back to Registration</button>
+            <div class="mt-5 text-center">
+                <button type="button" onclick="switchView('register')" class="text-slate-500 text-xs md:text-sm font-semibold hover:text-slate-800 transition">← Back to Registration</button>
             </div>
         </div>
     </div>
@@ -216,23 +216,23 @@
     <!-- ============================================== -->
     <!-- VIEW: ADMIN LOGIN                              -->
     <!-- ============================================== -->
-    <div id="view-admin-login" class="container mx-auto px-4 py-12 flex flex-col items-center view-hidden animate-pop">
-        <div class="card w-full max-w-sm p-8 text-center relative overflow-hidden">
+    <div id="view-admin-login" class="container mx-auto px-4 py-6 md:py-12 flex flex-col items-center view-hidden animate-pop">
+        <div class="card w-full max-w-sm p-6 md:p-8 text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-slate-800"></div>
-            <div class="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200">
-                <i data-lucide="lock" class="w-8 h-8 text-slate-600"></i>
+            <div class="bg-slate-100 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200">
+                <i data-lucide="lock" class="w-7 h-7 md:w-8 md:h-8 text-slate-600"></i>
             </div>
-            <h2 class="text-2xl font-bold mb-2 text-slate-800">Crew Access</h2>
-            <p class="text-sm text-slate-500 mb-6">Enter clearance code to proceed.</p>
+            <h2 class="text-xl md:text-2xl font-bold mb-2 text-slate-800">Crew Access</h2>
+            <p class="text-xs md:text-sm text-slate-500 mb-6">Enter clearance code to proceed.</p>
             
             <form onsubmit="handleAdminLogin(event)">
-                <div class="relative mb-6">
-                    <input type="password" id="admin-pass" required class="w-full input-style rounded-xl px-4 py-3 text-center tracking-widest font-mono" placeholder="••••••••">
-                    <button type="button" onclick="document.getElementById('admin-pass').focus()" class="absolute right-3 top-3 md:hidden text-slate-400">
-                        <i data-lucide="keyboard" class="w-6 h-6"></i>
+                <div class="relative mb-5">
+                    <input type="password" id="admin-pass" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-center tracking-widest font-mono text-sm md:text-base" placeholder="••••••••">
+                    <button type="button" onclick="document.getElementById('admin-pass').focus()" class="absolute right-3 top-2.5 md:top-3 md:hidden text-slate-400">
+                        <i data-lucide="keyboard" class="w-5 h-5"></i>
                     </button>
                 </div>
-                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition transform hover:-translate-y-0.5">
+                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 hover:shadow-lg text-white font-bold py-3 md:py-3.5 px-4 rounded-xl transition transform hover:-translate-y-0.5 text-sm md:text-base">
                     Unlock Terminal
                 </button>
             </form>
@@ -538,20 +538,24 @@
         // API COMMUNICATION (GOOGLE SHEETS)
         // ==========================================
         async function apiCall(action, payload = {}) {
+            let response;
             try {
-                const response = await fetch(SCRIPT_URL, {
+                response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action, payload }),
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' } // prevents CORS issues
                 });
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
-                return result.data;
             } catch (err) {
-                console.error(err);
+                console.error("Fetch Error:", err);
                 showToast("Network Error: Make sure your URL is correct", "error");
                 throw err;
             }
+            
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error); // Handled safely by calling function, no unhandled console errors
+            }
+            return result.data;
         }
 
         // ==========================================

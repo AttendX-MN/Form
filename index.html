@@ -10,7 +10,7 @@
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -75,9 +75,6 @@
             box-shadow: 0 0 25px rgba(14, 165, 233, 0.2);
             transition: all 0.3s ease;
         }
-        .scan-target-box.success { border-color: #10b981; box-shadow: 0 0 35px rgba(16, 185, 129, 0.4); background: radial-gradient(circle at center, #064e3b 0%, #020617 100%); }
-        .scan-target-box.duplicate { border-color: #f59e0b; box-shadow: 0 0 35px rgba(245, 158, 11, 0.4); background: radial-gradient(circle at center, #78350f 0%, #020617 100%); }
-        .scan-target-box.invalid { border-color: #ef4444; box-shadow: 0 0 35px rgba(239, 68, 68, 0.4); background: radial-gradient(circle at center, #7f1d1d 0%, #020617 100%); }
 
         .scan-line {
             position: absolute;
@@ -95,6 +92,38 @@
             90% { opacity: 1; }
             100% { top: 80%; opacity: 0; }
         }
+
+        /* Scanner Fullscreen & Orbs */
+        #scanner-container:fullscreen {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            border: none;
+            border-radius: 0;
+        }
+        .fullscreen-orb { display: none; }
+        #scanner-container:fullscreen .fullscreen-orb {
+            display: block;
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: floatOrb 8s infinite alternate ease-in-out;
+            z-index: 0;
+        }
+        .animation-delay-2000 { animation-delay: 2s; }
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+            100% { transform: translate(40px, 60px) scale(1.3); opacity: 0.5; }
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-left-color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .view-hidden { display: none !important; }
     </style>
@@ -255,7 +284,7 @@
             <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col">
                 
                 <!-- Invisible Scanner Input (Hardware Scanners type here) -->
-                <input type="text" id="scanner-input" class="opacity-0 absolute -z-10" autofocus autocomplete="off">
+                <input type="text" id="scanner-input" class="opacity-0 absolute -z-10 w-0 h-0" autofocus autocomplete="off">
                 
                 <!-- Scanner Header & Controls -->
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -280,19 +309,22 @@
                     <!-- LEFT COLUMN (Scan Box & Recent) -->
                     <div class="lg:col-span-2 flex flex-col gap-6">
                         
-                        <!-- THE SCAN TARGET BOX -->
-                        <div id="scan-active-box" class="scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[320px] cursor-pointer" onclick="document.getElementById('scanner-input').focus()">
+                        <!-- THE CONTINUOUS SCAN TARGET BOX -->
+                        <!-- NOTE: We removed the popup from inside this container! -->
+                        <div class="scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[360px] cursor-pointer overflow-hidden" onclick="document.getElementById('scanner-input').focus()">
+                            
+                            <!-- Laser Animation -->
                             <div class="scan-line" id="scan-line-anim"></div>
                             
-                            <p id="scan-box-header" class="text-sky-400 font-bold tracking-widest text-sm mb-6 z-20">SCAN EVENT QR CODE</p>
+                            <p class="text-sky-400 font-bold tracking-widest text-sm mb-6 z-20">SCAN EVENT QR CODE</p>
                             
-                            <div class="relative w-32 h-32 mb-6 z-20" id="scan-box-icon-container">
-                                <i data-lucide="scan" class="w-full h-full text-sky-500/30" id="scan-box-icon"></i>
+                            <div class="relative w-32 h-32 mb-6 z-20">
+                                <div class="absolute inset-0 border-4 border-sky-500/30 rounded-3xl" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 20px 20px, 20px calc(100% - 20px), calc(100% - 20px) calc(100% - 20px), calc(100% - 20px) 20px, 20px 20px);"></div>
+                                <i data-lucide="scan" class="w-full h-full text-sky-500/30 p-4"></i>
                             </div>
                             
-                            <div class="text-center z-20 h-16 flex flex-col justify-center">
-                                <p class="font-mono text-sky-300 text-sm mb-1 uppercase tracking-widest" id="scan-box-status">WAITING FOR SCAN...</p>
-                                <p class="text-2xl font-black text-white tracking-wide truncate max-w-[300px]" id="scan-box-participant">PARTICIPANT: [Waiting]</p>
+                            <div class="text-center z-20">
+                                <p class="font-mono text-sky-300 text-sm mb-1 uppercase tracking-widest">WAITING FOR SCAN...</p>
                             </div>
                         </div>
 
@@ -511,6 +543,47 @@
             </div>
             
         </main>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: SCAN RESULT (GLOBAL OVERLAY)            -->
+    <!-- ============================================== -->
+    <!-- This has been moved OUTSIDE of the scanner box so it never gets cut off! -->
+    <div id="scan-result-card" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
+            
+            <!-- Header Bar -->
+            <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
+                <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2">
+                    <i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS
+                </span>
+                <i data-lucide="plane-landing" class="w-6 h-6 opacity-80"></i>
+            </div>
+
+            <!-- Ticket Body -->
+            <div class="p-6 relative bg-white">
+                <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
+                <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
+                <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
+
+                <div class="flex flex-col items-center mt-4">
+                    <div id="scan-icon" class="mb-4 z-10 relative"></div>
+                    <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
+                    <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight"></h3>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p>
+                        <p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Flight / Event</p>
+                        <p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ============================================== -->
@@ -880,11 +953,15 @@
                     statusClass = 'bg-rose-100 text-rose-700 border-rose-200';
                 }
 
+                // Handle scan_time gracefully if undefined or missing comma
+                const scanTimeStr = scan.scan_time || new Date().toLocaleTimeString();
+                const displayTime = scanTimeStr.includes(', ') ? scanTimeStr.split(', ')[1] : scanTimeStr;
+
                 tbody.innerHTML += `
                     <tr>
                         <td class="py-3 font-bold text-slate-800">${scan.name}</td>
                         <td class="py-3 text-slate-600">${scan.role === 'Speaker' ? '<span class="text-yellow-600 font-bold">VIP</span>' : scan.lajnah}</td>
-                        <td class="py-3 text-slate-500 font-medium">${scan.scan_time.split(', ')[1] || scan.scan_time}</td>
+                        <td class="py-3 text-slate-500 font-medium">${displayTime}</td>
                         <td class="py-3 text-right">
                             <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${statusClass}">
                                 ${iconHtml}
@@ -921,13 +998,14 @@
             let actualQrId = code;
             let optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-';
             let isOptimistic = false;
+            const nowStr = new Date().toLocaleString('en-GB');
 
             if (code.includes('|')) {
                 const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; isOptimistic = true;
             }
 
             if (sessionScanned.has(actualQrId)) {
-                triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-' });
+                triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-', scan_time: nowStr });
                 return;
             }
 
@@ -937,11 +1015,11 @@
                 const qrEventNameBase = optSubevent.replace(/\[#\d+\]\s/, '');
                 
                 if(optSubevent !== 'Universal Master Pass' && qrEventNameBase !== expectedEventName) {
-                    triggerScannerUI({ scan_result: 'WRONG EVENT', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Expected: ${expectedEventName}`, status: '-' });
+                    triggerScannerUI({ scan_result: 'WRONG EVENT', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Expected: ${expectedEventName}`, status: '-', scan_time: nowStr });
                 } else {
                     sessionScanned.add(actualQrId);
                     setTimeout(() => sessionScanned.delete(actualQrId), 10000); 
-                    triggerScannerUI({ scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME' });
+                    triggerScannerUI({ scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME', scan_time: nowStr });
                 }
 
                 // Background sync
@@ -952,74 +1030,130 @@
                 apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).then(result => {
                     if (result.scan_result === 'SUCCESS') { sessionScanned.add(actualQrId); setTimeout(() => sessionScanned.delete(actualQrId), 10000); }
                     triggerScannerUI(result);
-                }).catch(err => { triggerScannerUI({scan_result: 'ERROR', name: 'Network Error', lajnah: '-', role: '-', subevent_name: '-', status: '-'}); });
+                }).catch(err => { triggerScannerUI({scan_result: 'ERROR', name: 'Network Error', lajnah: '-', role: '-', subevent_name: '-', status: '-', scan_time: nowStr}); });
             }
         }
 
         function setScannerLoading() {
-            document.getElementById('scan-line-anim').style.display = 'none';
-            document.getElementById('scan-box-header').innerText = "VERIFYING PASS...";
-            document.getElementById('scan-box-icon').setAttribute('data-lucide', 'loader-2');
-            document.getElementById('scan-box-icon').classList.add('animate-spin', 'text-sky-400');
-            document.getElementById('scan-box-status').innerText = "CONNECTING...";
-            document.getElementById('scan-box-participant').innerText = "PLEASE WAIT";
-            lucide.createIcons();
+            const resultWrapper = document.getElementById('scan-result-card');
+            const cardInner = document.getElementById('bp-card-inner');
+            const headerBar = document.getElementById('bp-header');
+            const iconBox = document.getElementById('scan-icon');
+            const nameEl = document.getElementById('scan-name');
+            const lajnahEl = document.getElementById('scan-lajnah');
+            const eventEl = document.getElementById('scan-event');
+            const badge = document.getElementById('scan-status-badge');
+
+            headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-sky-400 to-blue-600";
+            iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-sky-100 border-4 border-white shadow-md mx-auto z-10 relative"><div class="animate-spin rounded-full h-8 w-8 border-4 border-sky-300 border-t-sky-600"></div></div>`;
+            nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">SILA TUNGGU</span>MENGESAHKAN...`;
+            lajnahEl.innerText = '-';
+            eventEl.innerText = '-';
+            badge.className = "hidden";
+
+            resultWrapper.classList.remove('hidden');
+            setTimeout(() => { 
+                cardInner.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
+                cardInner.classList.add('scale-100', 'opacity-100', 'translate-y-0');
+            }, 10);
         }
 
         function triggerScannerUI(res) {
-            const box = document.getElementById('scan-active-box');
-            const header = document.getElementById('scan-box-header');
-            const iconContainer = document.getElementById('scan-box-icon-container');
-            const status = document.getElementById('scan-box-status');
-            const participant = document.getElementById('scan-box-participant');
-            const scanLine = document.getElementById('scan-line-anim');
+            const resultWrapper = document.getElementById('scan-result-card');
+            const cardInner = document.getElementById('bp-card-inner');
+            const headerBar = document.getElementById('bp-header');
+            const iconBox = document.getElementById('scan-icon');
+            const nameEl = document.getElementById('scan-name');
+            const lajnahEl = document.getElementById('scan-lajnah');
+            const eventEl = document.getElementById('scan-event');
+            const badge = document.getElementById('scan-status-badge');
 
-            // Reset classes
-            box.className = "scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[320px] cursor-pointer";
-            scanLine.style.display = 'none';
-
-            participant.innerText = res.name.toUpperCase();
-            
-            // Add to recent scans local state
-            state.localSessionScans.unshift(res);
+            // Update Stats (Ignore Invalid/Error scans from Recent list)
+            if (res.scan_result !== 'INVALID' && res.scan_result !== 'ERROR' && res.scan_result !== 'WRONG EVENT') {
+                state.localSessionScans.unshift(res);
+            }
             if(res.scan_result === 'SUCCESS') state.localSessionCount++;
             
             updateScannerStats();
             renderRecentScans();
 
+            lajnahEl.innerText = res.lajnah || '-';
+            eventEl.innerText = res.subevent_name || '-';
+            
+            badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm";
+
             if (res.scan_result === 'SUCCESS') {
-                box.classList.add('success');
-                header.innerText = "ACCESS GRANTED";
-                iconContainer.innerHTML = `<i data-lucide="check-circle-2" class="w-full h-full text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]"></i>`;
-                status.innerText = "SUCCESSFUL SCAN";
-                if(res.role === 'Speaker') playSound('speaker'); else playSound('success');
+                // Success Malay Welcome Message
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">SELAMAT DATANG,</span>${res.name ? res.name.toUpperCase() : 'UNKNOWN'}`;
+                badge.innerText = "DIPERSILAKAN MASUK";
+                
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-emerald-400 to-green-600";
+                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-green-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="check-circle-2" class="w-8 h-8 text-green-600"></i></div>`;
+                badge.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
+                
+                if (res.role === 'Speaker') {
+                    playSound('speaker');
+                    headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-yellow-400 to-amber-600";
+                    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, zIndex: 100 });
+                    const fs = document.getElementById('fullscreen-announcement');
+                    document.getElementById('fs-name').innerText = res.name;
+                    fs.classList.remove('hidden');
+                    setTimeout(() => fs.classList.add('hidden'), 5000);
+                } else {
+                    playSound('success');
+                }
             } else if (res.scan_result === 'DUPLICATE') {
-                box.classList.add('duplicate');
-                header.innerText = "PASS ALREADY USED";
-                iconContainer.innerHTML = `<i data-lucide="alert-triangle" class="w-full h-full text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]"></i>`;
-                status.innerText = "DUPLICATE ENTRY";
+                // Duplicate Malay Warning
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name ? res.name.toUpperCase() : 'UNKNOWN'}`;
+                badge.innerText = "QR TELAH DIGUNAKAN";
+                
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-amber-400 to-orange-500";
+                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-amber-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="alert-circle" class="w-8 h-8 text-amber-600"></i></div>`;
+                badge.classList.add('bg-amber-100', 'text-amber-700', 'border', 'border-amber-200');
+                playSound('error');
+            } else if (res.scan_result === 'WRONG EVENT') {
+                // Wrong Event Warning
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name ? res.name.toUpperCase() : 'UNKNOWN'}`;
+                badge.innerText = "SALAH ACARA / SESI";
+                
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-red-500 to-rose-700";
+                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="x-circle" class="w-8 h-8 text-red-600"></i></div>`;
+                badge.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
                 playSound('error');
             } else {
-                box.classList.add('invalid');
-                header.innerText = "ACCESS DENIED";
-                iconContainer.innerHTML = `<i data-lucide="x-octagon" class="w-full h-full text-rose-400 drop-shadow-[0_0_15px_rgba(225,29,72,0.8)]"></i>`;
-                status.innerText = res.scan_result === 'WRONG EVENT' ? "WRONG EVENT PASS" : "INVALID PASS";
+                // Invalid Malay Warning
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>QR CODE TIDAK SAH`;
+                badge.innerText = "AKSES DITOLAK";
+                
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-red-500 to-rose-700";
+                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="x-circle" class="w-8 h-8 text-red-600"></i></div>`;
+                badge.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
                 playSound('error');
             }
-            
-            lucide.createIcons();
 
-            // Reset after delay
+            lucide.createIcons({root: cardInner});
+
+            // Show popup with Tailwind classes for robust animation
+            resultWrapper.classList.remove('hidden');
+            setTimeout(() => { 
+                cardInner.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
+                cardInner.classList.add('scale-100', 'opacity-100', 'translate-y-0');
+            }, 10);
+
+            // Keep input focused for next scan
+            document.getElementById('scanner-input').focus();
+
+            // Auto-hide popup
             clearTimeout(scanResetTimeout);
             scanResetTimeout = setTimeout(() => {
-                box.className = "scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[320px] cursor-pointer";
-                scanLine.style.display = 'block';
-                header.innerText = "SCAN EVENT QR CODE";
-                iconContainer.innerHTML = `<i data-lucide="scan" class="w-full h-full text-sky-500/30" id="scan-box-icon"></i>`;
-                status.innerText = "WAITING FOR SCAN...";
-                participant.innerText = "PARTICIPANT: [Waiting]";
-                lucide.createIcons();
-            }, 2500);
+                // Animate out
+                cardInner.classList.remove('scale-100', 'opacity-100', 'translate-y-0');
+                cardInner.classList.add('scale-95', 'opacity-0', 'translate-y-8');
+                setTimeout(() => {
+                    resultWrapper.classList.add('hidden');
+                    document.getElementById('scanner-input').focus();
+                }, 500); // Wait for transition
+            }, 3000);
         }
 
         // ==========================================
@@ -1051,7 +1185,9 @@
                     if (log.scan_result !== 'SUCCESS') return;
                     const isVip = log.role === 'Speaker';
                     let statusColor = log.status === 'ON TIME' ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100";
-                    tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${log.status!=='-' ? `(${log.status})` : ''}</span></td></tr>`;
+                    const statusText = log.status !== '-' ? '(' + log.status + ')' : '';
+                    
+                    tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${statusText}</span></td></tr>`;
                 });
             } catch (err) {}
         }

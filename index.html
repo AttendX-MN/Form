@@ -19,7 +19,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -68,14 +68,54 @@
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         
-        @keyframes pulse-gold {
-            0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(250, 204, 21, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+        /* Scanner Fullscreen & Orbs */
+        #scanner-container:fullscreen {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            border: none;
+            border-radius: 0;
         }
-        .speaker-highlight { animation: pulse-gold 2s infinite; border-color: #facc15 !important; background: #fefce8 !important;}
+        #scanner-container:fullscreen #scanner-title { color: #ffffff; }
+        #scanner-container:fullscreen #scanner-subtitle { color: #94a3b8; }
+        #scanner-container:fullscreen .input-style { 
+            background-color: rgba(255,255,255,0.05); 
+            color: #ffffff; 
+            border-color: rgba(255,255,255,0.1); 
+        }
+        #scanner-container:fullscreen .input-style:focus { border-color: #38bdf8; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.3); }
+        #scanner-container:fullscreen .bp-cutout { background-color: #1e293b; }
+
+        .fullscreen-orb { display: none; }
+        #scanner-container:fullscreen .fullscreen-orb {
+            display: block;
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: floatOrb 8s infinite alternate ease-in-out;
+            z-index: 0;
+        }
+        .animation-delay-2000 { animation-delay: 2s; }
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+            100% { transform: translate(40px, 60px) scale(1.3); opacity: 0.5; }
+        }
+
+        /* Boarding Pass Pop */
+        .bp-show {
+            transform: scale(1) translateY(0) !important;
+            opacity: 1 !important;
+        }
         
-        /* Hide sections */
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-left-color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
         .view-hidden { display: none !important; }
     </style>
 </head>
@@ -123,10 +163,53 @@
                     </select>
                 </div>
                 
+                <div class="mb-8">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Create Password</label>
+                    <input type="password" id="reg-password" required class="w-full input-style rounded-xl px-4 py-3" placeholder="Set a password for future access">
+                    <p class="text-xs text-slate-400 mt-2">You will need this to log in and retrieve your pass later.</p>
+                </div>
+                
                 <button type="submit" id="btn-register" class="w-full airline-gradient hover:shadow-lg text-white font-bold py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5">
                     <i data-lucide="qr-code"></i> Generate Attendance Pass
                 </button>
             </form>
+
+            <div class="mt-8 text-center border-t border-slate-100 pt-6">
+                <p class="text-sm text-slate-500">Already registered?</p>
+                <button type="button" onclick="switchView('user-login')" class="text-sky-600 font-bold hover:underline mt-1">Log in to retrieve your pass</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- VIEW: PARTICIPANT LOGIN                        -->
+    <!-- ============================================== -->
+    <div id="view-user-login" class="container mx-auto px-4 py-12 flex flex-col items-center view-hidden animate-pop">
+        <div class="card w-full max-w-md p-8 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 airline-gradient"></div>
+            <div class="text-center mb-8">
+                <p class="text-xs font-bold text-sky-600 uppercase tracking-widest mb-1">Retrieve Pass</p>
+                <h2 class="text-3xl font-black text-slate-800">Log In</h2>
+                <p class="text-sm text-slate-500 mt-2">Enter your details to get your QR codes.</p>
+            </div>
+            
+            <form id="form-user-login" onsubmit="handleUserLogin(event)">
+                <div class="mb-5">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Participant Name</label>
+                    <input type="text" id="login-name" required class="w-full input-style rounded-xl px-4 py-3" placeholder="Enter your registered name">
+                </div>
+                <div class="mb-8">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                    <input type="password" id="login-password" required class="w-full input-style rounded-xl px-4 py-3" placeholder="Enter your password">
+                </div>
+                <button type="submit" id="btn-user-login" class="w-full airline-gradient hover:shadow-lg text-white font-bold py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5">
+                    <i data-lucide="log-in"></i> Access Passes
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <button type="button" onclick="switchView('register')" class="text-slate-500 text-sm font-semibold hover:text-slate-800 transition">← Back to Registration</button>
+            </div>
         </div>
     </div>
 
@@ -192,27 +275,77 @@
             
             <!-- TAB: SCANNER -->
             <div id="tab-scanner" class="admin-content animate-pop">
-                <div id="scanner-container" class="card p-8 text-center min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden bg-slate-50 border-dashed border-2 border-slate-300">
+                <div id="scanner-container" class="card p-8 text-center min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden bg-slate-50 border-dashed border-2 border-slate-300 transition-all duration-500">
                     
+                    <!-- Animated Background Orbs (Visible only in Fullscreen) -->
+                    <div class="fullscreen-orb w-96 h-96 bg-sky-600/30 top-[-10%] left-[-10%]"></div>
+                    <div class="fullscreen-orb w-96 h-96 bg-indigo-600/30 bottom-[-10%] right-[-10%] animation-delay-2000"></div>
+
                     <!-- Fullscreen Toggle Button -->
-                    <button onclick="toggleFullscreen('scanner-container')" class="absolute top-4 right-4 bg-white border border-slate-200 p-2 rounded-lg hover:bg-slate-50 text-slate-600 transition shadow-sm z-10" title="Full Screen">
+                    <button onclick="toggleFullscreen('scanner-container')" class="absolute top-4 right-4 bg-white/10 hover:bg-white/30 backdrop-blur-md border border-slate-200/50 p-2 rounded-lg text-slate-600 hover:text-slate-900 transition shadow-sm z-50" title="Full Screen">
                         <i data-lucide="maximize" class="w-5 h-5"></i>
                     </button>
 
-                    <div class="bg-white p-4 rounded-full shadow-sm border border-slate-100 mb-4 mt-4">
-                        <i data-lucide="scan-barcode" class="w-8 h-8 text-sky-500"></i>
+                    <!-- Idle Scanner State -->
+                    <div id="scanner-idle-content" class="relative z-10 transition-all duration-300 transform w-full max-w-sm mx-auto flex flex-col items-center">
+                        <div class="bg-white p-5 rounded-full shadow-lg border border-slate-100 mb-6">
+                            <i data-lucide="scan-barcode" class="w-12 h-12 text-sky-500 animate-pulse"></i>
+                        </div>
+                        <h2 id="scanner-title" class="text-4xl font-black mb-2 text-slate-800 tracking-tight">Scanner Ready</h2>
+                        <p id="scanner-subtitle" class="text-slate-500 mb-10 font-medium">Awaiting attendance pass scan...</p>
+                        
+                        <input type="text" id="scanner-input" class="input-style rounded-2xl px-6 py-4 w-full text-center mb-6 focus:ring-4 focus:ring-sky-200 shadow-xl text-lg font-mono tracking-widest bg-white" placeholder="Tap to scan..." autofocus autocomplete="off">
                     </div>
-                    <h2 class="text-3xl font-bold mb-2 text-slate-800">Scanner Ready</h2>
-                    <p class="text-slate-500 mb-8">Awaiting attendance pass scan...</p>
                     
-                    <input type="text" id="scanner-input" class="input-style rounded-xl px-4 py-3 w-64 text-center mb-6 focus:ring-4 focus:ring-sky-200 shadow-sm" placeholder="Awaiting scan..." autofocus autocomplete="off">
-                    
-                    <div id="scan-result-card" class="hidden w-full max-w-sm card rounded-2xl p-6 transform transition-all shadow-xl border-2">
-                        <div id="scan-icon" class="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"></div>
-                        <h3 id="scan-name" class="text-2xl font-bold text-slate-800"></h3>
-                        <p id="scan-info" class="text-md text-slate-500 font-medium mt-1"></p>
-                        <div id="scan-status-badge" class="mt-4 inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-wide uppercase"></div>
+                    <!-- NEW BOARDING PASS RESULT CARD -->
+                    <div id="scan-result-card" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-20">
+                        <div id="bp-card-inner" class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 scale-95 opacity-0 translate-y-8">
+                            
+                            <!-- Header Bar (Color changes via JS) -->
+                            <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
+                                <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2">
+                                    <i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS
+                                </span>
+                                <i data-lucide="plane-landing" class="w-6 h-6 opacity-80"></i>
+                            </div>
+
+                            <!-- Ticket Body -->
+                            <div class="p-6 relative bg-white">
+                                <!-- Cutouts -->
+                                <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-50 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
+                                <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-50 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
+                                
+                                <!-- Dashed Line -->
+                                <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
+
+                                <!-- Result Icon & Name -->
+                                <div class="flex flex-col items-center mt-4">
+                                    <div id="scan-icon" class="mb-4 z-10 relative"></div>
+                                    <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
+                                    <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight"></h3>
+                                </div>
+
+                                <!-- Flight Details Grid -->
+                                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
+                                    <div>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p>
+                                        <p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Flight / Event</p>
+                                        <p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p>
+                                    </div>
+                                </div>
+
+                                <!-- Barcode Graphic -->
+                                <div class="mt-8 flex flex-col items-center opacity-40">
+                                    <div class="h-10 w-4/5 bg-[repeating-linear-gradient(90deg,#0f172a,#0f172a_3px,transparent_3px,transparent_5px,#0f172a_5px,#0f172a_6px,transparent_6px,transparent_10px)] rounded-sm"></div>
+                                    <p class="text-[9px] font-mono mt-2 tracking-widest">ATTENDX-VALIDATION</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -228,6 +361,12 @@
                             <i data-lucide="maximize" class="w-5 h-5"></i>
                         </button>
                     </div>
+                    
+                    <!-- NEW STATS PANEL -->
+                    <div id="live-stats-container" class="grid grid-cols-2 md:grid-cols-6 gap-4 p-6 bg-white border-b border-slate-200">
+                        <!-- Injected via JS -->
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -393,6 +532,7 @@
         };
         
         let sessionScanned = new Set(); // Local memory for instant duplicate catching
+        let scanHideTimeout = null;
 
         // ==========================================
         // API COMMUNICATION (GOOGLE SHEETS)
@@ -447,7 +587,7 @@
         };
 
         const switchView = (viewId) => {
-            ['view-register', 'view-admin-login', 'view-admin-dashboard'].forEach(v => {
+            ['view-register', 'view-admin-login', 'view-admin-dashboard', 'view-user-login'].forEach(v => {
                 document.getElementById(v).classList.add('view-hidden');
             });
             document.getElementById(`view-${viewId}`).classList.remove('view-hidden');
@@ -497,7 +637,6 @@
         const playSound = (type) => {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             if (type === 'scan') {
-                // Instant quick tick when scanner reads the code
                 const osc = ctx.createOscillator();
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(1500, ctx.currentTime);
@@ -549,7 +688,7 @@
 
         function refreshEventDropdowns() {
             const eventSelect = document.getElementById('spk-event');
-            eventSelect.innerHTML = '<option value="">-- All Active Events --</option>';
+            eventSelect.innerHTML = '<option value="ALL">🌟 Universal Master Pass (All Events)</option>';
             state.subEvents.forEach(e => {
                 eventSelect.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`;
             });
@@ -567,7 +706,8 @@
             try {
                 const qrs = await apiCall('registerUser', { 
                     name: document.getElementById('reg-name').value, 
-                    lajnah: document.getElementById('reg-lajnah').value 
+                    lajnah: document.getElementById('reg-lajnah').value,
+                    password: document.getElementById('reg-password').value
                 });
                 renderQRs(qrs);
                 openModal('modal-qr');
@@ -577,6 +717,32 @@
                 showToast("Failed to register.", "error");
             } finally {
                 btn.innerHTML = `<i data-lucide="qr-code"></i> Generate Attendance Pass`;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        async function handleUserLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-user-login');
+            btn.innerHTML = `<div class="loader"></div> Verifying...`;
+            btn.disabled = true;
+
+            try {
+                const qrs = await apiCall('participantLogin', { 
+                    name: document.getElementById('login-name').value, 
+                    password: document.getElementById('login-password').value 
+                });
+                if(qrs.length === 0) showToast("No passes found for this account.", "warning");
+                else {
+                    renderQRs(qrs);
+                    openModal('modal-qr');
+                    document.getElementById('form-user-login').reset();
+                }
+            } catch (err) {
+                showToast(err.message || "Invalid name or password.", "error");
+            } finally {
+                btn.innerHTML = `<i data-lucide="log-in"></i> Access Passes`;
                 btn.disabled = false;
                 lucide.createIcons();
             }
@@ -602,34 +768,45 @@
             container.innerHTML = '';
             
             if(qrDataArray.length === 0) {
-                container.innerHTML = `<p class="text-red-500 font-bold">Error: You must create an Active Event in the Admin panel first!</p>`;
+                container.innerHTML = `<p class="text-red-500 font-bold">Error: No passes available.</p>`;
                 return;
             }
 
             qrDataArray.forEach(data => {
                 const card = document.createElement('div');
-                card.className = "flex flex-col bg-white border border-slate-200 shadow-md w-full max-w-sm rounded-2xl overflow-hidden mb-2 relative";
+                card.className = "flex flex-col bg-white border border-slate-200 shadow-md w-full max-w-sm rounded-2xl overflow-hidden mb-4 relative";
                 
                 const isVip = data.role === 'Speaker';
-                const headerGradient = isVip ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'airline-gradient';
+                const isExpired = data.status === 'USED';
+                
+                let headerGradient = isVip ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'airline-gradient';
+                if(isExpired) headerGradient = 'bg-slate-500'; // Grey header if expired
                 
                 card.innerHTML = `
-                    <div class="${headerGradient} w-full p-4 text-white flex justify-between items-center">
-                        <div>
+                    <div class="${headerGradient} w-full px-5 py-4 text-white flex justify-between items-center">
+                        <div class="w-[85%]">
                             <p class="text-[10px] uppercase tracking-widest opacity-80 mb-1">Entry Pass</p>
-                            <h3 class="font-bold text-lg truncate w-48">${data.subevent_name}</h3>
+                            <!-- PDF FIX: Replaced truncate with break-words to prevent vertical cut-off -->
+                            <h3 class="font-bold text-sm leading-snug pr-2 break-words whitespace-normal">${data.subevent_name}</h3>
                         </div>
-                        <i data-lucide="plane-takeoff" class="w-8 h-8 opacity-80"></i>
+                        <i data-lucide="${isExpired ? 'x-octagon' : 'plane-takeoff'}" class="w-8 h-8 opacity-80 flex-shrink-0"></i>
                     </div>
                     <div class="relative w-full border-t-2 border-dashed border-slate-200 bg-white">
                         <div class="absolute -left-3 -top-3 w-6 h-6 bg-slate-50 rounded-full border border-slate-200"></div>
                         <div class="absolute -right-3 -top-3 w-6 h-6 bg-slate-50 rounded-full border border-slate-200"></div>
                     </div>
-                    <div class="p-6 flex flex-col items-center bg-white">
-                        <div class="p-2 border-2 border-slate-100 rounded-xl mb-4" id="qr-${data.qr_id}"></div>
+                    <div class="p-6 flex flex-col items-center bg-white ${isExpired ? 'grayscale opacity-75' : ''}">
+                        
+                        <div class="relative mb-4">
+                            ${isExpired ? `<div class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[1px] rounded-xl"><span class="bg-red-600 text-white text-xs font-black px-3 py-1 rounded shadow-lg transform -rotate-12 border-2 border-white">EXPIRED</span></div>` : ''}
+                            <div class="p-2 border-2 border-slate-100 rounded-xl" id="qr-${data.qr_id}"></div>
+                        </div>
+
+                        ${isExpired ? `<p class="text-red-600 font-bold text-xs mb-4 uppercase tracking-wider text-center">This pass has already been used.</p>` : ''}
+
                         <div class="w-full bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm">
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Participant Name</p>
-                            <p class="font-bold text-slate-800 text-lg mb-4 truncate">${data.name}</p>
+                            <p class="font-bold text-slate-800 text-lg mb-4 break-words whitespace-normal">${data.name}</p>
                             <div class="flex justify-between">
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Lajnah</p>
@@ -637,7 +814,7 @@
                                 </div>
                                 <div class="text-right">
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                                    <p class="font-bold ${isVip ? 'text-yellow-600' : 'text-sky-600'} text-sm">${data.role}</p>
+                                    <p class="font-bold ${isExpired ? 'text-slate-500' : (isVip ? 'text-yellow-600' : 'text-sky-600')} text-sm">${isExpired ? 'EXPIRED' : data.role}</p>
                                 </div>
                             </div>
                         </div>
@@ -645,12 +822,12 @@
                 `;
                 container.appendChild(card);
                 
-                // Fast Scan Optimistic Update: We embed Name, Lajnah, etc INTO the QR text!
                 const qrText = `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`;
                 
                 new QRCode(document.getElementById(`qr-${data.qr_id}`), { 
                     text: qrText, width: 160, height: 160, 
-                    colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M 
+                    colorDark : isExpired ? "#64748b" : "#0f172a", // Lighter grey QR if expired
+                    colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M 
                 });
             });
             lucide.createIcons();
@@ -716,7 +893,6 @@
             let optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-';
             let isOptimistic = false;
 
-            // Extract data instantly from the QR string pattern
             if (code.includes('|')) {
                 const parts = code.split('|');
                 actualQrId = parts[0];
@@ -727,47 +903,28 @@
                 isOptimistic = true;
             }
 
-            // 1. INSTANT LOCAL DUPLICATE CHECK (0 seconds delay)
             if (sessionScanned.has(actualQrId)) {
-                displayScanResult({
-                    scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-'
-                });
+                displayScanResult({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-' });
                 return;
             }
 
             if (isOptimistic) {
-                // 2. INSTANT SUCCESS UI (0 seconds delay, skip loading spinner!)
                 sessionScanned.add(actualQrId);
-                displayScanResult({
-                    scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME'
-                });
+                setTimeout(() => sessionScanned.delete(actualQrId), 10000); // Clear memory after 10s to allow Universal Pass reuse
+                
+                displayScanResult({ scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME' });
 
-                // 3. SILENT BACKGROUND SYNC TO GOOGLE SHEETS
                 apiCall('scanQR', { qr_id: actualQrId }).then(res => {
-                    // Update live table silently when server finishes
                     if(!document.getElementById('tab-live').classList.contains('view-hidden')) fetchLiveUpdates();
                 }).catch(e => console.error("Background sync error:", e));
-
             } else {
-                // FALLBACK FOR OLD QR CODES (Show loading spinner)
-                const card = document.getElementById('scan-result-card');
-                const iconBox = document.getElementById('scan-icon');
-                const nameEl = document.getElementById('scan-name');
-                const infoEl = document.getElementById('scan-info');
-                const badge = document.getElementById('scan-status-badge');
-
-                card.classList.remove('hidden', 'border-red-500', 'border-green-500', 'border-yellow-500', 'border-sky-500', 'speaker-highlight', 'bg-red-50', 'bg-green-50', 'bg-yellow-50', 'bg-sky-50');
-                card.classList.add('border-sky-500', 'bg-sky-50'); 
-                
-                iconBox.className = "mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-sky-100 border border-sky-300";
-                iconBox.innerHTML = `<div class="animate-spin rounded-full h-8 w-8 border-4 border-sky-300 border-t-sky-600"></div>`; 
-                
-                nameEl.innerText = 'Scanning...';
-                infoEl.innerText = 'Verifying pass with server...';
-                badge.className = "hidden";
-
+                // Show Loading Card for old QR formats without embedded data
+                showLoadingCard();
                 apiCall('scanQR', { qr_id: actualQrId }).then(result => {
-                    if (result.scan_result === 'SUCCESS') sessionScanned.add(actualQrId);
+                    if (result.scan_result === 'SUCCESS') {
+                        sessionScanned.add(actualQrId);
+                        setTimeout(() => sessionScanned.delete(actualQrId), 10000);
+                    }
                     displayScanResult(result);
                     if(!document.getElementById('tab-live').classList.contains('view-hidden')) fetchLiveUpdates();
                 }).catch(err => {
@@ -776,30 +933,53 @@
             }
         }
 
-        function displayScanResult(res) {
-            const card = document.getElementById('scan-result-card');
+        function showLoadingCard() {
+            const resultWrapper = document.getElementById('scan-result-card');
+            const cardInner = document.getElementById('bp-card-inner');
+            const headerBar = document.getElementById('bp-header');
             const iconBox = document.getElementById('scan-icon');
             const nameEl = document.getElementById('scan-name');
-            const infoEl = document.getElementById('scan-info');
+            const lajnahEl = document.getElementById('scan-lajnah');
+            const eventEl = document.getElementById('scan-event');
             const badge = document.getElementById('scan-status-badge');
+            const idleContent = document.getElementById('scanner-idle-content');
 
-            // Clear loading styles and set up result styles
-            card.classList.remove('hidden', 'border-red-500', 'border-green-500', 'border-yellow-500', 'border-sky-500', 'speaker-highlight', 'bg-red-50', 'bg-green-50', 'bg-yellow-50', 'bg-sky-50');
-            iconBox.innerHTML = '';
-            
+            headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-sky-400 to-blue-600";
+            iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-sky-100 border-4 border-white shadow-md mx-auto z-10 relative"><div class="animate-spin rounded-full h-8 w-8 border-4 border-sky-300 border-t-sky-600"></div></div>`;
+            nameEl.innerText = 'Verifying...';
+            lajnahEl.innerText = '-';
+            eventEl.innerText = '-';
+            badge.className = "hidden";
+
+            idleContent.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+            resultWrapper.classList.remove('hidden');
+            setTimeout(() => cardInner.classList.add('bp-show'), 10);
+        }
+
+        function displayScanResult(res) {
+            const resultWrapper = document.getElementById('scan-result-card');
+            const cardInner = document.getElementById('bp-card-inner');
+            const headerBar = document.getElementById('bp-header');
+            const iconBox = document.getElementById('scan-icon');
+            const nameEl = document.getElementById('scan-name');
+            const lajnahEl = document.getElementById('scan-lajnah');
+            const eventEl = document.getElementById('scan-event');
+            const badge = document.getElementById('scan-status-badge');
+            const idleContent = document.getElementById('scanner-idle-content');
+
             nameEl.innerText = res.name || 'Unknown';
-            infoEl.innerText = `${res.lajnah || '-'} | ${res.subevent_name || '-'}`;
+            lajnahEl.innerText = res.lajnah || '-';
+            eventEl.innerText = res.subevent_name || '-';
             badge.innerText = `${res.scan_result} ${res.status && res.status!=='-' ? `(${res.status})` : ''}`;
 
             if (res.scan_result === 'SUCCESS') {
-                card.classList.add('border-green-500', 'bg-green-50');
-                iconBox.innerHTML = `<i data-lucide="check-circle" class="w-10 h-10 text-green-600"></i>`;
-                iconBox.className = "mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-green-200 border border-green-300";
-                badge.className = "mt-4 inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase bg-green-600 text-white";
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-emerald-400 to-green-600";
+                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-green-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="check-circle-2" class="w-8 h-8 text-green-600"></i></div>`;
+                badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm bg-green-100 text-green-700 border border-green-200";
                 
                 if (res.role === 'Speaker') {
                     playSound('speaker');
-                    card.classList.add('speaker-highlight');
+                    headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-yellow-400 to-amber-600";
                     confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, zIndex: 100 });
                     
                     const fs = document.getElementById('fullscreen-announcement');
@@ -810,45 +990,111 @@
                     playSound('success');
                 }
             } else if (res.scan_result === 'DUPLICATE') {
-                card.classList.add('border-yellow-500', 'bg-yellow-50');
-                iconBox.innerHTML = `<i data-lucide="alert-circle" class="w-10 h-10 text-yellow-600"></i>`;
-                iconBox.className = "mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-yellow-200 border border-yellow-300";
-                badge.className = "mt-4 inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase bg-yellow-500 text-yellow-900";
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-amber-400 to-orange-500";
+                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-amber-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="alert-circle" class="w-8 h-8 text-amber-600"></i></div>`;
+                badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm bg-amber-100 text-amber-700 border border-amber-200";
                 playSound('error');
             } else {
-                card.classList.add('border-red-500', 'bg-red-50');
-                iconBox.innerHTML = `<i data-lucide="x-circle" class="w-10 h-10 text-red-600"></i>`;
-                iconBox.className = "mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-red-200 border border-red-300";
-                badge.className = "mt-4 inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase bg-red-600 text-white";
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-red-500 to-rose-700";
+                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="x-circle" class="w-8 h-8 text-red-600"></i></div>`;
+                badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm bg-red-100 text-red-700 border border-red-200";
                 playSound('error');
             }
 
-            lucide.createIcons({root: card});
+            lucide.createIcons({root: cardInner});
+
+            // Trigger Pop Sequence
+            idleContent.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+            resultWrapper.classList.remove('hidden');
+            setTimeout(() => { cardInner.classList.add('bp-show'); }, 10);
+
+            // Auto-hide and reset
+            clearTimeout(scanHideTimeout);
+            scanHideTimeout = setTimeout(() => {
+                cardInner.classList.remove('bp-show');
+                setTimeout(() => {
+                    resultWrapper.classList.add('hidden');
+                    idleContent.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                    document.getElementById('scanner-input').focus();
+                }, 500); // Wait for shrink animation
+            }, 3500);
         }
 
         async function fetchLiveUpdates() {
             try {
-                const logs = await apiCall('getLiveDisplay');
+                const data = await apiCall('getLiveDisplay');
+                
+                let logs = [];
+                let stats = { total: 0, byLajnah: {} };
+
+                // Robust check: In case user is still running older Google Script version
+                if (Array.isArray(data)) {
+                    logs = data;
+                    logs.forEach(l => {
+                        if(l.scan_result === 'SUCCESS') {
+                            stats.total++;
+                            stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1;
+                        }
+                    });
+                } else {
+                    logs = data.logs || [];
+                    stats = data.stats || { total: 0, byLajnah: {} };
+                }
+
+                // Render Stats Panel
+                const statsContainer = document.getElementById('live-stats-container');
+                if (statsContainer) {
+                    let statsHtml = `
+                        <div class="col-span-2 md:col-span-2 bg-gradient-to-r from-sky-400 to-blue-600 rounded-xl p-4 text-white shadow-md flex flex-col justify-center">
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Attendees</p>
+                            <h3 class="text-4xl font-black mt-1">${stats.total}</h3>
+                        </div>
+                    `;
+                    
+                    // Always ensure VIP is visible in the stats list
+                    if (stats.byLajnah['VIP'] === undefined) {
+                        stats.byLajnah['VIP'] = 0;
+                    }
+
+                    for (const [lajnah, count] of Object.entries(stats.byLajnah)) {
+                        let displayName = lajnah;
+                        let boxClass = "bg-slate-50 border-slate-200 text-slate-800";
+                        let labelClass = "text-slate-500";
+                        
+                        if (lajnah === 'VIP') {
+                            displayName = "🌟 VIP / SPEAKER";
+                            boxClass = "bg-yellow-50 border-yellow-300 text-yellow-700 shadow-sm";
+                            labelClass = "text-yellow-600";
+                        }
+
+                        statsHtml += `
+                            <div class="border rounded-xl p-3 flex flex-col justify-center items-center ${boxClass}">
+                                <h4 class="text-2xl font-bold">${count}</h4>
+                                <p class="text-[9px] font-bold uppercase tracking-widest mt-1 text-center ${labelClass}">${displayName}</p>
+                            </div>
+                        `;
+                    }
+                    statsContainer.innerHTML = statsHtml;
+                }
+
                 const tbody = document.getElementById('live-table-body');
                 tbody.innerHTML = '';
                 
                 logs.forEach(log => {
-                    const isSuccess = log.scan_result === 'SUCCESS';
+                    // 🛑 ONLY SHOW SUCCESSFUL SCANS ON THE LIVE BOARD
+                    if (log.scan_result !== 'SUCCESS') return;
+
                     const isVip = log.role === 'Speaker';
-                    
-                    let statusColor = "text-slate-400";
-                    if(isSuccess) statusColor = log.status === 'ON TIME' ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100";
-                    else if(log.scan_result === 'DUPLICATE') statusColor = "text-orange-700 bg-orange-100";
-                    else statusColor = "text-red-700 bg-red-100";
+                    let statusColor = log.status === 'ON TIME' ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100";
 
                     const tr = document.createElement('tr');
-                    tr.className = `transition border-b border-slate-100 last:border-0 ${isVip && isSuccess ? 'bg-yellow-50' : 'hover:bg-slate-50'}`;
+                    tr.className = `transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}`;
                     tr.innerHTML = `
                         <td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time}</td>
                         <td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name} ${isVip ? '🌟' : ''}</td>
                         <td class="p-4 text-sm text-slate-600">${log.lajnah}</td>
                         <td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name}</td>
-                        <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">${log.scan_result} ${log.status!=='-' ? `(${log.status})` : ''}</span></td>
+                        <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${log.status!=='-' ? `(${log.status})` : ''}</span></td>
                     `;
                     tbody.appendChild(tr);
                 });

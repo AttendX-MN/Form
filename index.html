@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyNuqobaPass - Attendance System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MyNuqobaPass - Hub</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -27,28 +27,25 @@
             color: #0f172a;
             margin: 0;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Brand Colors CSS Variables for easy access */
+        /* Brand Colors & Gradients */
         :root {
-            --brand-navy: #203a70;
+            --brand-navy: #15274d;
             --brand-light: #76a8d1;
             --brand-red: #b11f24;
         }
 
-        /* Brand Concept Classes */
+        .hub-gradient { background: linear-gradient(135deg, #76a8d1 0%, #15274d 100%); }
         .brand-gradient { background: linear-gradient(135deg, #203a70 0%, #15274d 100%); }
-        .brand-text-gradient {
-            background: linear-gradient(135deg, #76a8d1 0%, #203a70 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
 
-        .card {
+        /* iOS Style Cards */
+        .ios-card {
             background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .input-style {
@@ -57,7 +54,6 @@
             color: #0f172a;
             transition: all 0.3s ease;
         }
-        
         .input-style:focus {
             background: #ffffff;
             outline: none;
@@ -65,659 +61,657 @@
             box-shadow: 0 0 0 3px rgba(118, 168, 209, 0.2);
         }
 
+        /* Bottom Nav & FAB */
+        .bottom-nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
+            border-radius: 30px 30px 0 0;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .fab-wrapper {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .fab-btn {
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(135deg, #203a70, #15274d);
+            border-radius: 50%;
+            border: 5px solid #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 15px rgba(32, 58, 112, 0.3);
+            transition: transform 0.2s;
+            color: white;
+        }
+        .fab-btn:active { transform: scale(0.95); }
+
+        /* Profile Avatar */
+        .avatar-container {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative; background: #e2e8f0; overflow: hidden;
+        }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-edit {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.5); padding: 6px 0;
+            display: flex; justify-content: center; color: white;
+            cursor: pointer; font-size: 10px; font-weight: bold;
+        }
+
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         /* Animations */
-        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
-        /* Scanner Dashboard Specific Styles */
-        .scan-target-box {
-            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-            border: 2px solid #76a8d1;
-            box-shadow: 0 0 25px rgba(118, 168, 209, 0.2);
-            transition: all 0.3s ease;
-        }
+        @keyframes popIn { 0% { transform: scale(0.95) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-in { animation: fadeIn 0.3s ease forwards; }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
 
-        .scan-line {
-            position: absolute;
-            width: 80%;
-            left: 10%;
-            height: 3px;
-            background: #76a8d1;
-            box-shadow: 0 0 10px #76a8d1, 0 0 20px #76a8d1;
-            animation: scanAnim 2.5s infinite ease-in-out;
-            z-index: 10;
-        }
-        @keyframes scanAnim {
-            0% { top: 20%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 80%; opacity: 0; }
-        }
-
-        /* Fullscreen Background Fix */
-        :fullscreen {
-            background-color: #f8fafc !important;
-            padding: 1.5rem !important;
-            overflow-y: auto !important;
-        }
-        :-webkit-full-screen {
-            background-color: #f8fafc !important;
-            padding: 1.5rem !important;
-            overflow-y: auto !important;
-        }
-
-        /* Loader */
-        .loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-left-color: #ffffff;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* Scanner Line */
+        .scan-target-box { background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); border: 2px solid #76a8d1; }
+        .scan-line { position: absolute; width: 80%; left: 10%; height: 3px; background: #76a8d1; box-shadow: 0 0 10px #76a8d1; animation: scanAnim 2.5s infinite ease-in-out; z-index: 10; }
+        @keyframes scanAnim { 0% { top: 20%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 80%; opacity: 0; } }
 
         .view-hidden { display: none !important; }
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
     </style>
 </head>
-<body class="antialiased bg-slate-50 text-slate-800">
+<body class="antialiased bg-slate-50 text-slate-800 flex flex-col min-h-screen">
 
-    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- MAIN NAV -->
-    <nav class="bg-white sticky top-0 z-40 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center shadow-sm border-b border-slate-200">
-        <div class="flex items-center gap-2 md:gap-3 cursor-pointer shrink-0" onclick="switchView('register')">
-            <div class="p-1.5 md:p-2 bg-gradient-to-br from-[#203a70] to-[#15274d] rounded-lg text-white shadow-sm border border-slate-700 shrink-0">
-                <i data-lucide="book-user" class="w-5 h-5 md:w-6 md:h-6"></i>
+    <nav class="glass-nav sticky top-0 z-40 px-4 md:px-6 py-3 flex justify-between items-center w-full">
+        <div class="flex items-center gap-2 cursor-pointer shrink-0" onclick="routeTo('hub')">
+            <div class="p-1.5 bg-gradient-to-br from-[#203a70] to-[#15274d] rounded-lg text-white shadow-md border border-slate-700">
+                <i data-lucide="book-user" class="w-5 h-5"></i>
             </div>
-            <h1 class="text-lg sm:text-xl md:text-2xl leading-none tracking-tight flex items-baseline select-none">
-                <span class="text-[#b11f24] font-black">My</span>
-                <span class="text-[#203a70] font-black">Nuqoba</span>
-                <span class="text-[#76a8d1] font-normal text-lg sm:text-xl md:text-2xl mx-0.5 relative -top-[1px] transform rotate-12">/</span>
-                <span class="text-[#76a8d1] font-semibold">Pass</span>
+            <h1 class="text-xl md:text-2xl leading-none tracking-tight flex items-baseline select-none">
+                <span class="text-[#b11f24] font-black">My</span><span class="text-[#203a70] font-black">Nuqoba</span><span class="text-[#76a8d1] font-normal text-xl mx-0.5 transform rotate-12 relative -top-[1px]">/</span><span class="text-[#76a8d1] font-semibold">Pass</span>
             </h1>
         </div>
-        <button onclick="switchView('admin-login')" class="text-xs md:text-sm font-semibold bg-[#b11f24] hover:bg-[#91181c] text-white px-4 md:px-5 py-2 md:py-2.5 rounded-full transition flex items-center gap-1.5 md:gap-2 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md border border-red-900/20 shrink-0 ml-2">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> Admin
-        </button>
+        <div id="nav-actions"></div>
     </nav>
 
-    <!-- ============================================== -->
-    <!-- VIEW: REGISTRATION (PUBLIC)                    -->
-    <!-- ============================================== -->
-    <div id="view-register" class="container mx-auto px-4 py-6 md:py-12 flex flex-col items-center animate-pop">
-        <div class="card w-full max-w-md p-6 md:p-8 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 brand-gradient"></div>
-            <div class="text-center mb-6">
-                <p class="text-[10px] md:text-xs font-bold text-[#76a8d1] uppercase tracking-widest mb-1">Participant Check-In</p>
-                <h2 class="text-2xl md:text-3xl font-black text-slate-800">Registration</h2>
-                <p class="text-xs md:text-sm text-slate-500 mt-1">Generate your digital attendance pass instantly.</p>
-            </div>
-            
-            <form id="form-register" onsubmit="handleRegistration(event)">
-                <div class="mb-4">
-                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Participant Name</label>
-                    <input type="text" id="reg-name" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Enter your full name">
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Lajnah</label>
-                    <select id="reg-lajnah" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base appearance-none focus:ring-[3px] focus:ring-[#76a8d1]/20">
-                        <option value="" disabled selected>Select Lajnah</option>
-                    </select>
-                </div>
-                
-                <div class="mb-6">
-                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Create Password</label>
-                    <input type="password" id="reg-password" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Set a password for future access">
-                    <p class="text-[10px] md:text-xs text-slate-400 mt-1 leading-tight">You will need this to log in and retrieve your pass later.</p>
-                </div>
-                
-                <button type="submit" id="btn-register" class="w-full brand-gradient hover:shadow-lg text-white font-bold py-3 md:py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5 text-sm md:text-base border border-[#15274d]">
-                    <i data-lucide="qr-code" class="w-5 h-5"></i> Generate Attendance Pass
-                </button>
-            </form>
+    <div class="flex-1 w-full max-w-7xl mx-auto flex flex-col relative pb-24">
 
-            <div class="mt-6 text-center border-t border-slate-100 pt-4">
-                <p class="text-xs md:text-sm text-slate-500">Already registered?</p>
-                <button type="button" onclick="switchView('user-login')" class="text-[#203a70] text-sm md:text-base font-bold hover:underline mt-0.5">Log in to retrieve your pass</button>
+        <!-- ============================================== -->
+        <!-- VIEW: LANDING / AUTH HUB                       -->
+        <!-- ============================================== -->
+        <div id="view-landing" class="container mx-auto px-4 py-10 md:py-20 flex flex-col items-center justify-center min-h-[70vh] animate-pop">
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 mx-auto bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6 border border-slate-100">
+                    <i data-lucide="book-user" class="w-10 h-10 text-[#76a8d1]"></i>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-black text-slate-800 tracking-tight mb-3">Welcome to the Hub</h2>
+                <p class="text-slate-500 md:text-lg max-w-md mx-auto">Your centralized portal for digital passes, live tracking, and event management.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-5xl">
+                <div onclick="switchView('register')" class="ios-card p-6 flex flex-col items-center text-center cursor-pointer hover:-translate-y-1 transition-transform group border-sky-200 bg-sky-50/30">
+                    <div class="w-14 h-14 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center mb-4 group-hover:bg-sky-500 group-hover:text-white transition-colors"><i data-lucide="user-plus" class="w-6 h-6"></i></div>
+                    <h3 class="font-bold text-lg text-slate-800 mb-1">New Registration</h3>
+                    <p class="text-xs text-slate-500">Create an account to get passes.</p>
+                </div>
+                <div onclick="switchView('user-login')" class="ios-card p-6 flex flex-col items-center text-center cursor-pointer hover:-translate-y-1 transition-transform group">
+                    <div class="w-14 h-14 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mb-4 group-hover:bg-[#203a70] group-hover:text-white transition-colors"><i data-lucide="user" class="w-6 h-6"></i></div>
+                    <h3 class="font-bold text-lg text-slate-800 mb-1">Participant Login</h3>
+                    <p class="text-xs text-slate-500">Retrieve your existing digital passes.</p>
+                </div>
+                <div onclick="switchView('vip-login')" class="ios-card p-6 flex flex-col items-center text-center cursor-pointer hover:-translate-y-1 transition-transform group border-yellow-200 bg-yellow-50/30">
+                    <div class="w-14 h-14 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center mb-4 group-hover:bg-yellow-500 group-hover:text-white transition-colors"><i data-lucide="crown" class="w-6 h-6"></i></div>
+                    <h3 class="font-bold text-lg text-slate-800 mb-1">VIP Portal</h3>
+                    <p class="text-xs text-slate-500">Access exclusive VIP passes & events.</p>
+                </div>
+                <div onclick="switchView('admin-login')" class="ios-card p-6 flex flex-col items-center text-center cursor-pointer hover:-translate-y-1 transition-transform group border-red-100 bg-red-50/30">
+                    <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4 group-hover:bg-[#b11f24] group-hover:text-white transition-colors"><i data-lucide="shield" class="w-6 h-6"></i></div>
+                    <h3 class="font-bold text-lg text-slate-800 mb-1">Crew / Admin</h3>
+                    <p class="text-xs text-slate-500">Access scanner and tools.</p>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- ============================================== -->
-    <!-- VIEW: PARTICIPANT LOGIN                        -->
-    <!-- ============================================== -->
-    <div id="view-user-login" class="container mx-auto px-4 py-6 md:py-12 flex flex-col items-center view-hidden animate-pop">
-        <div class="card w-full max-w-md p-6 md:p-8 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 brand-gradient"></div>
-            <div class="text-center mb-6">
-                <p class="text-[10px] md:text-xs font-bold text-[#76a8d1] uppercase tracking-widest mb-1">Retrieve Pass</p>
-                <h2 class="text-2xl md:text-3xl font-black text-slate-800">Log In</h2>
-                <p class="text-xs md:text-sm text-slate-500 mt-1">Enter your details to get your QR codes.</p>
+        <!-- ============================================== -->
+        <!-- VIEW: MAIN DASHBOARD (THE HUB)                 -->
+        <!-- ============================================== -->
+        <div id="view-hub" class="container mx-auto px-4 py-6 flex flex-col gap-8 view-hidden animate-pop w-full max-w-3xl">
+            <div class="flex justify-between items-end px-2">
+                <div>
+                    <p class="text-sm text-slate-500 font-semibold tracking-wide uppercase mb-1" id="hub-greeting">Good Day,</p>
+                    <h2 class="text-3xl font-black text-slate-800 tracking-tight leading-none" id="hub-user-name">User</h2>
+                </div>
             </div>
-            
-            <form id="form-user-login" onsubmit="handleUserLogin(event)">
-                <div class="mb-4">
-                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Participant Name</label>
-                    <input type="text" id="login-name" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Enter your registered name">
-                </div>
-                <div class="mb-6">
-                    <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Password</label>
-                    <input type="password" id="login-password" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Enter your password">
-                </div>
-                <button type="submit" id="btn-user-login" class="w-full brand-gradient hover:shadow-lg text-white font-bold py-3 md:py-3.5 px-4 rounded-xl transition flex justify-center items-center gap-2 transform hover:-translate-y-0.5 text-sm md:text-base border border-[#15274d]">
-                    <i data-lucide="log-in" class="w-5 h-5"></i> Access Passes
-                </button>
-            </form>
 
-            <div class="mt-5 text-center">
-                <button type="button" onclick="switchView('register')" class="text-slate-500 text-xs md:text-sm font-semibold hover:text-[#203a70] transition">← Back to Registration</button>
+            <!-- Banner Carousel -->
+            <div class="w-full h-44 md:h-56 rounded-[28px] overflow-hidden relative shadow-xl border border-slate-200/50 bg-slate-100">
+                <img id="hub-banner-img" src="" class="w-full h-full object-cover transition-opacity duration-700 ease-in-out"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute bottom-4 left-6 right-6 flex justify-between items-end">
+                    <h3 class="text-white font-bold text-lg tracking-wide drop-shadow-md">Updates & Announcements</h3>
+                    <div id="hub-banner-indicators" class="flex gap-1.5"></div>
+                </div>
+            </div>
+
+            <!-- App Launcher Grid -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 px-2">Apps & Tools</h3>
+                <div id="hub-app-grid" class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 gap-y-6 gap-x-2 justify-items-center">
+                    <!-- Apps injected via JS -->
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- ============================================== -->
-    <!-- VIEW: ADMIN LOGIN                              -->
-    <!-- ============================================== -->
-    <div id="view-admin-login" class="container mx-auto px-4 py-6 md:py-12 flex flex-col items-center view-hidden animate-pop">
-        <div class="card w-full max-w-sm p-6 md:p-8 text-center relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 bg-slate-800"></div>
-            <div class="bg-slate-100 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200">
-                <i data-lucide="lock" class="w-7 h-7 md:w-8 md:h-8 text-slate-600"></i>
-            </div>
-            <h2 class="text-xl md:text-2xl font-bold mb-2 text-slate-800">Crew Access</h2>
-            <p class="text-xs md:text-sm text-slate-500 mb-6">Enter clearance code to proceed.</p>
-            
-            <form onsubmit="handleAdminLogin(event)">
-                <div class="relative mb-5">
-                    <input type="password" id="admin-pass" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-center tracking-widest font-mono text-sm md:text-base focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="••••••••">
-                    <button type="button" onclick="document.getElementById('admin-pass').focus()" class="absolute right-3 top-2.5 md:top-3 md:hidden text-slate-400">
-                        <i data-lucide="keyboard" class="w-5 h-5"></i>
-                    </button>
+        <!-- ============================================== -->
+        <!-- VIEW: USER PROFILE                             -->
+        <!-- ============================================== -->
+        <div id="view-profile" class="container mx-auto px-4 py-6 flex flex-col gap-6 view-hidden animate-pop w-full max-w-lg">
+            <div class="ios-card p-6 flex flex-col items-center text-center mt-8">
+                <div class="avatar-container -mt-16 mb-4 relative group">
+                    <img id="profile-img" src="https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff" class="avatar-img" />
+                    <label class="avatar-edit transition-opacity">
+                        <i data-lucide="camera" class="w-4 h-4 mb-1"></i> Edit
+                        <input type="file" class="hidden" accept="image/*" onchange="handlePhotoUpload(event)">
+                    </label>
                 </div>
-                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 hover:shadow-lg text-white font-bold py-3 md:py-3.5 px-4 rounded-xl transition transform hover:-translate-y-0.5 text-sm md:text-base">
-                    Unlock Terminal
-                </button>
-            </form>
-        </div>
-    </div>
+                <h2 class="text-2xl font-black text-slate-800" id="prof-name">User Name</h2>
+                <div class="bg-slate-100 px-3 py-1 rounded-full mt-2 inline-flex items-center gap-2 border border-slate-200">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ID</span>
+                    <span class="font-mono font-bold text-slate-700 text-sm tracking-widest" id="prof-nuqoba-id">NQ-000000</span>
+                </div>
+            </div>
 
-    <!-- ============================================== -->
-    <!-- VIEW: ADMIN DASHBOARD                          -->
-    <!-- ============================================== -->
-    <div id="view-admin-dashboard" class="container mx-auto px-4 py-8 view-hidden animate-pop flex flex-col md:flex-row gap-6">
-        
-        <!-- Sidebar Menu -->
-        <aside class="card p-4 w-full md:w-64 flex flex-col gap-2 h-fit shrink-0">
-            <h3 class="font-bold text-slate-400 text-xs tracking-widest uppercase mb-2 px-2">Terminal Ops</h3>
-            <button onclick="switchAdminTab('scanner')" id="tab-btn-scanner" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 brand-gradient text-white shadow-md border border-[#15274d]">
-                <i data-lucide="scan"></i> Scanner Dashboard
-            </button>
-            <button onclick="switchAdminTab('live')" id="tab-btn-live" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 text-slate-600 hover:bg-slate-100">
-                <i data-lucide="monitor-play"></i> Live Board
-            </button>
-            <button onclick="switchAdminTab('speaker')" id="tab-btn-speaker" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 text-slate-600 hover:bg-slate-100">
-                <i data-lucide="mic"></i> VIP / Speaker QR
-            </button>
-            <button onclick="switchAdminTab('subevents')" id="tab-btn-subevents" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 text-slate-600 hover:bg-slate-100">
-                <i data-lucide="calendar-plus"></i> Events Management
-            </button>
-            <button onclick="switchAdminTab('participants')" id="tab-btn-participants" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 text-slate-600 hover:bg-slate-100">
-                <i data-lucide="users"></i> Participant List
-            </button>
-            
-            <div class="h-px bg-slate-200 my-2"></div>
-            
-            <button onclick="exportExcel()" class="w-full text-left px-4 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition flex items-center gap-3 font-semibold border border-emerald-200">
-                <i data-lucide="file-spreadsheet"></i> Export Data
-            </button>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 w-full overflow-hidden">
-            
-            <!-- TAB: SCANNER DASHBOARD -->
-            <!-- ADDED: relative positioning so fullscreen modals lock inside perfectly -->
-            <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col relative">
-                
-                <!-- Invisible Scanner Input (Hardware Scanners type here) -->
-                <input type="text" id="scanner-input" class="opacity-0 absolute -z-10 w-0 h-0" autofocus autocomplete="off">
-                
-                <!-- Scanner Header & Controls -->
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div class="ios-card p-6">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Profile Details</h3>
+                <form id="profile-form" onsubmit="saveProfileDetails(event)" class="flex flex-col gap-4">
                     <div>
-                        <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
-                            <i data-lucide="scan-face" class="text-[#76a8d1] w-7 h-7"></i>
-                            <span id="scanner-main-title">Scanner Mode</span>
-                        </h2>
-                        <p class="text-slate-500 text-sm mt-1">Scan participant passes to log attendance</p>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Phone Number</label>
+                        <input type="tel" id="prof-phone" class="w-full input-style rounded-xl px-4 py-2 text-sm" placeholder="+60123456789">
                     </div>
-                    <div class="flex gap-2 w-full md:w-auto">
-                        <select id="scanner-event-select" class="input-style rounded-lg px-4 py-2 font-bold text-sm w-full md:w-64 focus:ring-[3px] focus:ring-[#76a8d1]/20" onchange="updateScannerEventInfo()">
-                            <!-- Injected via JS -->
-                        </select>
-                        <button onclick="toggleFullscreen('tab-scanner')" class="bg-white border border-slate-200 p-2 rounded-lg hover:bg-slate-50 text-slate-600 transition shadow-sm hidden md:block">
-                            <i data-lucide="maximize" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- LEFT COLUMN (Scan Box & Recent) -->
-                    <div class="lg:col-span-2 flex flex-col gap-6">
-                        
-                        <!-- THE CONTINUOUS SCAN TARGET BOX -->
-                        <div class="scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[360px] cursor-pointer overflow-hidden" onclick="document.getElementById('scanner-input').focus()">
-                            
-                            <!-- Laser Animation -->
-                            <div class="scan-line" id="scan-line-anim"></div>
-                            
-                            <p class="text-[#76a8d1] font-bold tracking-widest text-sm mb-6 z-20">SCAN EVENT QR CODE</p>
-                            
-                            <div class="relative w-32 h-32 mb-6 z-20">
-                                <div class="absolute inset-0 border-4 border-[#76a8d1]/30 rounded-3xl" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 20px 20px, 20px calc(100% - 20px), calc(100% - 20px) calc(100% - 20px), calc(100% - 20px) 20px, 20px 20px);"></div>
-                                <i data-lucide="scan" class="w-full h-full text-[#76a8d1]/30 p-4"></i>
-                            </div>
-                            
-                            <div class="text-center z-20">
-                                <p class="font-mono text-[#76a8d1] text-sm mb-1 uppercase tracking-widest">WAITING FOR SCAN...</p>
-                            </div>
-                        </div>
-
-                        <!-- RECENT SCANS MINI-TABLE -->
-                        <div class="card p-5">
-                            <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Recently Scanned Participants</h3>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left">
-                                    <thead class="text-[10px] text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                        <tr>
-                                            <th class="pb-2 font-bold">Participant Name</th>
-                                            <th class="pb-2 font-bold">Ticket Type</th>
-                                            <th class="pb-2 font-bold">Scan Time</th>
-                                            <th class="pb-2 font-bold text-right">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="recent-scans-body" class="divide-y divide-slate-50 text-sm">
-                                        <tr><td colspan="4" class="py-4 text-center text-slate-400 italic">No recent scans in this session.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN (Overview & Controls) -->
-                    <div class="flex flex-col gap-6">
-                        
-                        <!-- EVENT OVERVIEW -->
-                        <div class="card p-6">
-                            <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Overview</h3>
-                            
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-14 h-14 bg-[#76a8d1]/10 rounded-xl flex items-center justify-center border border-[#76a8d1]/20 text-[#76a8d1] shrink-0">
-                                    <i data-lucide="badge-check" class="w-7 h-7"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Total Participants</p>
-                                    <p class="text-2xl font-black text-slate-800" id="stat-total-reg">0</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-14 h-14 bg-[#203a70]/10 rounded-xl flex items-center justify-center border border-[#203a70]/20 text-[#203a70] shrink-0">
-                                    <i data-lucide="scan-line" class="w-7 h-7"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Session Scans</p>
-                                    <p class="text-2xl font-black text-slate-800" id="stat-session-scans">0</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between text-xs font-bold text-slate-600 mb-2">
-                                    <span>Check-in Progress</span>
-                                    <span id="stat-progress-text">0%</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
-                                    <div class="bg-[#76a8d1] h-3 rounded-full transition-all duration-500" id="stat-progress-bar" style="width: 0%"></div>
-                                </div>
-                                <p class="text-[10px] text-slate-400 mt-2 text-center" id="stat-progress-sub">0 / 0 Participants Scanned</p>
-                            </div>
-                        </div>
-
-                        <!-- EVENT INFO & CONTROLS -->
-                        <div class="card p-6 flex flex-col justify-between grow">
-                            <div>
-                                <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Info</h3>
-                                <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-4">
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Currently Scanning For</p>
-                                    <p class="font-bold text-slate-700 text-sm truncate" id="info-event-name">Select an event...</p>
-                                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                                        <i data-lucide="clock" class="w-3 h-3"></i> <span id="info-event-time">-</span>
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex flex-col gap-2 mt-4">
-                                <button onclick="document.getElementById('scanner-input').focus(); showToast('Scanner input focused!', 'info');" class="w-full bg-[#203a70] hover:bg-[#1a2d59] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-sm border border-[#15274d]">
-                                    <i data-lucide="play" class="w-4 h-4"></i> RESUME SCAN
-                                </button>
-                                <p class="text-[10px] text-slate-400 text-center mt-1">Click if scanner stops responding</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- ============================================== -->
-                <!-- MODAL: SCAN RESULT (SCOPED OVERLAY)            -->
-                <!-- ============================================== -->
-                <!-- Moved completely INSIDE the scanner dashboard container to persist during Fullscreen -->
-                <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl">
-                    <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
-                        
-                        <!-- Header Bar -->
-                        <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
-                            <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2">
-                                <i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS
-                            </span>
-                            <i data-lucide="book-user" class="w-6 h-6 opacity-80"></i>
-                        </div>
-
-                        <!-- Ticket Body -->
-                        <div class="p-6 relative bg-white">
-                            <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
-                            <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
-                            <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
-
-                            <div class="flex flex-col items-center mt-4">
-                                <div id="scan-icon" class="mb-4 z-10 relative"></div>
-                                <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
-                                <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight"></h3>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p>
-                                    <p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Session / Event</p>
-                                    <p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ============================================== -->
-                <!-- FULLSCREEN ANNOUNCEMENT                        -->
-                <!-- ============================================== -->
-                <!-- Moved here so it works even when scanner dashboard is fullscreen -->
-                <div id="fullscreen-announcement" class="hidden absolute inset-0 z-[100] bg-yellow-400/95 backdrop-blur-md flex-col items-center justify-center text-yellow-900 cursor-pointer rounded-2xl" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
-                    <i data-lucide="book-user" class="w-32 h-32 mb-6 animate-bounce"></i>
-                    <h1 class="text-6xl font-black mb-4 text-center uppercase tracking-wider">VIP ARRIVED</h1>
-                    <h2 id="fs-name" class="text-5xl font-bold text-center"></h2>
-                    <p class="text-2xl mt-4 font-semibold opacity-80">(Click anywhere to dismiss)</p>
-                </div>
-
-            </div>
-
-            <!-- TAB: LIVE DISPLAY -->
-            <div id="tab-live" class="admin-content view-hidden animate-pop">
-                <div class="card p-0 overflow-hidden border-slate-200">
-                    <div class="flex justify-between items-center p-6 border-b border-slate-200 bg-slate-50">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="book-user" class="text-[#76a8d1] w-6 h-6"></i>
-                            <h2 class="text-xl font-bold text-slate-800 uppercase tracking-widest">Live Attendance</h2>
-                        </div>
-                        <button onclick="toggleFullscreen('tab-live')" class="bg-white border border-slate-200 p-2 rounded-lg hover:bg-slate-50 text-slate-600 transition shadow-sm">
-                            <i data-lucide="maximize" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- STATS PANEL -->
-                    <div id="live-stats-container" class="grid grid-cols-2 md:grid-cols-6 gap-4 p-6 bg-white border-b border-slate-200">
-                        <!-- Injected via JS -->
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-800 text-slate-300 text-xs uppercase tracking-wider">
-                                    <th class="p-4 font-semibold">Time</th>
-                                    <th class="p-4 font-semibold">Participant</th>
-                                    <th class="p-4 font-semibold">Lajnah</th>
-                                    <th class="p-4 font-semibold">Event</th>
-                                    <th class="p-4 font-semibold">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="live-table-body" class="divide-y divide-slate-100 bg-white">
-                                <!-- Injected via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: SPEAKER QR -->
-            <div id="tab-speaker" class="admin-content view-hidden animate-pop">
-                <div class="card p-6 max-w-md">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="p-2 bg-yellow-100 rounded-lg text-yellow-600">
-                            <i data-lucide="star" class="w-6 h-6"></i>
-                        </div>
-                        <h2 class="text-xl font-bold text-slate-800">Generate VIP Pass</h2>
-                    </div>
-                    <form onsubmit="handleSpeakerReg(event)">
-                        <div class="mb-4">
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Speaker / VIP Name</label>
-                            <input type="text" id="spk-name" required class="w-full input-style rounded-xl px-4 py-2 focus:ring-[3px] focus:ring-[#76a8d1]/20">
-                        </div>
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Assign to Event (Optional)</label>
-                            <select id="spk-event" class="w-full input-style rounded-xl px-4 py-2 appearance-none focus:ring-[3px] focus:ring-[#76a8d1]/20">
-                                <option value="">-- All Active Events --</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition transform hover:-translate-y-0.5">
-                            Generate VIP Pass
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- TAB: SUB EVENTS -->
-            <div id="tab-subevents" class="admin-content view-hidden animate-pop">
-                <div class="card p-6 mb-6">
-                    <h2 class="text-xl font-bold mb-4 text-slate-800">Add New Event</h2>
-                    <form onsubmit="handleAddEvent(event)" class="flex flex-col md:flex-row gap-4 items-end">
-                        <div class="flex-1">
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Event Name</label>
-                            <input type="text" id="ev-name" required class="w-full input-style rounded-lg px-3 py-2 focus:ring-[3px] focus:ring-[#76a8d1]/20">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Start Time</label>
-                            <input type="datetime-local" id="ev-start" required class="w-full input-style rounded-lg px-3 py-2 focus:ring-[3px] focus:ring-[#76a8d1]/20">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">End Time</label>
-                            <input type="datetime-local" id="ev-end" required class="w-full input-style rounded-lg px-3 py-2 focus:ring-[3px] focus:ring-[#76a8d1]/20">
-                        </div>
-                        <button type="submit" class="brand-gradient border border-[#15274d] text-white py-2 px-6 rounded-lg font-bold hover:shadow-md transition">Add</button>
-                    </form>
-                </div>
-
-                <div class="card p-6 border-slate-200">
-                    <h2 class="text-xl font-bold mb-4 text-slate-800">Event Directory</h2>
-                    <div class="overflow-x-auto rounded-xl border border-slate-100">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th class="p-3">Event Name</th>
-                                    <th class="p-3">Start Time</th>
-                                    <th class="p-3">End Time</th>
-                                    <th class="p-3">Status</th>
-                                    <th class="p-3">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="events-table-body" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: PARTICIPANTS -->
-            <div id="tab-participants" class="admin-content view-hidden animate-pop">
-                <div class="card p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-slate-800">Participant List</h2>
-                        <div class="relative">
-                            <i data-lucide="search" class="absolute left-3 top-2 w-4 h-4 text-slate-400"></i>
-                            <input type="text" id="search-part" placeholder="Search participant..." onkeyup="filterParticipants()" class="input-style rounded-lg pl-9 pr-3 py-1.5 text-sm w-64 focus:ring-[3px] focus:ring-[#76a8d1]/20">
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto rounded-xl border border-slate-100">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider sticky top-0">
-                                <tr>
-                                    <th class="p-3">Participant Name</th>
-                                    <th class="p-3">Lajnah</th>
-                                    <th class="p-3">Role</th>
-                                </tr>
-                            </thead>
-                            <tbody id="part-table-body" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-        </main>
-    </div>
-
-    <!-- ============================================== -->
-    <!-- MODAL: QR RESULT (DOWNLOAD)                    -->
-    <!-- ============================================== -->
-    <div id="modal-qr" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-slate-50 rounded-2xl max-w-2xl w-full p-6 text-slate-800 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
-            <button onclick="closeModal('modal-qr')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 bg-white rounded-full p-1 shadow-sm border border-slate-200 transition">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-            <div class="text-center mb-6 mt-2">
-                <h2 class="text-2xl font-black text-slate-800">Your Entry Passes</h2>
-                <p class="text-slate-500 text-sm mt-1">Please save these documents for check-in.</p>
-            </div>
-            
-            <div id="qr-container" class="p-4 rounded-xl flex flex-col items-center gap-6">
-                <!-- QRs injected here -->
-            </div>
-
-            <div class="mt-8 flex gap-4 justify-center flex-wrap">
-                <button onclick="downloadQR('png')" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 shadow-sm transition">
-                    <i data-lucide="image" class="w-5 h-5 text-[#76a8d1]"></i> Save as PNG
-                </button>
-                <button onclick="downloadQR('pdf')" class="brand-gradient hover:shadow-lg text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 transition border border-[#15274d]">
-                    <i data-lucide="file-down" class="w-5 h-5"></i> Save as PDF
-                </button>
+                    <!-- Dynamic Custom Fields Injected Here -->
+                    <div id="prof-custom-fields" class="flex flex-col gap-4"></div>
+                    <button type="submit" class="mt-4 w-full brand-gradient text-white font-bold py-3 rounded-xl shadow-md transition active:scale-95">Save Profile</button>
+                </form>
             </div>
         </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: VIP DASHBOARD                            -->
+        <!-- ============================================== -->
+        <div id="view-vip-dashboard" class="container mx-auto px-4 py-6 flex flex-col gap-6 view-hidden animate-pop w-full max-w-lg">
+            <div class="ios-card p-6 text-center bg-gradient-to-br from-yellow-50 to-amber-100 border-amber-200">
+                <div class="w-12 h-12 bg-yellow-400 text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md shadow-yellow-500/30"><i data-lucide="crown"></i></div>
+                <h2 class="text-2xl font-black text-slate-800" id="vip-dash-name">VIP User</h2>
+                <p class="text-xs font-bold text-amber-700 uppercase tracking-widest mt-1" id="vip-dash-event">Event Name</p>
+            </div>
+
+            <!-- VIP QR SECTION (Hides when timer starts) -->
+            <div class="ios-card p-6 flex flex-col items-center transition-all duration-700 overflow-hidden" id="vip-qr-section">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Your Access Pass</h3>
+                <div class="p-3 border-2 border-slate-100 rounded-2xl bg-white shadow-sm" id="vip-qr-box"></div>
+                <p class="text-[10px] text-slate-400 mt-4 text-center">Scan this at the entrance for access.</p>
+            </div>
+
+            <!-- VIP RED & WHITE TIMER -->
+            <div class="ios-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Event Timer</h3>
+                    <i data-lucide="clock" class="text-red-500 w-4 h-4"></i>
+                </div>
+                <div class="text-center py-6 bg-red-600 rounded-2xl shadow-inner border-4 border-red-200" id="vip-timer-container">
+                    <span class="font-mono text-5xl font-black text-white tracking-wider" id="vip-live-timer">00:00:00</span>
+                    <p class="text-xs text-red-100 mt-2 uppercase tracking-widest font-bold" id="vip-timer-status">WAITING TO START</p>
+                </div>
+            </div>
+
+            <div class="ios-card p-6">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><i data-lucide="sticky-note" class="w-4 h-4"></i> Important Notes</h3>
+                <div class="p-4 bg-yellow-50 border border-yellow-100 rounded-xl text-sm text-slate-700 whitespace-pre-wrap" id="vip-notes-display">No special notes at this time.</div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- OVERLAYS & MODALS                              -->
+        <!-- ============================================== -->
+        
+        <!-- My Passes Modal (Triggered by FAB) -->
+        <div id="modal-passes" class="fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm hidden flex-col justify-end opacity-0 transition-opacity duration-300">
+            <div class="bg-slate-50 w-full rounded-t-3xl p-6 relative max-h-[85vh] flex flex-col transform translate-y-full transition-transform duration-300" id="modal-passes-inner">
+                <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-6"></div>
+                <button onclick="closeModal('modal-passes')" class="absolute top-5 right-5 bg-slate-200 text-slate-600 rounded-full p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <h2 class="text-2xl font-black text-slate-800 mb-6">My Digital Passes</h2>
+                <div id="hub-qr-container" class="flex flex-col gap-4 overflow-y-auto pb-8 px-1">
+                    <!-- QRs injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin VIP Zoom Modal -->
+        <div id="modal-vip-zoom" class="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full relative flex flex-col items-center transform scale-95 transition-transform duration-300" id="modal-vip-zoom-inner">
+                <button onclick="closeModal('modal-vip-zoom')" class="absolute top-4 right-4 bg-slate-100 text-slate-600 rounded-full p-2 hover:bg-slate-200 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <div class="p-4 bg-yellow-50 text-yellow-600 rounded-2xl mb-4 mt-2"><i data-lucide="crown" class="w-8 h-8"></i></div>
+                <h2 class="text-2xl font-black text-slate-800 text-center uppercase tracking-wide leading-tight mb-2" id="zoom-qr-name">VIP NAME</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-6" id="zoom-qr-event">EVENT NAME</p>
+                <div class="p-3 border-2 border-slate-100 rounded-2xl bg-white shadow-sm mb-4" id="zoom-qr-box"></div>
+                <p class="text-xs text-slate-500 font-medium">Scan to check-in VIP</p>
+            </div>
+        </div>
+
+        <!-- VIP Timer Announcement Overlay -->
+        <div id="vip-timer-announcement" class="fixed inset-0 z-[9999] bg-sky-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white text-center animate-pop">
+            <i data-lucide="clock" class="w-24 h-24 mb-6 animate-pulse text-white/80"></i>
+            <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight px-4" id="vip-timer-announce-msg">Masa Diberi, Terima Kasih</h1>
+        </div>
+
+        <!-- VIP Live Broadcast Overlay -->
+        <div id="vip-broadcast-overlay" class="fixed inset-0 z-[9999] bg-rose-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white cursor-pointer px-6 text-center animate-pop" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
+            <i data-lucide="radio" class="w-20 h-20 mb-6 animate-pulse text-white/80"></i>
+            <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight" id="vip-broadcast-msg">MESSAGE</h1>
+            <p class="text-sm mt-8 font-semibold opacity-70 bg-black/20 px-4 py-2 rounded-full">(Tap anywhere to dismiss)</p>
+        </div>
+
+        <!-- AUTH VIEWS (Register, Login, VIP Login, Admin Login) -->
+        <div id="view-register" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
+            <div class="ios-card w-full max-w-md p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 hub-gradient"></div>
+                <button onclick="routeTo('landing')" class="absolute top-6 left-6 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <div class="text-center mb-6 mt-2"><div class="w-12 h-12 bg-sky-50 text-[#76a8d1] rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="user-plus"></i></div><h2 class="text-2xl font-black text-slate-800">Registration</h2></div>
+                <form id="form-register" onsubmit="handleRegistration(event)">
+                    <div class="mb-4"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Participant Name</label><input type="text" id="reg-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Full Name"></div>
+                    <div class="mb-4"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Lajnah</label><select id="reg-lajnah" required class="w-full input-style rounded-xl px-4 py-3 text-sm appearance-none focus:ring-[3px] focus:ring-[#76a8d1]/20"><option value="" disabled selected>Select Lajnah</option></select></div>
+                    <div class="mb-6"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Create Password</label><input type="password" id="reg-password" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Secure Password"></div>
+                    <button type="submit" id="btn-register" class="w-full brand-gradient text-white font-bold py-3.5 px-4 rounded-xl transition transform active:scale-95">Create Account</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-user-login" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
+            <div class="ios-card w-full max-w-md p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 hub-gradient"></div>
+                <button onclick="routeTo('landing')" class="absolute top-6 left-6 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <div class="text-center mb-6 mt-2"><div class="w-12 h-12 bg-sky-50 text-[#76a8d1] rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="user"></i></div><h2 class="text-2xl font-black text-slate-800">Log In</h2></div>
+                <form id="form-user-login" onsubmit="handleUserLogin(event)">
+                    <div class="mb-4"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Participant Name</label><input type="text" id="login-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Registered Name"></div>
+                    <div class="mb-8"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label><input type="password" id="login-password" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="••••••••"></div>
+                    <button type="submit" id="btn-user-login" class="w-full brand-gradient text-white font-bold py-3.5 px-4 rounded-xl transition transform active:scale-95">Log In to Hub</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-vip-login" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
+            <div class="ios-card w-full max-w-md p-6 relative overflow-hidden border-yellow-200">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 to-amber-500"></div>
+                <button onclick="routeTo('landing')" class="absolute top-6 left-6 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <div class="text-center mb-6 mt-2"><div class="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="crown"></i></div><h2 class="text-2xl font-black text-slate-800">VIP Access</h2><p class="text-xs text-slate-500">Enter your 1-Time Password.</p></div>
+                <form onsubmit="handleVipLogin(event)">
+                    <div class="mb-8"><label class="block text-xs font-semibold text-slate-700 mb-1.5">VIP OTP Code</label><input type="text" id="vip-otp-input" required class="w-full input-style rounded-xl px-4 py-3 text-center font-mono text-xl tracking-[0.5em] font-bold focus:ring-yellow-400/30" placeholder="000000" maxlength="6"></div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold py-3.5 px-4 rounded-xl transition transform active:scale-95">Verify & Enter</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-admin-login" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
+            <div class="ios-card w-full max-w-sm p-6 text-center relative overflow-hidden border-red-100">
+                <div class="absolute top-0 left-0 w-full h-2 bg-[#b11f24]"></div>
+                <button onclick="routeTo('landing')" class="absolute top-6 left-6 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <div class="bg-slate-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 mt-2"><i data-lucide="shield" class="w-7 h-7 text-slate-600"></i></div>
+                <h2 class="text-2xl font-black mb-2 text-slate-800">Crew Access</h2>
+                <form onsubmit="handleAdminLogin(event)"><div class="mb-6"><input type="password" id="admin-pass" required class="w-full input-style rounded-xl px-4 py-3 text-center tracking-widest font-mono text-sm focus:ring-slate-300" placeholder="••••••••"></div><button type="submit" class="w-full bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition transform active:scale-95">Unlock Terminal</button></form>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: TOOLS SHELL (Admin Dash & Scanner)       -->
+        <!-- ============================================== -->
+        <div id="view-tools" class="w-full flex-1 flex flex-col md:flex-row gap-4 md:gap-6 view-hidden animate-pop px-2 md:px-4 py-4 md:py-8 h-full">
+            <aside id="admin-sidebar" class="ios-card p-4 w-full md:w-64 flex flex-col gap-2 shrink-0 h-fit md:h-full md:overflow-y-auto">
+                <h3 class="font-bold text-slate-400 text-[10px] tracking-widest uppercase mb-2 px-2">Terminal Ops</h3>
+                <button onclick="switchAdminTab('scanner')" id="tab-btn-scanner" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="scan" class="w-4 h-4"></i> Scanner Mode</button>
+                <button onclick="switchAdminTab('live')" id="tab-btn-live" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="monitor-play" class="w-4 h-4"></i> Live Board</button>
+                <button onclick="switchAdminTab('speaker')" id="tab-btn-speaker" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="mic" class="w-4 h-4"></i> VIP Mgmt</button>
+                <button onclick="switchAdminTab('subevents')" id="tab-btn-subevents" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="calendar-plus" class="w-4 h-4"></i> Events Mgmt</button>
+                <button onclick="switchAdminTab('participants')" id="tab-btn-participants" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="users" class="w-4 h-4"></i> Participants</button>
+                <button onclick="switchAdminTab('hubconfig')" id="tab-btn-hubconfig" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="layout-grid" class="w-4 h-4"></i> Hub Setup</button>
+            </aside>
+
+            <main class="flex-1 w-full overflow-hidden relative h-full flex flex-col">
+                
+                <!-- SCANNER TAB (FULL DASHBOARD LAYOUT RESTORED) -->
+                <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col relative">
+                    <input type="text" id="scanner-input" class="opacity-0 absolute -z-10 w-0 h-0" autofocus autocomplete="off">
+                    
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2 md:px-0 shrink-0">
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                                <i data-lucide="scan-face" class="text-[#76a8d1] w-6 h-6 md:w-7 md:h-7"></i>
+                                <span id="scanner-main-title">Scanner Mode</span>
+                            </h2>
+                            <p class="text-slate-500 text-xs md:text-sm mt-1">Scan participant passes to log attendance</p>
+                        </div>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <select id="scanner-event-select" class="input-style rounded-xl px-4 py-2.5 font-bold text-sm w-full md:w-64 focus:ring-[3px] focus:ring-[#76a8d1]/20" onchange="updateScannerEventInfo()"></select>
+                            <button onclick="toggleFullscreen('tab-scanner')" class="ios-card p-2.5 hover:bg-slate-50 text-slate-600 transition hidden md:block border-0">
+                                <i data-lucide="maximize" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto pb-6 pr-2 h-full">
+                        <!-- LEFT COLUMN -->
+                        <div class="lg:col-span-2 flex flex-col gap-6">
+                            <!-- SCAN TARGET BOX -->
+                            <div class="scan-target-box rounded-3xl p-8 relative flex flex-col items-center justify-center min-h-[360px] cursor-pointer overflow-hidden shrink-0" onclick="document.getElementById('scanner-input').focus()">
+                                <div class="scan-line" id="scan-line-anim"></div>
+                                <p class="text-[#76a8d1] font-bold tracking-widest text-sm mb-6 z-20 uppercase">Scan Event QR Code</p>
+                                <div class="relative w-32 h-32 mb-6 z-20">
+                                    <div class="absolute inset-0 border-4 border-[#76a8d1]/30 rounded-3xl" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 20px 20px, 20px calc(100% - 20px), calc(100% - 20px) calc(100% - 20px), calc(100% - 20px) 20px, 20px 20px);"></div>
+                                    <i data-lucide="scan" class="w-full h-full text-[#76a8d1]/30 p-4"></i>
+                                </div>
+                                <div class="text-center z-20">
+                                    <p class="font-mono text-[#76a8d1] text-sm mb-1 uppercase tracking-widest">Waiting for scan...</p>
+                                </div>
+                            </div>
+
+                            <!-- RECENT SCANS TABLE -->
+                            <div class="ios-card p-5 shrink-0 flex-1">
+                                <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Recently Scanned Participants</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead class="text-[10px] text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                            <tr>
+                                                <th class="pb-2 font-bold">Participant Name</th>
+                                                <th class="pb-2 font-bold">Ticket Type</th>
+                                                <th class="pb-2 font-bold">Scan Time</th>
+                                                <th class="pb-2 font-bold text-right">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recent-scans-body" class="divide-y divide-slate-50 text-sm">
+                                            <tr><td colspan="4" class="py-4 text-center text-slate-400 italic">No recent scans in this session.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN -->
+                        <div class="flex flex-col gap-6 shrink-0 h-full">
+                            <!-- EVENT OVERVIEW -->
+                            <div class="ios-card p-6">
+                                <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Overview</h3>
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 shrink-0"><i data-lucide="users" class="w-5 h-5"></i></div>
+                                    <div><p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Total Participants</p><p class="text-xl font-black text-slate-800" id="stat-total-reg">0</p></div>
+                                </div>
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0"><i data-lucide="scan-line" class="w-5 h-5"></i></div>
+                                    <div><p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Session Scans</p><p class="text-xl font-black text-slate-800" id="stat-session-scans">0</p></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1.5"><span>Check-in Progress</span><span id="stat-progress-text">0%</span></div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden"><div class="bg-[#76a8d1] h-2 rounded-full transition-all duration-500" id="stat-progress-bar" style="width: 0%"></div></div>
+                                    <p class="text-[10px] text-slate-400 mt-2 text-center" id="stat-progress-sub">0 / 0 Participants Scanned</p>
+                                </div>
+                            </div>
+
+                            <!-- EVENT INFO -->
+                            <div class="ios-card p-6 flex flex-col justify-between grow">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Info</h3>
+                                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-4">
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Currently Scanning For</p>
+                                        <p class="font-bold text-slate-700 text-sm truncate" id="info-event-name">Select an event...</p>
+                                        <p class="text-[10px] text-slate-500 mt-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> <span id="info-event-time">-</span></p>
+                                    </div>
+                                </div>
+                                <button onclick="document.getElementById('scanner-input').focus(); showToast('Scanner input focused!', 'info');" class="w-full bg-[#203a70] hover:bg-[#1a2d59] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-sm text-sm border border-[#15274d]">
+                                    <i data-lucide="play" class="w-4 h-4"></i> Resume Scan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SCAN RESULT OVERLAY -->
+                    <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl">
+                        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
+                            <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
+                                <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2"><i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS</span>
+                                <i data-lucide="book-user" class="w-6 h-6 opacity-80"></i>
+                            </div>
+                            <div class="p-6 relative bg-white">
+                                <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
+                                <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
+                                <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
+                                <div class="flex flex-col items-center mt-4">
+                                    <div id="scan-icon" class="mb-4 z-10 relative"></div>
+                                    <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
+                                    <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight"></h3>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
+                                    <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p><p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p></div>
+                                    <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Session / Event</p><p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE BOARD TAB -->
+                <div id="tab-live" class="admin-content view-hidden animate-pop w-full h-full flex flex-col">
+                    <div class="ios-card p-0 flex flex-col h-full overflow-hidden border-slate-200">
+                        <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="p-1.5 bg-[#76a8d1]/10 text-[#76a8d1] rounded-lg"><i data-lucide="monitor-play" class="w-5 h-5"></i></div>
+                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">Live Board</h2>
+                            </div>
+                            <button onclick="toggleFullscreen('tab-live')" class="bg-white border border-slate-200 p-2 rounded-lg hover:bg-slate-50 text-slate-600 transition shadow-sm hidden md:block"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+                        </div>
+                        <div id="live-stats-container" class="grid grid-cols-2 md:grid-cols-6 gap-3 p-4 bg-white border-b border-slate-100 shrink-0"></div>
+                        <div class="overflow-x-auto flex-1 h-full">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="sticky top-0 bg-white z-10 shadow-sm text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-100">
+                                    <tr>
+                                        <th class="p-4 font-bold">Time</th>
+                                        <th class="p-4 font-bold">Participant</th>
+                                        <th class="p-4 font-bold">Lajnah</th>
+                                        <th class="p-4 font-bold">Event</th>
+                                        <th class="p-4 font-bold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="live-table-body" class="divide-y divide-slate-50 bg-white text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN VIP MGMT -->
+                <div id="tab-speaker" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Generate VIP Pass -->
+                        <div class="ios-card p-6 flex flex-col">
+                            <div class="flex items-center gap-3 mb-6"><div class="p-2 bg-yellow-50 rounded-xl text-yellow-600"><i data-lucide="crown" class="w-6 h-6"></i></div><h2 class="text-xl font-black text-slate-800">Generate VIP Pass</h2></div>
+                            <form onsubmit="handleSpeakerReg(event)">
+                                <div class="mb-4"><input type="text" id="spk-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-yellow-500/20" placeholder="VIP Name"></div>
+                                <div class="mb-4"><select id="spk-event" class="w-full input-style rounded-xl px-4 py-3 text-sm appearance-none focus:ring-yellow-500/20"><option value="">-- Universal Master Pass --</option></select></div>
+                                <button type="submit" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-amber-500/30">Generate & Get OTP</button>
+                            </form>
+                            <div id="vip-generated-result" class="mt-4 hidden p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                                <p class="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-1">VIP OTP Code</p>
+                                <p class="text-3xl font-black font-mono tracking-widest text-emerald-800" id="vip-generated-otp">000000</p>
+                                <p class="text-[10px] text-slate-500 mt-2">Provide this code to the VIP to log in.</p>
+                            </div>
+                            
+                            <div class="mt-6 border-t border-slate-100 pt-4 flex-1">
+                                <h3 class="text-sm font-bold text-slate-800 mb-3">Generated VIP Passes</h3>
+                                <div id="vip-admin-list" class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-2">
+                                    <!-- Injected via JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VIP Live Controls -->
+                        <div class="ios-card p-6 flex flex-col gap-6">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="clock" class="text-sky-500 w-4 h-4"></i> Live Timer Control</h3>
+                                <div class="text-center py-3 bg-slate-800 rounded-xl shadow-inner mb-3">
+                                    <span class="font-mono text-3xl font-black text-slate-500 tracking-wider" id="admin-live-timer">00:00:00</span>
+                                    <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest" id="admin-timer-status">WAITING</p>
+                                </div>
+                                <div class="flex gap-2 mb-3 items-center">
+                                    <input type="number" id="admin-timer-mins" class="input-style rounded-lg px-3 py-2 text-sm w-20 text-center font-bold" value="5" min="1">
+                                    <span class="text-xs font-bold text-slate-500">Mins</span>
+                                    <button onclick="ctrlTimer('start')" class="flex-1 bg-emerald-500 text-white py-2 rounded-lg text-xs font-bold"><i data-lucide="play" class="w-3 h-3 inline"></i> Start</button>
+                                    <button onclick="ctrlTimer('pause')" class="flex-1 bg-amber-500 text-white py-2 rounded-lg text-xs font-bold"><i data-lucide="pause" class="w-3 h-3 inline"></i> Pause</button>
+                                    <button onclick="ctrlTimer('reset')" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold"><i data-lucide="square" class="w-3 h-3 inline"></i> Reset</button>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-100 pt-4">
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="radio" class="text-rose-500 w-4 h-4"></i> Send Broadcast</h3>
+                                <div class="flex gap-2">
+                                    <input type="text" id="vip-broadcast-input" class="w-full input-style rounded-lg px-3 py-2 text-sm" placeholder="e.g. Time is Up!">
+                                    <button onclick="sendBroadcast()" class="bg-rose-500 text-white px-4 rounded-lg text-xs font-bold">Push</button>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-100 pt-4">
+                                <h3 class="text-sm font-bold text-slate-800 mb-2">Update VIP Notes</h3>
+                                <textarea id="vip-notes-input" class="w-full input-style rounded-lg px-3 py-2 text-sm h-20" placeholder="Notes will appear on VIP dashboard..."></textarea>
+                                <button onclick="saveVipNotes()" class="w-full mt-2 bg-slate-800 text-white py-2 rounded-lg text-xs font-bold">Save Notes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB EVENTS TAB -->
+                <div id="tab-subevents" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
+                    <div class="ios-card p-6 mb-6">
+                        <div class="flex items-center gap-2 mb-4"><i data-lucide="calendar-plus" class="text-[#76a8d1] w-5 h-5"></i><h2 class="text-lg font-black text-slate-800">Add Session</h2></div>
+                        <form onsubmit="handleAddEvent(event)" class="flex flex-col md:flex-row gap-4 items-end">
+                            <div class="flex-1 w-full"><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Event Name</label><input type="text" id="ev-name" required class="w-full input-style rounded-xl px-3 py-2.5 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20"></div>
+                            <div class="w-full md:w-auto"><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Start Time</label><input type="datetime-local" id="ev-start" required class="w-full input-style rounded-xl px-3 py-2.5 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20"></div>
+                            <div class="w-full md:w-auto"><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">End Time</label><input type="datetime-local" id="ev-end" required class="w-full input-style rounded-xl px-3 py-2.5 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20"></div>
+                            <button type="submit" class="brand-gradient text-white py-2.5 px-6 rounded-xl font-bold hover:shadow-md transition w-full md:w-auto text-sm">Add</button>
+                        </form>
+                    </div>
+
+                    <div class="ios-card p-0 overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 bg-slate-50"><h2 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Event Directory</h2></div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-white text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-100">
+                                    <tr><th class="p-4 font-bold">Event Name</th><th class="p-4 font-bold">Start Time</th><th class="p-4 font-bold">End Time</th><th class="p-4 font-bold">Status</th><th class="p-4 font-bold text-right">Action</th></tr>
+                                </thead>
+                                <tbody id="events-table-body" class="divide-y divide-slate-50 text-sm bg-white"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PARTICIPANTS TAB -->
+                <div id="tab-participants" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
+                    <div class="ios-card p-0 overflow-hidden h-full flex flex-col">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 border-b border-slate-100 bg-slate-50 gap-4 shrink-0">
+                            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Participant List</h2>
+                            <div class="relative w-full sm:w-64">
+                                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                                <input type="text" id="search-part" placeholder="Search..." onkeyup="filterParticipants()" class="input-style rounded-xl pl-9 pr-3 py-2 text-sm w-full focus:ring-[3px] focus:ring-[#76a8d1]/20">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left relative">
+                                <thead class="bg-white text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-100 sticky top-0 z-10 shadow-sm">
+                                    <tr><th class="p-4 font-bold">Name</th><th class="p-4 font-bold">Lajnah</th><th class="p-4 font-bold text-right">Role</th></tr>
+                                </thead>
+                                <tbody id="part-table-body" class="divide-y divide-slate-50 text-sm bg-white"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HUB SETUP TAB -->
+                <div id="tab-hubconfig" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="ios-card p-6">
+                            <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="image" class="text-[#76a8d1] w-5 h-5"></i>Banners</h2>
+                            <form onsubmit="addHubBanner(event)" class="flex gap-2 mb-4"><input type="url" id="hub-banner-url" required class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="Image URL"><button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold">Add</button></form>
+                            <div id="config-banners-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto"></div>
+                        </div>
+                        <div class="ios-card p-6">
+                            <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="link" class="text-indigo-500 w-5 h-5"></i>App Links</h2>
+                            <form onsubmit="addHubLink(event)" class="flex flex-col gap-2 mb-4">
+                                <input type="text" id="hub-link-title" required class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="App Title">
+                                <input type="url" id="hub-link-url" required class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="URL">
+                                <div class="flex gap-2"><select id="hub-link-icon" class="input-style rounded-xl px-3 py-2 text-sm w-32 appearance-none"><option value="globe">Globe</option><option value="calendar">Calendar</option><option value="file-text">Doc</option></select><button type="submit" class="flex-1 bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold">Add App</button></div>
+                            </form>
+                            <div id="config-links-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto"></div>
+                        </div>
+                        <div class="ios-card p-6 md:col-span-2">
+                            <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="form-input" class="text-emerald-500 w-5 h-5"></i>Custom Profile Fields</h2>
+                            <form onsubmit="addProfileField(event)" class="flex gap-2 mb-4"><input type="text" id="hub-field-name" required class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="e.g. Dietary Requirements"><button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold">Add Field</button></form>
+                            <div id="config-fields-list" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION (Shows only on Hub & Profile) -->
+    <div id="bottom-nav" class="fixed bottom-0 w-full bottom-nav-bar z-[45] hidden justify-around items-center px-6 pt-4 h-16 transition-transform">
+        <button onclick="routeTo('hub')" class="flex flex-col items-center text-[#203a70] w-16 group"><i data-lucide="home" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span class="text-[9px] font-bold mt-1">Home</span></button>
+        
+        <div class="relative w-16 h-10">
+            <div class="fab-wrapper">
+                <button onclick="togglePassesModal()" class="fab-btn group"><i data-lucide="qr-code" class="w-7 h-7 group-hover:scale-110 transition-transform"></i></button>
+            </div>
+        </div>
+
+        <button onclick="routeTo('profile')" class="flex flex-col items-center text-slate-400 hover:text-[#203a70] w-16 group transition-colors"><i data-lucide="user-circle" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span class="text-[9px] font-bold mt-1">Profile</span></button>
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURATION: GOOGLE SHEETS API
-        // ==========================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyFWuEj2HqVNEajQoJREEFyVPXkJkiBsInGOSS9NSsLBN9z2CuhaTA4D0jmpFsPREP/exec';
-        
         lucide.createIcons();
 
-        let state = {
-            lajnahs: [], subEvents: [], participants: [], logs: [], adminPass: '', liveInterval: null,
-            // Scanner Dashboard State
-            localSessionScans: [],
-            localSessionCount: 0
-        };
+        let state = { lajnahs: [], subEvents: [], participants: [], localSessionScans: [], localSessionCount: 0, adminPass: '' };
+        let sessionScanned = new Set(); let scanResetTimeout = null;
+
+        // --- HUB SESSION & CONFIG ---
+        let appSession = JSON.parse(localStorage.getItem('mynuqoba_session')) || null;
+        let hubConfig = JSON.parse(localStorage.getItem('mynuqoba_hub')) || {};
         
-        let sessionScanned = new Set(); 
-        let scanResetTimeout = null;
+        // Failsafe configuration initialization
+        if (!hubConfig.banners) hubConfig.banners = ['https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80'];
+        if (!hubConfig.links) hubConfig.links = [{ id: 'link1', title: 'Schedule', url: '#', icon: 'calendar' }];
+        if (!hubConfig.profileFields) hubConfig.profileFields = ['Dietary'];
+        if (!hubConfig.vips) hubConfig.vips = [];
 
-        // ==========================================
-        // API COMMUNICATION (GOOGLE SHEETS)
-        // ==========================================
-        async function apiCall(action, payload = {}) {
-            let response;
-            try {
-                response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action, payload }),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                });
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                showToast("Network Error: Make sure your URL is correct", "error");
-                throw err;
-            }
-            
-            const result = await response.json();
-            if (!result.success) throw new Error(result.error);
-            return result.data;
-        }
+        let bannerIdx = 0; let bannerInterval = null;
+        let timerInterval = null; let vipPollInterval = null;
+        let globalVipState = { timer: {status: 'idle', elapsed: 0, duration: 300000}, notes: '', broadcast: {ts: 0, msg: ''} };
+        let lastTimerStatus = 'idle'; let lastBroadcastTs = 0;
 
-        // ==========================================
-        // UI UTILS
-        // ==========================================
         const showToast = (msg, type = 'info') => {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
+            const container = document.getElementById('toast-container'); const toast = document.createElement('div');
             const colors = { success: 'bg-emerald-500 text-white', error: 'bg-rose-500 text-white', warning: 'bg-amber-500 text-white', info: 'bg-[#203a70] text-white' };
             toast.className = `${colors[type]} px-6 py-3 rounded-xl shadow-lg font-semibold flex items-center gap-3 animate-pop`;
             let icon = 'info'; if(type==='success') icon = 'check-circle'; if(type==='error') icon = 'alert-triangle';
             toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i> ${msg}`;
-            container.appendChild(toast);
-            lucide.createIcons({root: toast});
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; toast.style.transition = 'all 0.3s ease'; setTimeout(() => toast.remove(), 300); }, 3000);
+            container.appendChild(toast); lucide.createIcons({root: toast});
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
-
-        const switchView = (viewId) => {
-            ['view-register', 'view-admin-login', 'view-admin-dashboard', 'view-user-login'].forEach(v => document.getElementById(v).classList.add('view-hidden'));
-            document.getElementById(`view-${viewId}`).classList.remove('view-hidden');
-            if(viewId === 'admin-dashboard') { switchAdminTab('scanner'); loadAdminData(); }
-        };
-
-        const switchAdminTab = (tabId) => {
-            document.querySelectorAll('.admin-content').forEach(el => el.classList.add('view-hidden'));
-            document.querySelectorAll('.admin-tab').forEach(el => {
-                el.classList.remove('brand-gradient', 'text-white', 'shadow-md', 'border-[#15274d]');
-                el.classList.add('text-slate-600', 'hover:bg-slate-100');
-            });
-            
-            document.getElementById(`tab-${tabId}`).classList.remove('view-hidden');
-            const activeTabBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeTabBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
-            activeTabBtn.classList.add('brand-gradient', 'text-white', 'shadow-md', 'border', 'border-[#15274d]');
-
-            if(tabId === 'scanner') {
-                setTimeout(() => document.getElementById('scanner-input').focus(), 100);
-                updateScannerEventInfo(); // Refresh stats for scanner dashboard
-            }
-            
-            if(tabId === 'live') { fetchLiveUpdates(); state.liveInterval = setInterval(fetchLiveUpdates, 3000); } 
-            else clearInterval(state.liveInterval);
-        };
-
-        const closeModal = (id) => document.getElementById(id).classList.add('hidden');
-        const openModal = (id) => document.getElementById(id).classList.remove('hidden');
 
         const toggleFullscreen = (id) => {
             const el = document.getElementById(id);
             if (!document.fullscreenElement) {
-                // Ensure Toast Notifications move to fullscreen view so they aren't hidden
                 el.appendChild(document.getElementById('toast-container'));
                 el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
             } else {
@@ -725,7 +719,6 @@
             }
         };
 
-        // When exiting fullscreen, put toast container back to body
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
                 document.body.appendChild(document.getElementById('toast-container'));
@@ -753,442 +746,701 @@
             }
         };
 
-        // ==========================================
-        // INITIALIZATION & DROPDOWNS
-        // ==========================================
-        async function init() {
-            try {
-                const data = await apiCall('getInitialData');
-                state.lajnahs = data.lajnahs || [];
-                state.subEvents = data.subEvents || [];
-                
-                const lajnahSelect = document.getElementById('reg-lajnah');
-                lajnahSelect.innerHTML = '<option value="" disabled selected>Select Lajnah</option>';
-                state.lajnahs.forEach(l => lajnahSelect.innerHTML += `<option value="${l}">${l}</option>`);
-                
-                refreshEventDropdowns();
-            } catch(e) {}
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            const inner = document.getElementById(`${id}-inner`);
+            if(!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex'); 
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if(inner) {
+                    inner.classList.remove('scale-95');
+                    inner.classList.remove('translate-y-full'); 
+                }
+            }, 10);
         }
 
-        function refreshEventDropdowns() {
-            // Speaker Dropdown
-            const spkSelect = document.getElementById('spk-event');
-            if(spkSelect) {
-                spkSelect.innerHTML = '<option value="ALL">🌟 Universal Master Pass (All Events)</option>';
-                state.subEvents.forEach(e => spkSelect.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`);
+        function closeModal(id) {
+            const m = document.getElementById(id); 
+            const inner = document.getElementById(`${id}-inner`);
+            if(!m) return;
+            if(inner) {
+                if(id === 'modal-passes') inner.classList.add('translate-y-full');
+                else inner.classList.add('scale-95');
             }
+            m.classList.add('opacity-0'); 
+            setTimeout(() => { 
+                m.classList.add('hidden'); 
+                m.classList.remove('flex'); 
+            }, 300);
+        }
 
-            // Scanner Dropdown
+        async function apiCall(action, payload = {}) {
+            let response;
+            try { response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, payload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }}); } 
+            catch (err) { showToast("Network Error", "error"); throw err; }
+            const result = await response.json(); if (!result.success) throw new Error(result.error); return result.data;
+        }
+
+        window.onload = async () => {
+            initApp();
+            try {
+                const data = await apiCall('getInitialData'); state.lajnahs = data.lajnahs || []; state.subEvents = data.subEvents || [];
+                const lajnahSelect = document.getElementById('reg-lajnah'); lajnahSelect.innerHTML = '<option value="" disabled selected>Select Lajnah</option>';
+                state.lajnahs.forEach(l => lajnahSelect.innerHTML += `<option value="${l}">${l}</option>`);
+                refreshEventDropdowns();
+            } catch(e) {}
+            
+            // Listen for broadcasts globally
+            window.addEventListener('storage', (e) => {
+                if(e.key === 'mynuqoba_broadcast' && e.newValue) {
+                    const data = JSON.parse(e.newValue);
+                    const ov = document.getElementById('vip-broadcast-overlay');
+                    if(document.getElementById('vip-broadcast-msg')) document.getElementById('vip-broadcast-msg').innerText = data.msg;
+                    if(ov) { ov.classList.remove('hidden'); ov.classList.add('flex'); playSound('scan'); }
+                }
+            });
+
+            // Fast local timer UI updater
+            setInterval(updateTimerUI, 1000);
+        };
+
+        function refreshEventDropdowns() {
             const scanSelect = document.getElementById('scanner-event-select');
             if(scanSelect) {
                 scanSelect.innerHTML = '<option value="" disabled selected>Select an Event to Scan...</option>';
-                state.subEvents.filter(e => e.status === 'ACTIVE').forEach((e, idx) => {
-                    scanSelect.innerHTML += `<option value="${e.subevent_id}">[#${idx+1}] ${e.subevent_name}</option>`;
-                });
-                if(state.subEvents.length > 0) {
-                    scanSelect.selectedIndex = 1; // Default to first active event
-                    updateScannerEventInfo();
-                }
+                state.subEvents.filter(e => e.status === 'ACTIVE').forEach((e, idx) => { scanSelect.innerHTML += `<option value="${e.subevent_id}">[#${idx+1}] ${e.subevent_name}</option>`; });
+                if(state.subEvents.filter(e => e.status === 'ACTIVE').length > 0) { scanSelect.selectedIndex = 1; updateScannerEventInfo(); }
             }
+            const spkSelect = document.getElementById('spk-event');
+            if(spkSelect) { spkSelect.innerHTML = '<option value="ALL">🌟 Universal Master Pass</option>'; state.subEvents.forEach(e => spkSelect.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`); }
         }
 
+        function initApp() {
+            if (appSession) {
+                appSession.profile = appSession.profile || {}; // Strict failsafe against old cached logins
+                if(appSession.type === 'admin') { 
+                    state.adminPass = 'adminsaje'; // Restore admin auth
+                    loadAdminData(); 
+                    startGlobalStateSync(); 
+                    routeTo('hub'); 
+                    renderHub(); 
+                }
+                else if(appSession.type === 'vip') { routeTo('vip-dashboard'); startVipDashboard(); startGlobalStateSync(); }
+                else { routeTo('hub'); renderHub(); }
+            } else { routeTo('landing'); }
+        }
+
+        function routeTo(view) {
+            ['view-landing', 'view-register', 'view-user-login', 'view-vip-login', 'view-admin-login', 'view-hub', 'view-tools', 'view-profile', 'view-vip-dashboard'].forEach(v => {
+                const el = document.getElementById(v); if(el) el.classList.add('view-hidden');
+            });
+            const target = document.getElementById(`view-${view}`);
+            if(target) target.classList.remove('view-hidden');
+            
+            // Top Nav
+            const navActions = document.getElementById('nav-actions');
+            if (view === 'hub' || view === 'profile' || view === 'vip-dashboard') {
+                navActions.innerHTML = `<button onclick="logout()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition"><i data-lucide="log-out" class="w-4 h-4"></i></button>`;
+            } else if (view === 'tools') {
+                navActions.innerHTML = `<button onclick="routeTo('hub')" class="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-2 rounded-full hover:bg-slate-200 transition flex items-center gap-1"><i data-lucide="chevron-left" class="w-3 h-3"></i> Hub</button>`;
+            } else if (view !== 'landing') {
+                navActions.innerHTML = `<button onclick="routeTo('landing')" class="text-xs font-bold text-slate-500 hover:text-slate-800">Cancel</button>`;
+            } else { navActions.innerHTML = ``; }
+            lucide.createIcons({root: document.getElementById('nav-actions')});
+
+            // Bottom Nav Visibility
+            const bNav = document.getElementById('bottom-nav');
+            if(view === 'hub' || view === 'profile') { bNav.classList.remove('hidden'); bNav.classList.add('flex'); } 
+            else { bNav.classList.add('hidden'); bNav.classList.remove('flex'); }
+
+            if(view === 'profile') renderProfile();
+            if(view === 'hub') startBannerRotator(); else stopBannerRotator();
+        }
+
+        function switchView(v) { routeTo(v); }
+        function logout() { appSession = null; localStorage.removeItem('mynuqoba_session'); state.adminPass = ''; routeTo('landing'); clearInterval(vipPollInterval); }
+
         // ==========================================
-        // REGISTRATION & LOGIN
+        // AUTHENTICATION
         // ==========================================
         async function handleRegistration(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-register');
-            btn.innerHTML = `<div class="loader"></div> Processing...`; btn.disabled = true;
+            e.preventDefault(); const btn = document.getElementById('btn-register'); btn.innerHTML = `<div class="loader"></div>`; btn.disabled = true;
             try {
-                const qrs = await apiCall('registerUser', { 
-                    name: document.getElementById('reg-name').value, 
-                    lajnah: document.getElementById('reg-lajnah').value,
-                    password: document.getElementById('reg-password').value
-                });
-                renderQRs(qrs); openModal('modal-qr'); document.getElementById('form-register').reset(); showToast("Registration successful!", "success");
-            } catch (err) { showToast("Failed to register.", "error"); } 
-            finally { btn.innerHTML = `<i data-lucide="qr-code" class="w-5 h-5"></i> Generate Attendance Pass`; btn.disabled = false; lucide.createIcons(); }
+                const name = document.getElementById('reg-name').value;
+                const id = "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+                const qrs = await apiCall('registerUser', { name, lajnah: document.getElementById('reg-lajnah').value, password: document.getElementById('reg-password').value });
+                appSession = { type: 'user', name, qrs, id, profile: {} }; // Profile init
+                localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                showToast("Account Created!", "success"); initApp();
+            } catch (err) { showToast("Registration failed.", "error"); } finally { btn.innerHTML = `Create Account`; btn.disabled = false; }
         }
 
         async function handleUserLogin(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-user-login');
-            btn.innerHTML = `<div class="loader"></div> Verifying...`; btn.disabled = true;
+            e.preventDefault(); const btn = document.getElementById('btn-user-login'); btn.innerHTML = `<div class="loader"></div>`; btn.disabled = true;
             try {
-                const qrs = await apiCall('participantLogin', { 
-                    name: document.getElementById('login-name').value, 
-                    password: document.getElementById('login-password').value 
-                });
-                if(qrs.length === 0) showToast("No passes found for this account.", "warning");
-                else { renderQRs(qrs); openModal('modal-qr'); document.getElementById('form-user-login').reset(); }
-            } catch (err) { showToast(err.message || "Invalid name or password.", "error"); } 
-            finally { btn.innerHTML = `<i data-lucide="log-in" class="w-5 h-5"></i> Access Passes`; btn.disabled = false; lucide.createIcons(); }
+                const name = document.getElementById('login-name').value;
+                const qrs = await apiCall('participantLogin', { name, password: document.getElementById('login-password').value });
+                if(qrs.length === 0) showToast("No passes found.", "warning");
+                else { appSession = { type: 'user', name, qrs, id: "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {} }; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); initApp(); }
+            } catch (err) { showToast(err.message || "Invalid credentials.", "error"); } finally { btn.innerHTML = `Log In to Hub`; btn.disabled = false; }
         }
 
+        function handleAdminLogin(e) {
+            e.preventDefault(); const pass = document.getElementById('admin-pass').value;
+            if (pass === 'adminsaje') { 
+                state.adminPass = pass; 
+                appSession = { type: 'admin', name: 'Administrator', profile: {} }; 
+                localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
+                loadAdminData(); // Load data on successful login
+                initApp(); 
+            } 
+            else showToast("Incorrect password", "error");
+        }
+
+        // ==========================================
+        // VIP PORTAL & ADMIN CONTROLS (WITH GLOBAL SYNC)
+        // ==========================================
         async function handleSpeakerReg(e) {
             e.preventDefault();
             try {
-                const qrs = await apiCall('registerSpeaker', { 
-                    name: document.getElementById('spk-name').value, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value 
-                });
-                renderQRs(qrs); openModal('modal-qr'); document.getElementById('spk-name').value = ''; showToast("Speaker pass generated", "success");
-            } catch (err) {}
+                const name = document.getElementById('spk-name').value;
+                const qrs = await apiCall('registerSpeaker', { name, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value });
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                hubConfig.vips.push({ name, otp, qrs, active: true }); saveHubConfig();
+                document.getElementById('vip-generated-otp').innerText = otp;
+                document.getElementById('vip-generated-result').classList.remove('hidden');
+                document.getElementById('spk-name').value = '';
+                showToast("VIP OTP Generated", "success");
+                renderAdminVipList();
+            } catch (err) { showToast("Failed to generate VIP", "error"); }
         }
 
-        function renderQRs(qrDataArray) {
-            const container = document.getElementById('qr-container');
+        function handleVipLogin(e) {
+            e.preventDefault(); const otp = document.getElementById('vip-otp-input').value;
+            const vip = hubConfig.vips.find(v => v.otp === otp && v.active);
+            if(vip) {
+                appSession = { type: 'vip', name: vip.name, qrs: vip.qrs, profile: {} };
+                localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                initApp();
+            } else showToast("Invalid or expired OTP", "error");
+        }
+
+        function renderAdminVipList() {
+            const container = document.getElementById('vip-admin-list');
+            if(!container) return;
             container.innerHTML = '';
-            if(qrDataArray.length === 0) { container.innerHTML = `<p class="text-red-500 font-bold">Error: No passes available.</p>`; return; }
+            
+            let hasVips = false;
 
-            qrDataArray.forEach((data, index) => {
-                const card = document.createElement('div');
-                card.className = "flex flex-col bg-white border border-slate-200 shadow-md w-full max-w-sm rounded-2xl overflow-hidden mb-4 relative";
-                
-                const isVip = data.role === 'Speaker';
-                const isExpired = data.status === 'USED';
-                let headerGradient = isVip ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'brand-gradient';
-                if(isExpired) headerGradient = 'bg-slate-500';
-                
-                // Add bubble number for subevents if not master pass
-                const bubbleNum = data.subevent_name.startsWith('[#') ? data.subevent_name.split(']')[0].replace('[', '') : '';
-                
-                card.innerHTML = `
-                    <div class="${headerGradient} w-full px-5 py-4 text-white flex justify-between items-center relative">
-                        ${bubbleNum ? `<div class="absolute -top-2 -right-2 bg-white text-[#203a70] font-black rounded-full w-8 h-8 flex items-center justify-center shadow-md border-2 border-slate-100 z-10">${bubbleNum}</div>` : ''}
-                        <div class="w-[85%]">
-                            <p class="text-[10px] uppercase tracking-widest opacity-80 mb-1">Entry Pass</p>
-                            <h3 class="font-bold text-sm leading-snug pr-2 break-words whitespace-normal">${data.subevent_name.replace(/\[#\d+\]\s/, '')}</h3>
+            // 1. Render Local VIPs with OTPs
+            if(hubConfig.vips && hubConfig.vips.length > 0) {
+                hasVips = true;
+                hubConfig.vips.slice().reverse().forEach((vip, idx) => {
+                    const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
+                    const card = document.createElement('div');
+                    card.className = "p-3 border border-slate-100 rounded-xl bg-white flex justify-between items-center gap-3 shadow-sm mb-3";
+                    card.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-sm text-slate-800 truncate">${vip.name}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${subevent.replace(/\[#\d+\]\s/, '')}</p>
+                            <div class="mt-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OTP: ${vip.otp}</div>
                         </div>
-                        <i data-lucide="${isExpired ? 'x-octagon' : 'book-user'}" class="w-8 h-8 opacity-80 flex-shrink-0"></i>
-                    </div>
-                    <div class="relative w-full border-t-2 border-dashed border-slate-200 bg-white">
-                        <div class="absolute -left-3 -top-3 w-6 h-6 bg-slate-50 rounded-full border border-slate-200"></div>
-                        <div class="absolute -right-3 -top-3 w-6 h-6 bg-slate-50 rounded-full border border-slate-200"></div>
-                    </div>
-                    <div class="p-6 flex flex-col items-center bg-white ${isExpired ? 'grayscale opacity-75' : ''}">
-                        <div class="relative mb-4">
-                            ${isExpired ? `<div class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[1px] rounded-xl"><span class="bg-red-600 text-white text-xs font-black px-3 py-1 rounded shadow-lg transform -rotate-12 border-2 border-white">EXPIRED</span></div>` : ''}
-                            <div class="p-2 border-2 border-slate-100 rounded-xl" id="qr-${data.qr_id}"></div>
+                        <div class="w-12 h-12 bg-slate-50 rounded-lg border border-slate-200 shrink-0 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors group relative" onclick="zoomAdminVipQr('${vip.otp}')" id="admin-vip-qr-${idx}">
+                            <div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div>
                         </div>
-                        ${isExpired ? `<p class="text-red-600 font-bold text-xs mb-4 uppercase tracking-wider text-center">This pass has already been used.</p>` : ''}
-                        <div class="w-full bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Participant Name</p>
-                            <p class="font-bold text-slate-800 text-lg mb-4 break-words whitespace-normal">${data.name}</p>
-                            <div class="flex justify-between">
-                                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Lajnah</p><p class="font-semibold text-slate-700 text-sm">${data.lajnah}</p></div>
-                                <div class="text-right"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p><p class="font-bold ${isExpired ? 'text-slate-500' : (isVip ? 'text-yellow-600' : 'text-[#76a8d1]')} text-sm">${isExpired ? 'EXPIRED' : data.role}</p></div>
-                            </div>
+                    `;
+                    container.appendChild(card);
+                    
+                    if(vip.qrs.length > 0) {
+                        const qrText = `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}`;
+                        new QRCode(document.getElementById(`admin-vip-qr-${idx}`), { text: qrText, width: 44, height: 44, colorDark:"#0f172a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
+                    }
+                });
+            }
+
+            // 2. Render Old Database VIPs (Without OTPs) as fallback
+            const dbVips = state.participants.filter(p => p.role === 'Speaker');
+            dbVips.forEach(dbVip => {
+                const isLocal = hubConfig.vips && hubConfig.vips.find(v => v.name.toLowerCase() === dbVip.name.toLowerCase());
+                if (!isLocal) {
+                    hasVips = true;
+                    const card = document.createElement('div');
+                    card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70";
+                    card.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p>
+                            <div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div>
                         </div>
-                    </div>
-                `;
-                container.appendChild(card);
-                const qrText = `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`;
-                new QRCode(document.getElementById(`qr-${data.qr_id}`), { text: qrText, width: 160, height: 160, colorDark : isExpired ? "#64748b" : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
+                    `;
+                    container.appendChild(card);
+                }
             });
-            lucide.createIcons();
+
+            if(!hasVips) {
+                container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';
+            }
+
+            lucide.createIcons({root: container});
         }
 
-        async function downloadQR(type) {
-            const container = document.getElementById('qr-container');
-            const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#ffffff' });
-            if (type === 'png') {
-                const link = document.createElement('a'); link.download = `MyNuqobaPass.png`; link.href = canvas.toDataURL('image/png'); link.click();
-            } else if (type === 'pdf') {
-                const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgData = canvas.toDataURL('image/png'); const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight); pdf.save(`MyNuqobaPass.pdf`);
+        function zoomAdminVipQr(otp) {
+            const vip = hubConfig.vips.find(v => v.otp === otp);
+            if(!vip) return;
+            const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
+            const qrText = vip.qrs.length > 0 ? `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}` : '';
+            
+            document.getElementById('zoom-qr-name').innerText = vip.name;
+            document.getElementById('zoom-qr-event').innerText = subevent.replace(/\[#\d+\]\s/, '');
+            document.getElementById('zoom-qr-box').innerHTML = '';
+            if(qrText) new QRCode(document.getElementById('zoom-qr-box'), { text: qrText, width: 220, height: 220, colorDark:"#0f172a" });
+            
+            openModal('modal-vip-zoom');
+        }
+
+        function startVipDashboard() {
+            document.getElementById('vip-dash-name').innerText = appSession.name;
+            if(appSession.qrs.length>0) {
+                document.getElementById('vip-dash-event').innerText = appSession.qrs[0].subevent_name.replace(/\[#\d+\]\s/, '');
+                const qrText = `${appSession.qrs[0].qr_id}|${appSession.name}|VIP|Speaker|${appSession.qrs[0].subevent_name}`;
+                document.getElementById('vip-qr-box').innerHTML = '';
+                new QRCode(document.getElementById('vip-qr-box'), { text: qrText, width: 180, height: 180, colorDark:"#0f172a" });
             }
         }
 
-        // ==========================================
-        // SCANNER DASHBOARD LOGIC
-        // ==========================================
-        function handleAdminLogin(e) {
-            e.preventDefault();
-            const pass = document.getElementById('admin-pass').value;
-            if (pass === 'adminsaje') { state.adminPass = pass; document.getElementById('admin-pass').value = ''; switchView('admin-dashboard'); showToast("Admin access granted", "success"); } 
-            else { showToast("Incorrect password", "error"); }
+        function startGlobalStateSync() {
+            clearInterval(vipPollInterval);
+            fetchGlobalState(); // Initial fetch
+            vipPollInterval = setInterval(fetchGlobalState, 3000); // Poll every 3s
         }
 
-        function updateScannerEventInfo() {
-            const sel = document.getElementById('scanner-event-select');
-            const infoName = document.getElementById('info-event-name');
-            const infoTime = document.getElementById('info-event-time');
-            
-            if(!sel || sel.value === "") return;
-            
-            const ev = state.subEvents.find(e => e.subevent_id === sel.value);
-            if(ev) {
-                infoName.innerText = ev.subevent_name;
-                infoTime.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        async function fetchGlobalState() {
+            try {
+                const newState = await apiCall('getVipState');
                 
-                // Update Main Title
-                document.getElementById('scanner-main-title').innerText = `SCANNER MODE - ${ev.subevent_name}`;
-            }
-
-            updateScannerStats();
-        }
-
-        function updateScannerStats() {
-            // Update Total Registered
-            const totalReg = state.participants.length;
-            document.getElementById('stat-total-reg').innerText = totalReg;
-
-            // Session Scans
-            document.getElementById('stat-session-scans').innerText = state.localSessionCount;
-
-            // Progress Bar
-            let percent = totalReg > 0 ? Math.min(100, Math.round((state.localSessionCount / totalReg) * 100)) : 0;
-            document.getElementById('stat-progress-bar').style.width = `${percent}%`;
-            document.getElementById('stat-progress-text').innerText = `${percent}%`;
-            document.getElementById('stat-progress-sub').innerText = `${state.localSessionCount} / ${totalReg} Participants Scanned`;
-        }
-
-        function renderRecentScans() {
-            const tbody = document.getElementById('recent-scans-body');
-            tbody.innerHTML = '';
-            
-            if(state.localSessionScans.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400 italic">No recent scans in this session.</td></tr>`;
-                return;
-            }
-
-            // Show top 6 most recent
-            state.localSessionScans.slice(0, 6).forEach(scan => {
-                let iconHtml = '';
-                let statusClass = '';
-                
-                if(scan.scan_result === 'SUCCESS') {
-                    iconHtml = `<i data-lucide="check-circle-2" class="w-4 h-4 mr-1"></i> Checked In`;
-                    statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-                } else if(scan.scan_result === 'DUPLICATE') {
-                    iconHtml = `<i data-lucide="alert-circle" class="w-4 h-4 mr-1"></i> Duplicate`;
-                    statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
-                } else {
-                    iconHtml = `<i data-lucide="x-circle" class="w-4 h-4 mr-1"></i> Invalid`;
-                    statusClass = 'bg-rose-100 text-rose-700 border-rose-200';
+                // Notes Check
+                if (newState.notes && document.getElementById('vip-notes-display')) {
+                    document.getElementById('vip-notes-display').innerText = newState.notes;
                 }
 
-                // Handle scan_time gracefully if undefined or missing comma
-                const scanTimeStr = scan.scan_time || new Date().toLocaleTimeString();
-                const displayTime = scanTimeStr.includes(', ') ? scanTimeStr.split(', ')[1] : scanTimeStr;
+                // Broadcast Check
+                if (newState.broadcast && newState.broadcast.ts > lastBroadcastTs) {
+                    // Always show if it's new, even on first load if it was sent within the last 15 seconds
+                    const isRecent = (Date.now() - newState.broadcast.ts) < 15000;
+                    if (lastBroadcastTs !== 0 || isRecent) { 
+                       const ov = document.getElementById('vip-broadcast-overlay');
+                       if (ov && (appSession.type === 'vip' || appSession.type === 'admin')) {
+                           document.getElementById('vip-broadcast-msg').innerText = newState.broadcast.msg;
+                           ov.classList.remove('hidden'); ov.classList.add('flex');
+                           playSound('scan');
+                       }
+                    }
+                    lastBroadcastTs = newState.broadcast.ts;
+                }
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="py-3 font-bold text-slate-800">${scan.name}</td>
-                        <td class="py-3 text-slate-600">${scan.role === 'Speaker' ? '<span class="text-yellow-600 font-bold">VIP</span>' : scan.lajnah}</td>
-                        <td class="py-3 text-slate-500 font-medium">${displayTime}</td>
-                        <td class="py-3 text-right">
-                            <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${statusClass}">
-                                ${iconHtml}
-                            </span>
-                        </td>
-                    </tr>
-                `;
+                // Timer Check & Updates
+                if (newState.timer) {
+                    globalVipState.timer = newState.timer;
+                    
+                    // Trigger VIP Announcement if timer JUST started
+                    if(appSession.type === 'vip' && newState.timer.status === 'running' && lastTimerStatus !== 'running') {
+                        const mins = Math.round(newState.timer.duration / 60000);
+                        const announceMsg = document.getElementById('vip-timer-announce-msg');
+                        if (announceMsg) announceMsg.innerText = `Masa diberi ${mins} minit, terima kasih`;
+                        
+                        const overlay = document.getElementById('vip-timer-announcement');
+                        if (overlay) {
+                            overlay.classList.remove('hidden'); overlay.classList.add('flex');
+                            playSound('success');
+                            
+                            setTimeout(() => {
+                                overlay.classList.add('hidden'); overlay.classList.remove('flex');
+                            }, 3000);
+                        }
+                    }
+                    
+                    // Hide VIP QR Section if timer is active
+                    if (appSession.type === 'vip') {
+                        const qrSec = document.getElementById('vip-qr-section');
+                        if (qrSec) {
+                            if (newState.timer.status === 'running' || newState.timer.status === 'paused') {
+                                qrSec.style.opacity = '0'; setTimeout(() => qrSec.classList.add('hidden'), 500); 
+                            } else {
+                                qrSec.classList.remove('hidden'); setTimeout(() => qrSec.style.opacity = '1', 10);
+                            }
+                        }
+                    }
+
+                    lastTimerStatus = newState.timer.status;
+                }
+
+                globalVipState = newState;
+            } catch(e) { console.warn("Global sync tick failed"); }
+        }
+
+        function updateTimerUI() {
+            const state = globalVipState.timer || {status: 'idle', elapsed: 0, duration: 300000};
+            let totalElapsed = state.elapsed || 0;
+            if(state.status === 'running') {
+                totalElapsed += (Date.now() - state.startTs);
+            }
+            let remaining = (state.duration || 300000) - totalElapsed;
+            if (remaining < 0) remaining = 0;
+
+            const s = Math.ceil(remaining / 1000);
+            const hrs = String(Math.floor(s / 3600)).padStart(2,'0');
+            const mins = String(Math.floor((s % 3600)/60)).padStart(2,'0');
+            const secs = String(s % 60).padStart(2,'0');
+            const timeStr = `${hrs}:${mins}:${secs}`;
+
+            ['vip-live-timer', 'admin-live-timer'].forEach(id => {
+                const el = document.getElementById(id); if(el) el.innerText = timeStr;
             });
+            ['vip-timer-status', 'admin-timer-status'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.innerText = state.status === 'running' ? 'LIVE NOW' : state.status.toUpperCase();
+            });
+
+            // Status Styling (Admin vs VIP)
+            ['vip-live-timer', 'admin-live-timer'].forEach(id => {
+                const el = document.getElementById(id); if(!el) return;
+                if (id === 'vip-live-timer') {
+                    if(remaining === 0 && state.status !== 'idle') el.className = 'font-mono text-5xl font-black text-white tracking-wider animate-pulse';
+                    else if(state.status === 'running') el.className = 'font-mono text-5xl font-black text-white tracking-wider';
+                    else el.className = 'font-mono text-5xl font-black text-white/80 tracking-wider';
+                } else {
+                    if(remaining === 0 && state.status !== 'idle') el.className = 'font-mono text-3xl md:text-4xl font-black text-rose-500 tracking-wider animate-pulse';
+                    else if(state.status === 'running') el.className = 'font-mono text-3xl md:text-4xl font-black text-emerald-400 tracking-wider';
+                    else el.className = 'font-mono text-3xl md:text-4xl font-black text-slate-500 tracking-wider';
+                }
+            });
+        }
+
+        async function ctrlTimer(action) {
+            const minsInput = document.getElementById('admin-timer-mins');
+            let inputMins = minsInput ? (parseFloat(minsInput.value) || 5) : 5;
+            let state = globalVipState.timer || {status: 'idle', elapsed: 0, duration: inputMins * 60000};
+            
+            if(action === 'start') {
+                if(state.status !== 'running') {
+                    state.status = 'running';
+                    state.startTs = Date.now();
+                    if(state.elapsed === 0) state.duration = inputMins * 60000;
+                }
+            } else if (action === 'pause') {
+                if(state.status === 'running') {
+                    state.status = 'paused';
+                    state.elapsed += (Date.now() - state.startTs);
+                }
+            } else if (action === 'reset') {
+                state = {status: 'idle', elapsed: 0, duration: inputMins * 60000};
+                
+                // Show QR again for VIP if it was hidden
+                const qrSec = document.getElementById('vip-qr-section');
+                if(qrSec) { qrSec.classList.remove('hidden'); setTimeout(() => qrSec.style.opacity = '1', 10); }
+            }
+            
+            globalVipState.timer = state;
+            updateTimerUI(); // Fast local update
+            showToast("Timer " + action, "success");
+            await apiCall('updateVipState', {key: 'timer', value: state}); // Sync to Cloud
+        }
+        
+        async function saveVipNotes() { 
+            const noteInput = document.getElementById('vip-notes-input');
+            if(!noteInput) return;
+            const note = noteInput.value;
+            showToast("Syncing notes...", "info");
+            await apiCall('updateVipState', {key: 'notes', value: note});
+            showToast("Notes synced to VIPs", "success"); 
+        }
+        
+        async function sendBroadcast() { 
+            const bInput = document.getElementById('vip-broadcast-input');
+            if(!bInput) return;
+            const msg = bInput.value;
+            showToast("Pushing broadcast...", "info");
+            await apiCall('updateVipState', {key: 'broadcast', value: {msg: msg, ts: Date.now()}});
+            showToast("Broadcast pushed!", "success"); 
+            bInput.value = '';
+        }
+
+        // ==========================================
+        // PROFILE SYSTEM (Compress & Store)
+        // ==========================================
+        function renderProfile() {
+            if (!appSession) return;
+            if (!appSession.profile) appSession.profile = {}; // Failsafe for older cached accounts
+            
+            const profName = document.getElementById('prof-name');
+            const profId = document.getElementById('prof-nuqoba-id');
+            const profImg = document.getElementById('profile-img');
+            const profPhone = document.getElementById('prof-phone');
+            
+            if(profName) profName.innerText = appSession.name || 'User';
+            if(profId) profId.innerText = appSession.id || "NQ-UNKNOWN";
+            if(profImg && appSession.photo) profImg.src = appSession.photo;
+            if(profPhone) profPhone.value = appSession.profile.phone || '';
+            
+            const dynCont = document.getElementById('prof-custom-fields'); 
+            if(dynCont && hubConfig.profileFields) {
+                dynCont.innerHTML = '';
+                hubConfig.profileFields.forEach(f => {
+                    const safeId = f.replace(/[^a-zA-Z0-9]/g, '');
+                    const val = appSession.profile[safeId] || '';
+                    dynCont.innerHTML += `<div><label class="block text-xs font-semibold text-slate-500 mb-1">${f}</label><input type="text" id="prof-dyn-${safeId}" value="${val}" class="w-full input-style rounded-xl px-4 py-2 text-sm" placeholder="Enter ${f}"></div>`;
+                });
+            }
+        }
+
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const size = Math.min(img.width, img.height);
+                    canvas.width = 300; canvas.height = 300; const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, 300, 300);
+                    const base64 = canvas.toDataURL('image/jpeg', 0.6); // Compress to 60% quality JS crop
+                    document.getElementById('profile-img').src = base64;
+                    appSession.photo = base64; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                }; img.src = event.target.result;
+            }; reader.readAsDataURL(file);
+        }
+
+        function saveProfileDetails(e) {
+            e.preventDefault();
+            if(!appSession) return;
+            if(!appSession.profile) appSession.profile = {}; // Failsafe
+            
+            const phoneInput = document.getElementById('prof-phone');
+            if(phoneInput) appSession.profile.phone = phoneInput.value;
+            
+            if(hubConfig.profileFields) {
+                hubConfig.profileFields.forEach(f => {
+                    const safeId = f.replace(/[^a-zA-Z0-9]/g, '');
+                    const dynInput = document.getElementById(`prof-dyn-${safeId}`);
+                    if(dynInput) appSession.profile[safeId] = dynInput.value;
+                });
+            }
+            localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+            showToast("Profile saved locally!", "success");
+        }
+
+        // ==========================================
+        // THE HUB
+        // ==========================================
+        function renderHub() {
+            document.getElementById('hub-user-name').innerText = appSession.name;
+            renderHubBanners();
+            const grid = document.getElementById('hub-app-grid'); grid.innerHTML = '';
+            if (appSession.type === 'admin') {
+                grid.innerHTML += createAppIcon('scanner', 'Scanner', 'scan', 'sky', () => openTool('scanner'));
+                grid.innerHTML += createAppIcon('admin', 'Admin Panel', 'shield', 'slate', () => openTool('admin'));
+            }
+            if(hubConfig.links) {
+                hubConfig.links.forEach(link => { grid.innerHTML += createAppIcon(link.id, link.title, link.icon, 'indigo', () => window.open(link.url, '_blank')); });
+            }
+            lucide.createIcons({root: grid});
+        }
+        
+        function togglePassesModal() {
+            if(!appSession || appSession.type !== 'user' || !appSession.qrs || appSession.qrs.length === 0) { showToast("No passes available.", "warning"); return; }
+            const container = document.getElementById('hub-qr-container');
+            container.innerHTML = '';
+            appSession.qrs.forEach((data) => {
+                const isExpired = data.status === 'USED';
+                const cleanName = data.subevent_name.replace(/\[#\d+\]\s/, '');
+                const card = document.createElement('div'); card.className = "w-full bg-white rounded-2xl border border-slate-200 p-4 shadow-sm relative overflow-hidden flex items-center gap-4";
+                card.innerHTML = `<div class="w-16 h-16 shrink-0 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center p-1" id="pass-qr-${data.qr_id}"></div><div class="flex-1 min-w-0"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${data.lajnah}</p><h4 class="font-bold text-slate-800 text-sm truncate">${cleanName}</h4><span class="text-[10px] font-bold px-2 py-0.5 rounded-sm mt-1 inline-block ${isExpired?'bg-slate-100 text-slate-500':'bg-[#76a8d1]/20 text-[#203a70]'}">${isExpired?'EXPIRED':'VALID'}</span></div>`;
+                container.appendChild(card);
+                new QRCode(document.getElementById(`pass-qr-${data.qr_id}`), { text: `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`, width: 60, height: 60, colorDark: isExpired?"#94a3b8":"#0f172a", correctLevel: QRCode.CorrectLevel.L });
+            });
+            openModal('modal-passes');
+        }
+
+        // --- Banners & Links ---
+        function renderHubBanners() {
+            const cont = document.getElementById('hub-banner-indicators'); cont.innerHTML = '';
+            if (!hubConfig.banners || hubConfig.banners.length <= 1) return;
+            hubConfig.banners.forEach((_, i) => { cont.innerHTML += `<div class="w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === bannerIdx ? 'bg-white scale-125' : 'bg-white/40'}"></div>`; });
+        }
+        function startBannerRotator() {
+            stopBannerRotator(); if (!hubConfig.banners || hubConfig.banners.length === 0) return; const img = document.getElementById('hub-banner-img');
+            const setImg = () => { img.style.opacity = 0; setTimeout(() => { img.src = hubConfig.banners[bannerIdx]; img.style.opacity = 1; renderHubBanners(); }, 300); };
+            setImg(); if (hubConfig.banners.length > 1) bannerInterval = setInterval(() => { bannerIdx = (bannerIdx + 1) % hubConfig.banners.length; setImg(); }, 5000);
+        }
+        function stopBannerRotator() { clearInterval(bannerInterval); }
+        function createAppIcon(id, title, icon, color, onClickStr) {
+            const colors = { sky: 'bg-sky-50 text-sky-600', emerald: 'bg-emerald-50 text-emerald-600', slate: 'bg-slate-100 text-slate-700', indigo: 'bg-indigo-50 text-indigo-600' };
+            window[`__action_${id}`] = onClickStr;
+            return `<div class="flex flex-col items-center gap-2 cursor-pointer app-icon w-full max-w-[80px]" onclick="window['__action_${id}']()"><div class="w-14 h-14 md:w-16 md:h-16 rounded-[20px] ${colors[color]||colors.sky} flex items-center justify-center shadow-sm border border-slate-200/50"><i data-lucide="${icon}" class="w-6 h-6 md:w-7 md:h-7"></i></div><span class="text-[10px] md:text-xs font-semibold text-slate-600 text-center leading-tight line-clamp-2">${title}</span></div>`;
+        }
+
+        // ==========================================
+        // ADMIN PANEL
+        // ==========================================
+        function openTool(toolName) {
+            routeTo('tools'); const sb = document.getElementById('admin-sidebar');
+            loadAdminData(); // Refresh Data strictly when opening tools
+            if(toolName === 'scanner') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('scanner'); } 
+            else if (toolName === 'live') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('live'); } 
+            else if (toolName === 'admin') { sb.classList.remove('hidden', 'md:hidden'); switchAdminTab('subevents'); }
+        }
+        const switchAdminTab = (tabId) => {
+            document.querySelectorAll('.admin-content').forEach(el => el.classList.add('view-hidden'));
+            document.querySelectorAll('.admin-tab').forEach(el => { el.classList.remove('brand-gradient', 'text-white', 'shadow-md', 'border-[#15274d]'); el.classList.add('text-slate-600', 'hover:bg-slate-100'); });
+            document.getElementById(`tab-${tabId}`).classList.remove('view-hidden');
+            const btn = document.getElementById(`tab-btn-${tabId}`); if(btn) { btn.classList.remove('text-slate-600', 'hover:bg-slate-100'); btn.classList.add('brand-gradient', 'text-white', 'shadow-md', 'border', 'border-[#15274d]'); }
+            if(tabId === 'scanner') setTimeout(() => document.getElementById('scanner-input').focus(), 100);
+            if(tabId === 'speaker') renderAdminVipList();
+            if(tabId === 'hubconfig') renderHubConfigAdmin();
+            if(tabId === 'live') { fetchLiveUpdates(); state.liveInterval = setInterval(fetchLiveUpdates, 3000); } else clearInterval(state.liveInterval);
+        };
+
+        function saveHubConfig() { localStorage.setItem('mynuqoba_hub', JSON.stringify(hubConfig)); renderHubConfigAdmin(); renderAdminVipList(); }
+        function renderHubConfigAdmin() {
+            const bList = document.getElementById('config-banners-list'); bList.innerHTML = '';
+            if(hubConfig.banners) hubConfig.banners.forEach((url, i) => bList.innerHTML += `<div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100"><img src="${url}" class="w-12 h-8 object-cover rounded"><div class="text-[10px] text-slate-500 truncate flex-1">${url}</div><button onclick="removeHubBanner(${i})" class="text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`);
+            const lList = document.getElementById('config-links-list'); lList.innerHTML = '';
+            if(hubConfig.links) hubConfig.links.forEach((link, i) => lList.innerHTML += `<div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100"><div class="p-1.5 bg-slate-200 text-slate-600 rounded-md"><i data-lucide="${link.icon}" class="w-3 h-3"></i></div><div class="flex-1"><p class="text-xs font-bold text-slate-700">${link.title}</p><p class="text-[9px] text-slate-400 truncate">${link.url}</p></div><button onclick="removeHubLink(${i})" class="text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`);
+            const fList = document.getElementById('config-fields-list'); fList.innerHTML = '';
+            if(hubConfig.profileFields) hubConfig.profileFields.forEach((f, i) => fList.innerHTML += `<div class="bg-[#76a8d1]/10 text-[#203a70] border border-[#76a8d1]/20 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">${f} <button onclick="removeProfileField(${i})" class="text-red-500 hover:text-red-700"><i data-lucide="x" class="w-3 h-3"></i></button></div>`);
             lucide.createIcons();
+        }
+        function addHubBanner(e) { e.preventDefault(); hubConfig.banners.push(document.getElementById('hub-banner-url').value); document.getElementById('hub-banner-url').value=''; saveHubConfig(); }
+        function removeHubBanner(idx) { hubConfig.banners.splice(idx, 1); saveHubConfig(); }
+        function addHubLink(e) { e.preventDefault(); hubConfig.links.push({ id: 'link'+Date.now(), title: document.getElementById('hub-link-title').value, url: document.getElementById('hub-link-url').value, icon: document.getElementById('hub-link-icon').value }); document.getElementById('hub-link-title').value=''; document.getElementById('hub-link-url').value=''; saveHubConfig(); }
+        function removeHubLink(idx) { hubConfig.links.splice(idx, 1); saveHubConfig(); }
+        function addProfileField(e) { e.preventDefault(); hubConfig.profileFields.push(document.getElementById('hub-field-name').value); document.getElementById('hub-field-name').value=''; saveHubConfig(); }
+        function removeProfileField(idx) { hubConfig.profileFields.splice(idx, 1); saveHubConfig(); }
+
+        // ==========================================
+        // SCANNER LOGIC
+        // ==========================================
+        function updateScannerEventInfo() {
+            const sel = document.getElementById('scanner-event-select'); if(!sel || !sel.value) return;
+            const ev = state.subEvents.find(e => e.subevent_id === sel.value);
+            if(ev) { 
+                const nameEl = document.getElementById('info-event-name');
+                if(nameEl) nameEl.innerText = ev.subevent_name; 
+                const titleEl = document.getElementById('scanner-main-title');
+                if(titleEl) titleEl.innerText = `SCANNER MODE - ${ev.subevent_name}`; 
+                
+                // Add safe-check for info-event-time which is sometimes not perfectly rendered
+                const timeEl = document.getElementById('info-event-time');
+                if(timeEl) {
+                    timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                }
+            }
+            const totalReg = state.participants.length; 
+            const trEl = document.getElementById('stat-total-reg'); if(trEl) trEl.innerText = totalReg; 
+            const ssEl = document.getElementById('stat-session-scans'); if(ssEl) ssEl.innerText = state.localSessionCount;
+            let percent = totalReg > 0 ? Math.min(100, Math.round((state.localSessionCount / totalReg) * 100)) : 0;
+            const pbEl = document.getElementById('stat-progress-bar'); if(pbEl) pbEl.style.width = `${percent}%`; 
+            const ptEl = document.getElementById('stat-progress-text'); if(ptEl) ptEl.innerText = `${percent}%`;
+            const subEl = document.getElementById('stat-progress-sub'); if(subEl) subEl.innerText = `${state.localSessionCount} / ${totalReg} Participants Scanned`;
         }
 
         const scannerInput = document.getElementById('scanner-input');
-        scannerInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                const code = this.value.trim();
-                this.value = ''; 
-                if (code) { playSound('scan'); processScan(code); }
-            }
-        });
-        
-        // Auto focus hidden input when clicking anywhere in the scanner tab background
-        document.addEventListener('click', (e) => {
-            if(!document.getElementById('tab-scanner').classList.contains('view-hidden')) {
-                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'INPUT') {
-                    scannerInput.focus();
-                }
-            }
-        });
+        if(scannerInput) {
+            scannerInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') { const code = this.value.trim(); this.value = ''; if (code) { playSound('scan'); processScan(code); } }
+            });
+        }
 
         function processScan(code) {
             const expectedEventId = document.getElementById('scanner-event-select').value;
             if(!expectedEventId) { showToast("Please select an Event to scan for first!", "warning"); return; }
-
-            let actualQrId = code;
-            let optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-';
-            let isOptimistic = false;
+            let actualQrId = code, optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-';
             const nowStr = new Date().toLocaleString('en-GB');
 
-            if (code.includes('|')) {
-                const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; isOptimistic = true;
-            }
+            if (code.includes('|')) { const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; }
+            if (sessionScanned.has(actualQrId)) { triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-', scan_time: nowStr }); return; }
 
-            if (sessionScanned.has(actualQrId)) {
-                triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-', scan_time: nowStr });
-                return;
-            }
-
-            if (isOptimistic) {
-                // Determine if it's the right event optimistically
-                const expectedEventName = document.getElementById('info-event-name').innerText;
-                const qrEventNameBase = optSubevent.replace(/\[#\d+\]\s/, '');
-                
-                if(optSubevent !== 'Universal Master Pass' && qrEventNameBase !== expectedEventName) {
-                    triggerScannerUI({ scan_result: 'WRONG EVENT', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Expected: ${expectedEventName}`, status: '-', scan_time: nowStr });
-                } else {
-                    sessionScanned.add(actualQrId);
-                    setTimeout(() => sessionScanned.delete(actualQrId), 10000); 
-                    triggerScannerUI({ scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME', scan_time: nowStr });
-                }
-
-                // Background sync
-                apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).catch(e => console.error(e));
+            // Safe check for Event Name
+            let expectedEventName = "";
+            const infoNameEl = document.getElementById('info-event-name');
+            if(infoNameEl) expectedEventName = infoNameEl.innerText;
+            
+            const qrEventNameBase = optSubevent.replace(/\[#\d+\]\s/, '');
+            
+            if(optSubevent !== 'Universal Master Pass' && qrEventNameBase !== expectedEventName) {
+                triggerScannerUI({ scan_result: 'WRONG EVENT', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Expected: ${expectedEventName}`, status: '-', scan_time: nowStr });
             } else {
-                // Fallback for old QR formats
-                setScannerLoading();
-                apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).then(result => {
-                    if (result.scan_result === 'SUCCESS') { sessionScanned.add(actualQrId); setTimeout(() => sessionScanned.delete(actualQrId), 10000); }
-                    triggerScannerUI(result);
-                }).catch(err => { triggerScannerUI({scan_result: 'ERROR', name: 'Network Error', lajnah: '-', role: '-', subevent_name: '-', status: '-', scan_time: nowStr}); });
+                sessionScanned.add(actualQrId); setTimeout(() => sessionScanned.delete(actualQrId), 10000); 
+                triggerScannerUI({ scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME', scan_time: nowStr });
             }
-        }
-
-        function setScannerLoading() {
-            const resultWrapper = document.getElementById('scan-result-card');
-            const cardInner = document.getElementById('bp-card-inner');
-            const headerBar = document.getElementById('bp-header');
-            const iconBox = document.getElementById('scan-icon');
-            const nameEl = document.getElementById('scan-name');
-            const lajnahEl = document.getElementById('scan-lajnah');
-            const eventEl = document.getElementById('scan-event');
-            const badge = document.getElementById('scan-status-badge');
-
-            headerBar.className = "px-6 py-4 flex justify-between items-center text-white brand-gradient";
-            iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-sky-100 border-4 border-white shadow-md mx-auto z-10 relative"><div class="animate-spin rounded-full h-8 w-8 border-4 border-[#76a8d1] border-t-[#203a70]"></div></div>`;
-            nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">SILA TUNGGU</span>MENGESAHKAN...`;
-            lajnahEl.innerText = '-';
-            eventEl.innerText = '-';
-            badge.className = "hidden";
-
-            resultWrapper.classList.remove('hidden');
-            resultWrapper.classList.add('flex');
-            setTimeout(() => { 
-                cardInner.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
-                cardInner.classList.add('scale-100', 'opacity-100', 'translate-y-0');
-            }, 10);
+            apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).catch(e => console.error(e));
         }
 
         function triggerScannerUI(res) {
-            const resultWrapper = document.getElementById('scan-result-card');
-            const cardInner = document.getElementById('bp-card-inner');
-            const headerBar = document.getElementById('bp-header');
-            const iconBox = document.getElementById('scan-icon');
-            const nameEl = document.getElementById('scan-name');
-            const lajnahEl = document.getElementById('scan-lajnah');
-            const eventEl = document.getElementById('scan-event');
-            const badge = document.getElementById('scan-status-badge');
-
-            // Update Stats (Ignore Invalid/Error scans from Recent list)
-            if (res.scan_result !== 'INVALID' && res.scan_result !== 'ERROR' && res.scan_result !== 'WRONG EVENT') {
-                state.localSessionScans.unshift(res);
-            }
-            if(res.scan_result === 'SUCCESS') state.localSessionCount++;
+            const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
+            if(res.scan_result === 'SUCCESS') state.localSessionCount++; updateScannerEventInfo();
             
-            updateScannerStats();
-            renderRecentScans();
-
-            lajnahEl.innerText = res.lajnah || '-';
-            eventEl.innerText = res.subevent_name || '-';
-            
-            badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm";
-
             if (res.scan_result === 'SUCCESS') {
-                // Success Malay Welcome Message
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">SELAMAT DATANG,</span>${res.name ? res.name.toUpperCase() : 'UNKNOWN'}`;
-                badge.innerText = "DIPERSILAKAN MASUK";
-                
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-emerald-400 to-emerald-600";
-                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-emerald-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-600"></i></div>`;
-                badge.classList.add('bg-emerald-100', 'text-emerald-700', 'border', 'border-emerald-200');
-                
-                if (res.role === 'Speaker') {
-                    playSound('speaker');
-                    headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-yellow-400 to-amber-600";
-                    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, zIndex: 100 });
-                    
-                    const fs = document.getElementById('fullscreen-announcement');
-                    document.getElementById('fs-name').innerText = res.name;
-                    fs.classList.remove('hidden');
-                    fs.classList.add('flex');
-                    setTimeout(() => { fs.classList.add('hidden'); fs.classList.remove('flex'); }, 5000);
-                } else {
-                    playSound('success');
-                }
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">SELAMAT DATANG,</span>${res.name}`; badge.innerText = "DIPERSILAKAN MASUK";
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-emerald-500"; iconBox.innerHTML = `<i data-lucide="check-circle-2" class="w-16 h-16 text-emerald-500 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-emerald-100 text-emerald-700"; playSound('success');
             } else if (res.scan_result === 'DUPLICATE') {
-                // Duplicate Malay Warning
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name ? res.name.toUpperCase() : 'UNKNOWN'}`;
-                badge.innerText = "QR TELAH DIGUNAKAN";
-                
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-amber-400 to-orange-500";
-                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-amber-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="alert-circle" class="w-8 h-8 text-amber-600"></i></div>`;
-                badge.classList.add('bg-amber-100', 'text-amber-700', 'border', 'border-amber-200');
-                playSound('error');
-            } else if (res.scan_result === 'WRONG EVENT') {
-                // Wrong Event Warning
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name ? res.name.toUpperCase() : 'UNKNOWN'}`;
-                badge.innerText = "SALAH ACARA / SESI";
-                
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-rose-500 to-rose-700";
-                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-rose-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="x-circle" class="w-8 h-8 text-rose-600"></i></div>`;
-                badge.classList.add('bg-rose-100', 'text-rose-700', 'border', 'border-rose-200');
-                playSound('error');
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name}`; badge.innerText = "QR TELAH DIGUNAKAN";
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-amber-500"; iconBox.innerHTML = `<i data-lucide="alert-circle" class="w-16 h-16 text-amber-500 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-amber-100 text-amber-700"; playSound('error');
             } else {
-                // Invalid Malay Warning
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>MYNUQOBAPASS TIDAK SAH`;
-                badge.innerText = "AKSES DITOLAK";
-                
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-rose-500 to-rose-700";
-                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-rose-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="x-circle" class="w-8 h-8 text-rose-600"></i></div>`;
-                badge.classList.add('bg-rose-100', 'text-rose-700', 'border', 'border-rose-200');
-                playSound('error');
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name}`; badge.innerText = "SALAH ACARA / AKSES DITOLAK";
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-rose-600"; iconBox.innerHTML = `<i data-lucide="x-circle" class="w-16 h-16 text-rose-600 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-rose-100 text-rose-700"; playSound('error');
             }
 
-            lucide.createIcons({root: cardInner});
-
-            // Show popup with Tailwind classes for robust animation
-            resultWrapper.classList.remove('hidden');
-            resultWrapper.classList.add('flex');
-            setTimeout(() => { 
-                cardInner.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
-                cardInner.classList.add('scale-100', 'opacity-100', 'translate-y-0');
-            }, 10);
-
-            // Keep input focused for next scan
-            document.getElementById('scanner-input').focus();
-
-            // Auto-hide popup
+            lucide.createIcons({root: cardInner}); 
+            openModal('scan-result-card');
+            
+            const scInput = document.getElementById('scanner-input');
+            if(scInput) scInput.focus();
+            
             clearTimeout(scanResetTimeout);
-            scanResetTimeout = setTimeout(() => {
-                // Animate out
-                cardInner.classList.remove('scale-100', 'opacity-100', 'translate-y-0');
-                cardInner.classList.add('scale-95', 'opacity-0', 'translate-y-8');
-                setTimeout(() => {
-                    resultWrapper.classList.add('hidden');
-                    resultWrapper.classList.remove('flex');
-                    document.getElementById('scanner-input').focus();
-                }, 500); // Wait for transition
-            }, 3000);
+            scanResetTimeout = setTimeout(() => { closeModal('scan-result-card'); setTimeout(() => {if(scInput) scInput.focus();}, 300); }, 3000);
         }
 
         // ==========================================
-        // ADMIN DASHBOARD - OTHER TABS
+        // DATA LOADERS & DATA SYNC (BULLETPROOF)
         // ==========================================
+        async function loadAdminData() {
+            try {
+                // Fetch the core event data from the backend Google Sheet API
+                const data = await apiCall('getAllData', { adminPass: state.adminPass });
+                state.subEvents = data.subEvents || []; 
+                state.participants = data.participants || []; 
+                state.logs = data.logs || [];
+                
+                // Manually trigger renders for the entire admin panel!
+                renderSubEvents(); 
+                renderParticipants(); 
+                refreshEventDropdowns(); 
+                updateScannerEventInfo(); 
+                renderHubConfigAdmin(); 
+                renderAdminVipList();
+            } catch(e) {
+                console.error("loadAdminData Error:", e);
+                showToast("Failed to sync with database. Retrying...", "warning");
+            }
+        }
+
         async function fetchLiveUpdates() {
             try {
-                const data = await apiCall('getLiveDisplay');
-                let logs = Array.isArray(data) ? data : (data.logs || []);
+                const data = await apiCall('getLiveDisplay'); 
+                
+                // Flexible parsing handling older array structures
+                let logs = Array.isArray(data) ? data : (data.logs || []); 
                 let stats = Array.isArray(data) ? { total: 0, byLajnah: {} } : (data.stats || { total: 0, byLajnah: {} });
 
                 if (Array.isArray(data)) {
-                    logs.forEach(l => { if(l.scan_result === 'SUCCESS') { stats.total++; stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; } });
+                    logs.forEach(l => { 
+                        if(l.scan_result && l.scan_result.toUpperCase() === 'SUCCESS') { 
+                            stats.total++; 
+                            stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; 
+                        } 
+                    });
                 }
 
                 const statsContainer = document.getElementById('live-stats-container');
@@ -1196,30 +1448,23 @@
                     let statsHtml = `<div class="col-span-2 md:col-span-2 brand-gradient rounded-xl p-4 text-white shadow-md flex flex-col justify-center"><p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Attendees</p><h3 class="text-4xl font-black mt-1">${stats.total}</h3></div>`;
                     if (stats.byLajnah['VIP'] === undefined) stats.byLajnah['VIP'] = 0;
                     for (const [lajnah, count] of Object.entries(stats.byLajnah)) {
-                        let isVip = lajnah === 'VIP';
-                        statsHtml += `<div class="border rounded-xl p-3 flex flex-col justify-center items-center ${isVip ? 'bg-yellow-50 border-yellow-300 text-yellow-700' : 'bg-slate-50 border-slate-200 text-slate-800'}"><h4 class="text-2xl font-bold">${count}</h4><p class="text-[9px] font-bold uppercase tracking-widest mt-1 text-center ${isVip ? 'text-yellow-600' : 'text-slate-500'}">${isVip ? '🌟 VIP / SPEAKER' : lajnah}</p></div>`;
+                        let isVip = lajnah === 'VIP'; statsHtml += `<div class="border rounded-xl p-3 flex flex-col justify-center items-center ${isVip ? 'bg-yellow-50 border-yellow-300 text-yellow-700' : 'bg-slate-50 border-slate-200 text-slate-800'}"><h4 class="text-2xl font-bold">${count}</h4><p class="text-[9px] font-bold uppercase tracking-widest mt-1 text-center ${isVip ? 'text-yellow-600' : 'text-slate-500'}">${isVip ? '🌟 VIP / SPEAKER' : lajnah}</p></div>`;
                     }
                     statsContainer.innerHTML = statsHtml;
                 }
 
                 const tbody = document.getElementById('live-table-body'); tbody.innerHTML = '';
                 logs.forEach(log => {
-                    if (log.scan_result !== 'SUCCESS') return;
-                    const isVip = log.role === 'Speaker';
-                    let statusColor = log.status === 'ON TIME' ? "text-emerald-700 bg-emerald-100" : "text-yellow-700 bg-yellow-100";
-                    const statusText = log.status !== '-' ? '(' + log.status + ')' : '';
+                    // Safety check against undefined fields from older database rows
+                    if (!log.scan_result || log.scan_result.toUpperCase() !== 'SUCCESS') return;
                     
-                    tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${statusText}</span></td></tr>`;
+                    const isVip = log.role === 'Speaker'; 
+                    let statusColor = log.status === 'ON TIME' ? "text-emerald-700 bg-emerald-100" : "text-yellow-700 bg-yellow-100";
+                    const statusText = log.status && log.status !== '-' ? '(' + log.status + ')' : '';
+                    
+                    tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time || ''}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name || ''} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah || ''}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name || ''}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${statusText}</span></td></tr>`;
                 });
             } catch (err) {}
-        }
-
-        async function loadAdminData() {
-            try {
-                const data = await apiCall('getAllData', { adminPass: state.adminPass });
-                state.subEvents = data.subEvents || []; state.participants = data.participants || []; state.logs = data.logs || [];
-                renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo();
-            } catch(e) {}
         }
 
         async function handleAddEvent(e) {
@@ -1258,15 +1503,13 @@
         async function exportExcel() {
             try {
                 showToast("Preparing Excel file...", "info");
-                const data = await apiCall('getAllData', { adminPass: state.adminPass });
-                const logs = data.logs || [];
+                const data = await apiCall('getAllData', { adminPass: state.adminPass }); const logs = data.logs || [];
                 if(logs.length === 0) { showToast("No data to export", "warning"); return; }
                 const ws = XLSX.utils.json_to_sheet(logs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Attendance_Log");
                 XLSX.writeFile(wb, `MyNuqobaPass_Export_${new Date().toISOString().split('T')[0]}.xlsx`); showToast("Export complete!", "success");
             } catch (err) { showToast("Failed to export Excel", "error"); }
         }
 
-        window.onload = init;
     </script>
 </body>
 </html>

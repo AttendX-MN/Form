@@ -10,7 +10,7 @@
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/dist/confetti.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -68,60 +68,39 @@
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         
-        /* Scanner Fullscreen & Orbs */
-        #scanner-container:fullscreen {
-            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-            border: none;
-            border-radius: 0;
+        /* Scanner Dashboard Specific Styles */
+        .scan-target-box {
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            border: 2px solid #0ea5e9;
+            box-shadow: 0 0 25px rgba(14, 165, 233, 0.2);
+            transition: all 0.3s ease;
         }
-        #scanner-container:fullscreen #scanner-title { color: #ffffff; }
-        #scanner-container:fullscreen #scanner-subtitle { color: #94a3b8; }
-        #scanner-container:fullscreen .input-style { 
-            background-color: rgba(255,255,255,0.05); 
-            color: #ffffff; 
-            border-color: rgba(255,255,255,0.1); 
-        }
-        #scanner-container:fullscreen .input-style:focus { border-color: #38bdf8; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.3); }
-        #scanner-container:fullscreen .bp-cutout { background-color: #1e293b; }
+        .scan-target-box.success { border-color: #10b981; box-shadow: 0 0 35px rgba(16, 185, 129, 0.4); background: radial-gradient(circle at center, #064e3b 0%, #020617 100%); }
+        .scan-target-box.duplicate { border-color: #f59e0b; box-shadow: 0 0 35px rgba(245, 158, 11, 0.4); background: radial-gradient(circle at center, #78350f 0%, #020617 100%); }
+        .scan-target-box.invalid { border-color: #ef4444; box-shadow: 0 0 35px rgba(239, 68, 68, 0.4); background: radial-gradient(circle at center, #7f1d1d 0%, #020617 100%); }
 
-        .fullscreen-orb { display: none; }
-        #scanner-container:fullscreen .fullscreen-orb {
-            display: block;
+        .scan-line {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            animation: floatOrb 8s infinite alternate ease-in-out;
-            z-index: 0;
+            width: 80%;
+            left: 10%;
+            height: 3px;
+            background: #22d3ee;
+            box-shadow: 0 0 10px #22d3ee, 0 0 20px #22d3ee;
+            animation: scanAnim 2.5s infinite ease-in-out;
+            z-index: 10;
         }
-        .animation-delay-2000 { animation-delay: 2s; }
-        @keyframes floatOrb {
-            0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
-            100% { transform: translate(40px, 60px) scale(1.3); opacity: 0.5; }
+        @keyframes scanAnim {
+            0% { top: 20%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 80%; opacity: 0; }
         }
-
-        /* Boarding Pass Pop */
-        .bp-show {
-            transform: scale(1) translateY(0) !important;
-            opacity: 1 !important;
-        }
-        
-        /* Loader */
-        .loader {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-left-color: #ffffff;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .view-hidden { display: none !important; }
     </style>
 </head>
 <body class="antialiased bg-slate-50 text-slate-800">
 
-    <!-- GLOBAL TOAST NOTIFICATION -->
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
     <!-- MAIN NAV -->
@@ -159,7 +138,6 @@
                     <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1.5">Lajnah</label>
                     <select id="reg-lajnah" required class="w-full input-style rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base appearance-none">
                         <option value="" disabled selected>Select Lajnah</option>
-                        <!-- Injected via JS -->
                     </select>
                 </div>
                 
@@ -245,10 +223,10 @@
     <div id="view-admin-dashboard" class="container mx-auto px-4 py-8 view-hidden animate-pop flex flex-col md:flex-row gap-6">
         
         <!-- Sidebar Menu -->
-        <aside class="card p-4 w-full md:w-64 flex flex-col gap-2 h-fit">
+        <aside class="card p-4 w-full md:w-64 flex flex-col gap-2 h-fit shrink-0">
             <h3 class="font-bold text-slate-400 text-xs tracking-widest uppercase mb-2 px-2">Terminal Ops</h3>
             <button onclick="switchAdminTab('scanner')" id="tab-btn-scanner" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 airline-gradient text-white shadow-md">
-                <i data-lucide="scan"></i> Scanner Mode
+                <i data-lucide="scan"></i> Scanner Dashboard
             </button>
             <button onclick="switchAdminTab('live')" id="tab-btn-live" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 text-slate-600 hover:bg-slate-100">
                 <i data-lucide="monitor-play"></i> Live Board
@@ -271,81 +249,135 @@
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1">
+        <main class="flex-1 w-full overflow-hidden">
             
-            <!-- TAB: SCANNER -->
-            <div id="tab-scanner" class="admin-content animate-pop">
-                <div id="scanner-container" class="card p-8 text-center min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden bg-slate-50 border-dashed border-2 border-slate-300 transition-all duration-500">
-                    
-                    <!-- Animated Background Orbs (Visible only in Fullscreen) -->
-                    <div class="fullscreen-orb w-96 h-96 bg-sky-600/30 top-[-10%] left-[-10%]"></div>
-                    <div class="fullscreen-orb w-96 h-96 bg-indigo-600/30 bottom-[-10%] right-[-10%] animation-delay-2000"></div>
+            <!-- TAB: SCANNER DASHBOARD -->
+            <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col">
+                
+                <!-- Invisible Scanner Input (Hardware Scanners type here) -->
+                <input type="text" id="scanner-input" class="opacity-0 absolute -z-10" autofocus autocomplete="off">
+                
+                <!-- Scanner Header & Controls -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                            <i data-lucide="scan-face" class="text-sky-600 w-7 h-7"></i>
+                            <span id="scanner-main-title">Scanner Mode</span>
+                        </h2>
+                        <p class="text-slate-500 text-sm mt-1">Scan participant passes to log attendance</p>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <select id="scanner-event-select" class="input-style rounded-lg px-4 py-2 font-bold text-sm w-full md:w-64" onchange="updateScannerEventInfo()">
+                            <!-- Injected via JS -->
+                        </select>
+                        <button onclick="toggleFullscreen('tab-scanner')" class="bg-white border border-slate-200 p-2 rounded-lg hover:bg-slate-50 text-slate-600 transition shadow-sm hidden md:block">
+                            <i data-lucide="maximize" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
 
-                    <!-- Fullscreen Toggle Button -->
-                    <button onclick="toggleFullscreen('scanner-container')" class="absolute top-4 right-4 bg-white/10 hover:bg-white/30 backdrop-blur-md border border-slate-200/50 p-2 rounded-lg text-slate-600 hover:text-slate-900 transition shadow-sm z-50" title="Full Screen">
-                        <i data-lucide="maximize" class="w-5 h-5"></i>
-                    </button>
-
-                    <!-- Idle Scanner State -->
-                    <div id="scanner-idle-content" class="relative z-10 transition-all duration-300 transform w-full max-w-sm mx-auto flex flex-col items-center">
-                        <div class="bg-white p-5 rounded-full shadow-lg border border-slate-100 mb-6">
-                            <i data-lucide="scan-barcode" class="w-12 h-12 text-sky-500 animate-pulse"></i>
-                        </div>
-                        <h2 id="scanner-title" class="text-4xl font-black mb-2 text-slate-800 tracking-tight">Scanner Ready</h2>
-                        <p id="scanner-subtitle" class="text-slate-500 mb-10 font-medium">Awaiting attendance pass scan...</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- LEFT COLUMN (Scan Box & Recent) -->
+                    <div class="lg:col-span-2 flex flex-col gap-6">
                         
-                        <input type="text" id="scanner-input" class="input-style rounded-2xl px-6 py-4 w-full text-center mb-6 focus:ring-4 focus:ring-sky-200 shadow-xl text-lg font-mono tracking-widest bg-white" placeholder="Tap to scan..." autofocus autocomplete="off">
-                    </div>
-                    
-                    <!-- NEW BOARDING PASS RESULT CARD -->
-                    <div id="scan-result-card" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-20">
-                        <div id="bp-card-inner" class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 scale-95 opacity-0 translate-y-8">
+                        <!-- THE SCAN TARGET BOX -->
+                        <div id="scan-active-box" class="scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[320px] cursor-pointer" onclick="document.getElementById('scanner-input').focus()">
+                            <div class="scan-line" id="scan-line-anim"></div>
                             
-                            <!-- Header Bar (Color changes via JS) -->
-                            <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
-                                <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2">
-                                    <i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS
-                                </span>
-                                <i data-lucide="plane-landing" class="w-6 h-6 opacity-80"></i>
+                            <p id="scan-box-header" class="text-sky-400 font-bold tracking-widest text-sm mb-6 z-20">SCAN EVENT QR CODE</p>
+                            
+                            <div class="relative w-32 h-32 mb-6 z-20" id="scan-box-icon-container">
+                                <i data-lucide="scan" class="w-full h-full text-sky-500/30" id="scan-box-icon"></i>
                             </div>
+                            
+                            <div class="text-center z-20 h-16 flex flex-col justify-center">
+                                <p class="font-mono text-sky-300 text-sm mb-1 uppercase tracking-widest" id="scan-box-status">WAITING FOR SCAN...</p>
+                                <p class="text-2xl font-black text-white tracking-wide truncate max-w-[300px]" id="scan-box-participant">PARTICIPANT: [Waiting]</p>
+                            </div>
+                        </div>
 
-                            <!-- Ticket Body -->
-                            <div class="p-6 relative bg-white">
-                                <!-- Cutouts -->
-                                <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-50 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
-                                <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-50 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
-                                
-                                <!-- Dashed Line -->
-                                <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
-
-                                <!-- Result Icon & Name -->
-                                <div class="flex flex-col items-center mt-4">
-                                    <div id="scan-icon" class="mb-4 z-10 relative"></div>
-                                    <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
-                                    <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight"></h3>
-                                </div>
-
-                                <!-- Flight Details Grid -->
-                                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
-                                    <div>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p>
-                                        <p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Flight / Event</p>
-                                        <p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p>
-                                    </div>
-                                </div>
-
-                                <!-- Barcode Graphic -->
-                                <div class="mt-8 flex flex-col items-center opacity-40">
-                                    <div class="h-10 w-4/5 bg-[repeating-linear-gradient(90deg,#0f172a,#0f172a_3px,transparent_3px,transparent_5px,#0f172a_5px,#0f172a_6px,transparent_6px,transparent_10px)] rounded-sm"></div>
-                                    <p class="text-[9px] font-mono mt-2 tracking-widest">ATTENDX-VALIDATION</p>
-                                </div>
+                        <!-- RECENT SCANS MINI-TABLE -->
+                        <div class="card p-5">
+                            <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Recently Scanned Participants</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="text-[10px] text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                        <tr>
+                                            <th class="pb-2 font-bold">Participant Name</th>
+                                            <th class="pb-2 font-bold">Ticket Type</th>
+                                            <th class="pb-2 font-bold">Scan Time</th>
+                                            <th class="pb-2 font-bold text-right">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-scans-body" class="divide-y divide-slate-50 text-sm">
+                                        <tr><td colspan="4" class="py-4 text-center text-slate-400 italic">No recent scans in this session.</td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
 
+                    <!-- RIGHT COLUMN (Overview & Controls) -->
+                    <div class="flex flex-col gap-6">
+                        
+                        <!-- EVENT OVERVIEW -->
+                        <div class="card p-6">
+                            <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Overview</h3>
+                            
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-14 h-14 bg-sky-100 rounded-xl flex items-center justify-center border border-sky-200 text-sky-600 shrink-0">
+                                    <i data-lucide="badge-check" class="w-7 h-7"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Total Participants</p>
+                                    <p class="text-2xl font-black text-slate-800" id="stat-total-reg">0</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center border border-indigo-200 text-indigo-600 shrink-0">
+                                    <i data-lucide="scan-line" class="w-7 h-7"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Session Scans</p>
+                                    <p class="text-2xl font-black text-slate-800" id="stat-session-scans">0</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-600 mb-2">
+                                    <span>Check-in Progress</span>
+                                    <span id="stat-progress-text">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+                                    <div class="bg-sky-500 h-3 rounded-full transition-all duration-500" id="stat-progress-bar" style="width: 0%"></div>
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-2 text-center" id="stat-progress-sub">0 / 0 Participants Scanned</p>
+                            </div>
+                        </div>
+
+                        <!-- EVENT INFO & CONTROLS -->
+                        <div class="card p-6 flex flex-col justify-between grow">
+                            <div>
+                                <h3 class="font-bold text-slate-800 uppercase text-xs tracking-widest mb-4">Event Info</h3>
+                                <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-4">
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Currently Scanning For</p>
+                                    <p class="font-bold text-slate-700 text-sm truncate" id="info-event-name">Select an event...</p>
+                                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                        <i data-lucide="clock" class="w-3 h-3"></i> <span id="info-event-time">-</span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col gap-2 mt-4">
+                                <button onclick="document.getElementById('scanner-input').focus(); showToast('Scanner input focused!', 'info');" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-sm">
+                                    <i data-lucide="play" class="w-4 h-4"></i> RESUME SCAN
+                                </button>
+                                <p class="text-[10px] text-slate-400 text-center mt-1">Click if scanner stops responding</p>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
@@ -362,7 +394,7 @@
                         </button>
                     </div>
                     
-                    <!-- NEW STATS PANEL -->
+                    <!-- STATS PANEL -->
                     <div id="live-stats-container" class="grid grid-cols-2 md:grid-cols-6 gap-4 p-6 bg-white border-b border-slate-200">
                         <!-- Injected via JS -->
                     </div>
@@ -484,7 +516,7 @@
     <!-- ============================================== -->
     <!-- MODAL: QR RESULT (DOWNLOAD)                    -->
     <!-- ============================================== -->
-    <div id="modal-qr" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div id="modal-qr" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-slate-50 rounded-2xl max-w-2xl w-full p-6 text-slate-800 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
             <button onclick="closeModal('modal-qr')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 bg-white rounded-full p-1 shadow-sm border border-slate-200 transition">
                 <i data-lucide="x" class="w-5 h-5"></i>
@@ -498,7 +530,7 @@
                 <!-- QRs injected here -->
             </div>
 
-            <div class="mt-8 flex gap-4 justify-center">
+            <div class="mt-8 flex gap-4 justify-center flex-wrap">
                 <button onclick="downloadQR('png')" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 shadow-sm transition">
                     <i data-lucide="image" class="w-5 h-5 text-sky-600"></i> Save as PNG
                 </button>
@@ -528,11 +560,14 @@
         lucide.createIcons();
 
         let state = {
-            lajnahs: [], subEvents: [], participants: [], logs: [], adminPass: '', liveInterval: null
+            lajnahs: [], subEvents: [], participants: [], logs: [], adminPass: '', liveInterval: null,
+            // Scanner Dashboard State
+            localSessionScans: [],
+            localSessionCount: 0
         };
         
-        let sessionScanned = new Set(); // Local memory for instant duplicate catching
-        let scanHideTimeout = null;
+        let sessionScanned = new Set(); 
+        let scanResetTimeout = null;
 
         // ==========================================
         // API COMMUNICATION (GOOGLE SHEETS)
@@ -543,7 +578,7 @@
                 response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action, payload }),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // prevents CORS issues
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
             } catch (err) {
                 console.error("Fetch Error:", err);
@@ -552,9 +587,7 @@
             }
             
             const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.error); // Handled safely by calling function, no unhandled console errors
-            }
+            if (!result.success) throw new Error(result.error);
             return result.data;
         }
 
@@ -564,42 +597,19 @@
         const showToast = (msg, type = 'info') => {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            
-            const colors = {
-                success: 'bg-green-500 text-white',
-                error: 'bg-red-500 text-white',
-                warning: 'bg-yellow-500 text-black',
-                info: 'bg-blue-500 text-white'
-            };
-
+            const colors = { success: 'bg-green-500 text-white', error: 'bg-red-500 text-white', warning: 'bg-yellow-500 text-black', info: 'bg-blue-500 text-white' };
             toast.className = `${colors[type]} px-6 py-3 rounded-xl shadow-lg font-semibold flex items-center gap-3 animate-pop`;
-            
-            let icon = 'info';
-            if(type==='success') icon = 'check-circle';
-            if(type==='error') icon = 'alert-triangle';
-
+            let icon = 'info'; if(type==='success') icon = 'check-circle'; if(type==='error') icon = 'alert-triangle';
             toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i> ${msg}`;
             container.appendChild(toast);
             lucide.createIcons({root: toast});
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(20px)';
-                toast.style.transition = 'all 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; toast.style.transition = 'all 0.3s ease'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
         const switchView = (viewId) => {
-            ['view-register', 'view-admin-login', 'view-admin-dashboard', 'view-user-login'].forEach(v => {
-                document.getElementById(v).classList.add('view-hidden');
-            });
+            ['view-register', 'view-admin-login', 'view-admin-dashboard', 'view-user-login'].forEach(v => document.getElementById(v).classList.add('view-hidden'));
             document.getElementById(`view-${viewId}`).classList.remove('view-hidden');
-            
-            if(viewId === 'admin-dashboard') {
-                switchAdminTab('scanner');
-                loadAdminData();
-            }
+            if(viewId === 'admin-dashboard') { switchAdminTab('scanner'); loadAdminData(); }
         };
 
         const switchAdminTab = (tabId) => {
@@ -616,14 +626,11 @@
 
             if(tabId === 'scanner') {
                 setTimeout(() => document.getElementById('scanner-input').focus(), 100);
+                updateScannerEventInfo(); // Refresh stats for scanner dashboard
             }
             
-            if(tabId === 'live') {
-                fetchLiveUpdates();
-                state.liveInterval = setInterval(fetchLiveUpdates, 3000);
-            } else {
-                clearInterval(state.liveInterval);
-            }
+            if(tabId === 'live') { fetchLiveUpdates(); state.liveInterval = setInterval(fetchLiveUpdates, 3000); } 
+            else clearInterval(state.liveInterval);
         };
 
         const closeModal = (id) => document.getElementById(id).classList.add('hidden');
@@ -631,48 +638,33 @@
 
         const toggleFullscreen = (id) => {
             const el = document.getElementById(id);
-            if (!document.fullscreenElement) {
-                el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
-            } else {
-                document.exitFullscreen();
-            }
+            if (!document.fullscreenElement) el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
+            else document.exitFullscreen();
         };
 
         const playSound = (type) => {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             if (type === 'scan') {
-                const osc = ctx.createOscillator();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(1500, ctx.currentTime);
-                osc.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.05);
+                const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(1500, ctx.currentTime);
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.05);
             } else if (type === 'success') {
-                const osc = ctx.createOscillator();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, ctx.currentTime);
-                osc.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.1);
+                const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
             } else if (type === 'error') {
-                const osc = ctx.createOscillator();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, ctx.currentTime);
-                osc.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.2);
+                const osc = ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.2);
             } else if (type === 'speaker') {
                 [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
                     setTimeout(() => {
-                        const osc = ctx.createOscillator();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                        osc.connect(ctx.destination);
-                        osc.start(); osc.stop(ctx.currentTime + 0.2);
+                        const osc = ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                        osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.2);
                     }, i * 150);
                 });
             }
         };
 
         // ==========================================
-        // INITIALIZATION
+        // INITIALIZATION & DROPDOWNS
         // ==========================================
         async function init() {
             try {
@@ -682,116 +674,100 @@
                 
                 const lajnahSelect = document.getElementById('reg-lajnah');
                 lajnahSelect.innerHTML = '<option value="" disabled selected>Select Lajnah</option>';
-                state.lajnahs.forEach(l => {
-                    lajnahSelect.innerHTML += `<option value="${l}">${l}</option>`;
-                });
+                state.lajnahs.forEach(l => lajnahSelect.innerHTML += `<option value="${l}">${l}</option>`);
                 
                 refreshEventDropdowns();
             } catch(e) {}
         }
 
         function refreshEventDropdowns() {
-            const eventSelect = document.getElementById('spk-event');
-            eventSelect.innerHTML = '<option value="ALL">🌟 Universal Master Pass (All Events)</option>';
-            state.subEvents.forEach(e => {
-                eventSelect.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`;
-            });
+            // Speaker Dropdown
+            const spkSelect = document.getElementById('spk-event');
+            if(spkSelect) {
+                spkSelect.innerHTML = '<option value="ALL">🌟 Universal Master Pass (All Events)</option>';
+                state.subEvents.forEach(e => spkSelect.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`);
+            }
+
+            // Scanner Dropdown
+            const scanSelect = document.getElementById('scanner-event-select');
+            if(scanSelect) {
+                scanSelect.innerHTML = '<option value="" disabled selected>Select an Event to Scan...</option>';
+                state.subEvents.filter(e => e.status === 'ACTIVE').forEach((e, idx) => {
+                    scanSelect.innerHTML += `<option value="${e.subevent_id}">[#${idx+1}] ${e.subevent_name}</option>`;
+                });
+                if(state.subEvents.length > 0) {
+                    scanSelect.selectedIndex = 1; // Default to first active event
+                    updateScannerEventInfo();
+                }
+            }
         }
 
         // ==========================================
-        // REGISTRATION & QR
+        // REGISTRATION & LOGIN
         // ==========================================
         async function handleRegistration(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-register');
-            btn.innerHTML = `<div class="loader"></div> Processing...`;
-            btn.disabled = true;
-
+            btn.innerHTML = `<div class="loader"></div> Processing...`; btn.disabled = true;
             try {
                 const qrs = await apiCall('registerUser', { 
                     name: document.getElementById('reg-name').value, 
                     lajnah: document.getElementById('reg-lajnah').value,
                     password: document.getElementById('reg-password').value
                 });
-                renderQRs(qrs);
-                openModal('modal-qr');
-                document.getElementById('form-register').reset();
-                showToast("Registration successful!", "success");
-            } catch (err) {
-                showToast("Failed to register.", "error");
-            } finally {
-                btn.innerHTML = `<i data-lucide="qr-code"></i> Generate Attendance Pass`;
-                btn.disabled = false;
-                lucide.createIcons();
-            }
+                renderQRs(qrs); openModal('modal-qr'); document.getElementById('form-register').reset(); showToast("Registration successful!", "success");
+            } catch (err) { showToast("Failed to register.", "error"); } 
+            finally { btn.innerHTML = `<i data-lucide="qr-code" class="w-5 h-5"></i> Generate Attendance Pass`; btn.disabled = false; lucide.createIcons(); }
         }
 
         async function handleUserLogin(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-user-login');
-            btn.innerHTML = `<div class="loader"></div> Verifying...`;
-            btn.disabled = true;
-
+            btn.innerHTML = `<div class="loader"></div> Verifying...`; btn.disabled = true;
             try {
                 const qrs = await apiCall('participantLogin', { 
                     name: document.getElementById('login-name').value, 
                     password: document.getElementById('login-password').value 
                 });
                 if(qrs.length === 0) showToast("No passes found for this account.", "warning");
-                else {
-                    renderQRs(qrs);
-                    openModal('modal-qr');
-                    document.getElementById('form-user-login').reset();
-                }
-            } catch (err) {
-                showToast(err.message || "Invalid name or password.", "error");
-            } finally {
-                btn.innerHTML = `<i data-lucide="log-in"></i> Access Passes`;
-                btn.disabled = false;
-                lucide.createIcons();
-            }
+                else { renderQRs(qrs); openModal('modal-qr'); document.getElementById('form-user-login').reset(); }
+            } catch (err) { showToast(err.message || "Invalid name or password.", "error"); } 
+            finally { btn.innerHTML = `<i data-lucide="log-in" class="w-5 h-5"></i> Access Passes`; btn.disabled = false; lucide.createIcons(); }
         }
 
         async function handleSpeakerReg(e) {
             e.preventDefault();
             try {
                 const qrs = await apiCall('registerSpeaker', { 
-                    name: document.getElementById('spk-name').value, 
-                    lajnah: 'VIP', 
-                    subeventId: document.getElementById('spk-event').value 
+                    name: document.getElementById('spk-name').value, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value 
                 });
-                renderQRs(qrs);
-                openModal('modal-qr');
-                document.getElementById('spk-name').value = '';
-                showToast("Speaker pass generated", "success");
+                renderQRs(qrs); openModal('modal-qr'); document.getElementById('spk-name').value = ''; showToast("Speaker pass generated", "success");
             } catch (err) {}
         }
 
         function renderQRs(qrDataArray) {
             const container = document.getElementById('qr-container');
             container.innerHTML = '';
-            
-            if(qrDataArray.length === 0) {
-                container.innerHTML = `<p class="text-red-500 font-bold">Error: No passes available.</p>`;
-                return;
-            }
+            if(qrDataArray.length === 0) { container.innerHTML = `<p class="text-red-500 font-bold">Error: No passes available.</p>`; return; }
 
-            qrDataArray.forEach(data => {
+            qrDataArray.forEach((data, index) => {
                 const card = document.createElement('div');
                 card.className = "flex flex-col bg-white border border-slate-200 shadow-md w-full max-w-sm rounded-2xl overflow-hidden mb-4 relative";
                 
                 const isVip = data.role === 'Speaker';
                 const isExpired = data.status === 'USED';
-                
                 let headerGradient = isVip ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'airline-gradient';
-                if(isExpired) headerGradient = 'bg-slate-500'; // Grey header if expired
+                if(isExpired) headerGradient = 'bg-slate-500';
+                
+                // Add bubble number for subevents if not master pass
+                const bubbleNum = data.subevent_name.startsWith('[#') ? data.subevent_name.split(']')[0].replace('[', '') : '';
                 
                 card.innerHTML = `
-                    <div class="${headerGradient} w-full px-5 py-4 text-white flex justify-between items-center">
+                    <div class="${headerGradient} w-full px-5 py-4 text-white flex justify-between items-center relative">
+                        ${bubbleNum ? `<div class="absolute -top-2 -right-2 bg-white text-sky-600 font-black rounded-full w-8 h-8 flex items-center justify-center shadow-md border-2 border-sky-100 z-10">${bubbleNum}</div>` : ''}
                         <div class="w-[85%]">
                             <p class="text-[10px] uppercase tracking-widest opacity-80 mb-1">Entry Pass</p>
-                            <!-- PDF FIX: Replaced truncate with break-words to prevent vertical cut-off -->
-                            <h3 class="font-bold text-sm leading-snug pr-2 break-words whitespace-normal">${data.subevent_name}</h3>
+                            <h3 class="font-bold text-sm leading-snug pr-2 break-words whitespace-normal">${data.subevent_name.replace(/\[#\d+\]\s/, '')}</h3>
                         </div>
                         <i data-lucide="${isExpired ? 'x-octagon' : 'plane-takeoff'}" class="w-8 h-8 opacity-80 flex-shrink-0"></i>
                     </div>
@@ -800,39 +776,24 @@
                         <div class="absolute -right-3 -top-3 w-6 h-6 bg-slate-50 rounded-full border border-slate-200"></div>
                     </div>
                     <div class="p-6 flex flex-col items-center bg-white ${isExpired ? 'grayscale opacity-75' : ''}">
-                        
                         <div class="relative mb-4">
                             ${isExpired ? `<div class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[1px] rounded-xl"><span class="bg-red-600 text-white text-xs font-black px-3 py-1 rounded shadow-lg transform -rotate-12 border-2 border-white">EXPIRED</span></div>` : ''}
                             <div class="p-2 border-2 border-slate-100 rounded-xl" id="qr-${data.qr_id}"></div>
                         </div>
-
                         ${isExpired ? `<p class="text-red-600 font-bold text-xs mb-4 uppercase tracking-wider text-center">This pass has already been used.</p>` : ''}
-
                         <div class="w-full bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm">
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Participant Name</p>
                             <p class="font-bold text-slate-800 text-lg mb-4 break-words whitespace-normal">${data.name}</p>
                             <div class="flex justify-between">
-                                <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Lajnah</p>
-                                    <p class="font-semibold text-slate-700 text-sm">${data.lajnah}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                                    <p class="font-bold ${isExpired ? 'text-slate-500' : (isVip ? 'text-yellow-600' : 'text-sky-600')} text-sm">${isExpired ? 'EXPIRED' : data.role}</p>
-                                </div>
+                                <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Lajnah</p><p class="font-semibold text-slate-700 text-sm">${data.lajnah}</p></div>
+                                <div class="text-right"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p><p class="font-bold ${isExpired ? 'text-slate-500' : (isVip ? 'text-yellow-600' : 'text-sky-600')} text-sm">${isExpired ? 'EXPIRED' : data.role}</p></div>
                             </div>
                         </div>
                     </div>
                 `;
                 container.appendChild(card);
-                
                 const qrText = `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`;
-                
-                new QRCode(document.getElementById(`qr-${data.qr_id}`), { 
-                    text: qrText, width: 160, height: 160, 
-                    colorDark : isExpired ? "#64748b" : "#0f172a", // Lighter grey QR if expired
-                    colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M 
-                });
+                new QRCode(document.getElementById(`qr-${data.qr_id}`), { text: qrText, width: 160, height: 160, colorDark : isExpired ? "#64748b" : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
             });
             lucide.createIcons();
         }
@@ -840,38 +801,99 @@
         async function downloadQR(type) {
             const container = document.getElementById('qr-container');
             const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#ffffff' });
-            
             if (type === 'png') {
-                const link = document.createElement('a');
-                link.download = `EntryPass.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const link = document.createElement('a'); link.download = `EntryPass.png`; link.href = canvas.toDataURL('image/png'); link.click();
             } else if (type === 'pdf') {
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgData = canvas.toDataURL('image/png');
-                const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
-                pdf.save(`EntryPass.pdf`);
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgData = canvas.toDataURL('image/png'); const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight); pdf.save(`EntryPass.pdf`);
             }
         }
 
         // ==========================================
-        // ADMIN LOGIC & SCANNER
+        // SCANNER DASHBOARD LOGIC
         // ==========================================
         function handleAdminLogin(e) {
             e.preventDefault();
             const pass = document.getElementById('admin-pass').value;
-            if (pass === 'adminsaje') {
-                state.adminPass = pass;
-                document.getElementById('admin-pass').value = '';
-                switchView('admin-dashboard');
-                showToast("Admin access granted", "success");
-            } else {
-                showToast("Incorrect password", "error");
+            if (pass === 'adminsaje') { state.adminPass = pass; document.getElementById('admin-pass').value = ''; switchView('admin-dashboard'); showToast("Admin access granted", "success"); } 
+            else { showToast("Incorrect password", "error"); }
+        }
+
+        function updateScannerEventInfo() {
+            const sel = document.getElementById('scanner-event-select');
+            const infoName = document.getElementById('info-event-name');
+            const infoTime = document.getElementById('info-event-time');
+            
+            if(!sel || sel.value === "") return;
+            
+            const ev = state.subEvents.find(e => e.subevent_id === sel.value);
+            if(ev) {
+                infoName.innerText = ev.subevent_name;
+                infoTime.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                
+                // Update Main Title
+                document.getElementById('scanner-main-title').innerText = `SCANNER MODE - ${ev.subevent_name}`;
             }
+
+            updateScannerStats();
+        }
+
+        function updateScannerStats() {
+            // Update Total Registered
+            const totalReg = state.participants.length;
+            document.getElementById('stat-total-reg').innerText = totalReg;
+
+            // Session Scans
+            document.getElementById('stat-session-scans').innerText = state.localSessionCount;
+
+            // Progress Bar
+            let percent = totalReg > 0 ? Math.min(100, Math.round((state.localSessionCount / totalReg) * 100)) : 0;
+            document.getElementById('stat-progress-bar').style.width = `${percent}%`;
+            document.getElementById('stat-progress-text').innerText = `${percent}%`;
+            document.getElementById('stat-progress-sub').innerText = `${state.localSessionCount} / ${totalReg} Participants Scanned`;
+        }
+
+        function renderRecentScans() {
+            const tbody = document.getElementById('recent-scans-body');
+            tbody.innerHTML = '';
+            
+            if(state.localSessionScans.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400 italic">No recent scans in this session.</td></tr>`;
+                return;
+            }
+
+            // Show top 6 most recent
+            state.localSessionScans.slice(0, 6).forEach(scan => {
+                let iconHtml = '';
+                let statusClass = '';
+                
+                if(scan.scan_result === 'SUCCESS') {
+                    iconHtml = `<i data-lucide="check-circle-2" class="w-4 h-4 mr-1"></i> Checked In`;
+                    statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                } else if(scan.scan_result === 'DUPLICATE') {
+                    iconHtml = `<i data-lucide="alert-circle" class="w-4 h-4 mr-1"></i> Duplicate`;
+                    statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                } else {
+                    iconHtml = `<i data-lucide="x-circle" class="w-4 h-4 mr-1"></i> Invalid`;
+                    statusClass = 'bg-rose-100 text-rose-700 border-rose-200';
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="py-3 font-bold text-slate-800">${scan.name}</td>
+                        <td class="py-3 text-slate-600">${scan.role === 'Speaker' ? '<span class="text-yellow-600 font-bold">VIP</span>' : scan.lajnah}</td>
+                        <td class="py-3 text-slate-500 font-medium">${scan.scan_time.split(', ')[1] || scan.scan_time}</td>
+                        <td class="py-3 text-right">
+                            <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${statusClass}">
+                                ${iconHtml}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
         }
 
         const scannerInput = document.getElementById('scanner-input');
@@ -879,228 +901,157 @@
             if (e.key === 'Enter') {
                 const code = this.value.trim();
                 this.value = ''; 
-                if (code) {
-                    playSound('scan'); // Instant Beep Confirmation
-                    processScan(code);
-                }
+                if (code) { playSound('scan'); processScan(code); }
             }
         });
         
+        // Auto focus hidden input when clicking anywhere in the scanner tab background
         document.addEventListener('click', (e) => {
             if(!document.getElementById('tab-scanner').classList.contains('view-hidden')) {
-                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') scannerInput.focus();
+                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'INPUT') {
+                    scannerInput.focus();
+                }
             }
         });
 
         function processScan(code) {
+            const expectedEventId = document.getElementById('scanner-event-select').value;
+            if(!expectedEventId) { showToast("Please select an Event to scan for first!", "warning"); return; }
+
             let actualQrId = code;
             let optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-';
             let isOptimistic = false;
 
             if (code.includes('|')) {
-                const parts = code.split('|');
-                actualQrId = parts[0];
-                optName = parts[1] || 'Participant';
-                optLajnah = parts[2] || '-';
-                optRole = parts[3] || 'Participant';
-                optSubevent = parts[4] || '-';
-                isOptimistic = true;
+                const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; isOptimistic = true;
             }
 
             if (sessionScanned.has(actualQrId)) {
-                displayScanResult({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-' });
+                triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-' });
                 return;
             }
 
             if (isOptimistic) {
-                sessionScanned.add(actualQrId);
-                setTimeout(() => sessionScanned.delete(actualQrId), 10000); // Clear memory after 10s to allow Universal Pass reuse
+                // Determine if it's the right event optimistically
+                const expectedEventName = document.getElementById('info-event-name').innerText;
+                const qrEventNameBase = optSubevent.replace(/\[#\d+\]\s/, '');
                 
-                displayScanResult({ scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME' });
+                if(optSubevent !== 'Universal Master Pass' && qrEventNameBase !== expectedEventName) {
+                    triggerScannerUI({ scan_result: 'WRONG EVENT', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Expected: ${expectedEventName}`, status: '-' });
+                } else {
+                    sessionScanned.add(actualQrId);
+                    setTimeout(() => sessionScanned.delete(actualQrId), 10000); 
+                    triggerScannerUI({ scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME' });
+                }
 
-                apiCall('scanQR', { qr_id: actualQrId }).then(res => {
-                    if(!document.getElementById('tab-live').classList.contains('view-hidden')) fetchLiveUpdates();
-                }).catch(e => console.error("Background sync error:", e));
+                // Background sync
+                apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).catch(e => console.error(e));
             } else {
-                // Show Loading Card for old QR formats without embedded data
-                showLoadingCard();
-                apiCall('scanQR', { qr_id: actualQrId }).then(result => {
-                    if (result.scan_result === 'SUCCESS') {
-                        sessionScanned.add(actualQrId);
-                        setTimeout(() => sessionScanned.delete(actualQrId), 10000);
-                    }
-                    displayScanResult(result);
-                    if(!document.getElementById('tab-live').classList.contains('view-hidden')) fetchLiveUpdates();
-                }).catch(err => {
-                    displayScanResult({scan_result: 'ERROR', name: 'Network Error'});
-                });
+                // Fallback for old QR formats
+                setScannerLoading();
+                apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).then(result => {
+                    if (result.scan_result === 'SUCCESS') { sessionScanned.add(actualQrId); setTimeout(() => sessionScanned.delete(actualQrId), 10000); }
+                    triggerScannerUI(result);
+                }).catch(err => { triggerScannerUI({scan_result: 'ERROR', name: 'Network Error', lajnah: '-', role: '-', subevent_name: '-', status: '-'}); });
             }
         }
 
-        function showLoadingCard() {
-            const resultWrapper = document.getElementById('scan-result-card');
-            const cardInner = document.getElementById('bp-card-inner');
-            const headerBar = document.getElementById('bp-header');
-            const iconBox = document.getElementById('scan-icon');
-            const nameEl = document.getElementById('scan-name');
-            const lajnahEl = document.getElementById('scan-lajnah');
-            const eventEl = document.getElementById('scan-event');
-            const badge = document.getElementById('scan-status-badge');
-            const idleContent = document.getElementById('scanner-idle-content');
-
-            headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-sky-400 to-blue-600";
-            iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-sky-100 border-4 border-white shadow-md mx-auto z-10 relative"><div class="animate-spin rounded-full h-8 w-8 border-4 border-sky-300 border-t-sky-600"></div></div>`;
-            nameEl.innerText = 'Verifying...';
-            lajnahEl.innerText = '-';
-            eventEl.innerText = '-';
-            badge.className = "hidden";
-
-            idleContent.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-            resultWrapper.classList.remove('hidden');
-            setTimeout(() => cardInner.classList.add('bp-show'), 10);
+        function setScannerLoading() {
+            document.getElementById('scan-line-anim').style.display = 'none';
+            document.getElementById('scan-box-header').innerText = "VERIFYING PASS...";
+            document.getElementById('scan-box-icon').setAttribute('data-lucide', 'loader-2');
+            document.getElementById('scan-box-icon').classList.add('animate-spin', 'text-sky-400');
+            document.getElementById('scan-box-status').innerText = "CONNECTING...";
+            document.getElementById('scan-box-participant').innerText = "PLEASE WAIT";
+            lucide.createIcons();
         }
 
-        function displayScanResult(res) {
-            const resultWrapper = document.getElementById('scan-result-card');
-            const cardInner = document.getElementById('bp-card-inner');
-            const headerBar = document.getElementById('bp-header');
-            const iconBox = document.getElementById('scan-icon');
-            const nameEl = document.getElementById('scan-name');
-            const lajnahEl = document.getElementById('scan-lajnah');
-            const eventEl = document.getElementById('scan-event');
-            const badge = document.getElementById('scan-status-badge');
-            const idleContent = document.getElementById('scanner-idle-content');
+        function triggerScannerUI(res) {
+            const box = document.getElementById('scan-active-box');
+            const header = document.getElementById('scan-box-header');
+            const iconContainer = document.getElementById('scan-box-icon-container');
+            const status = document.getElementById('scan-box-status');
+            const participant = document.getElementById('scan-box-participant');
+            const scanLine = document.getElementById('scan-line-anim');
 
-            nameEl.innerText = res.name || 'Unknown';
-            lajnahEl.innerText = res.lajnah || '-';
-            eventEl.innerText = res.subevent_name || '-';
-            badge.innerText = `${res.scan_result} ${res.status && res.status!=='-' ? `(${res.status})` : ''}`;
+            // Reset classes
+            box.className = "scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[320px] cursor-pointer";
+            scanLine.style.display = 'none';
+
+            participant.innerText = res.name.toUpperCase();
+            
+            // Add to recent scans local state
+            state.localSessionScans.unshift(res);
+            if(res.scan_result === 'SUCCESS') state.localSessionCount++;
+            
+            updateScannerStats();
+            renderRecentScans();
 
             if (res.scan_result === 'SUCCESS') {
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-emerald-400 to-green-600";
-                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-green-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="check-circle-2" class="w-8 h-8 text-green-600"></i></div>`;
-                badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm bg-green-100 text-green-700 border border-green-200";
-                
-                if (res.role === 'Speaker') {
-                    playSound('speaker');
-                    headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-yellow-400 to-amber-600";
-                    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, zIndex: 100 });
-                    
-                    const fs = document.getElementById('fullscreen-announcement');
-                    document.getElementById('fs-name').innerText = res.name;
-                    fs.classList.remove('hidden');
-                    setTimeout(() => fs.classList.add('hidden'), 5000);
-                } else {
-                    playSound('success');
-                }
+                box.classList.add('success');
+                header.innerText = "ACCESS GRANTED";
+                iconContainer.innerHTML = `<i data-lucide="check-circle-2" class="w-full h-full text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]"></i>`;
+                status.innerText = "SUCCESSFUL SCAN";
+                if(res.role === 'Speaker') playSound('speaker'); else playSound('success');
             } else if (res.scan_result === 'DUPLICATE') {
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-amber-400 to-orange-500";
-                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-amber-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="alert-circle" class="w-8 h-8 text-amber-600"></i></div>`;
-                badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm bg-amber-100 text-amber-700 border border-amber-200";
+                box.classList.add('duplicate');
+                header.innerText = "PASS ALREADY USED";
+                iconContainer.innerHTML = `<i data-lucide="alert-triangle" class="w-full h-full text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]"></i>`;
+                status.innerText = "DUPLICATE ENTRY";
                 playSound('error');
             } else {
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-gradient-to-r from-red-500 to-rose-700";
-                iconBox.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-100 border-4 border-white shadow-md mx-auto z-10 relative"><i data-lucide="x-circle" class="w-8 h-8 text-red-600"></i></div>`;
-                badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm bg-red-100 text-red-700 border border-red-200";
+                box.classList.add('invalid');
+                header.innerText = "ACCESS DENIED";
+                iconContainer.innerHTML = `<i data-lucide="x-octagon" class="w-full h-full text-rose-400 drop-shadow-[0_0_15px_rgba(225,29,72,0.8)]"></i>`;
+                status.innerText = res.scan_result === 'WRONG EVENT' ? "WRONG EVENT PASS" : "INVALID PASS";
                 playSound('error');
             }
+            
+            lucide.createIcons();
 
-            lucide.createIcons({root: cardInner});
-
-            // Trigger Pop Sequence
-            idleContent.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-            resultWrapper.classList.remove('hidden');
-            setTimeout(() => { cardInner.classList.add('bp-show'); }, 10);
-
-            // Auto-hide and reset
-            clearTimeout(scanHideTimeout);
-            scanHideTimeout = setTimeout(() => {
-                cardInner.classList.remove('bp-show');
-                setTimeout(() => {
-                    resultWrapper.classList.add('hidden');
-                    idleContent.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                    document.getElementById('scanner-input').focus();
-                }, 500); // Wait for shrink animation
-            }, 3500);
+            // Reset after delay
+            clearTimeout(scanResetTimeout);
+            scanResetTimeout = setTimeout(() => {
+                box.className = "scan-target-box rounded-2xl p-8 relative flex flex-col items-center justify-center min-h-[320px] cursor-pointer";
+                scanLine.style.display = 'block';
+                header.innerText = "SCAN EVENT QR CODE";
+                iconContainer.innerHTML = `<i data-lucide="scan" class="w-full h-full text-sky-500/30" id="scan-box-icon"></i>`;
+                status.innerText = "WAITING FOR SCAN...";
+                participant.innerText = "PARTICIPANT: [Waiting]";
+                lucide.createIcons();
+            }, 2500);
         }
 
+        // ==========================================
+        // ADMIN DASHBOARD - OTHER TABS
+        // ==========================================
         async function fetchLiveUpdates() {
             try {
                 const data = await apiCall('getLiveDisplay');
-                
-                let logs = [];
-                let stats = { total: 0, byLajnah: {} };
+                let logs = Array.isArray(data) ? data : (data.logs || []);
+                let stats = Array.isArray(data) ? { total: 0, byLajnah: {} } : (data.stats || { total: 0, byLajnah: {} });
 
-                // Robust check: In case user is still running older Google Script version
                 if (Array.isArray(data)) {
-                    logs = data;
-                    logs.forEach(l => {
-                        if(l.scan_result === 'SUCCESS') {
-                            stats.total++;
-                            stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1;
-                        }
-                    });
-                } else {
-                    logs = data.logs || [];
-                    stats = data.stats || { total: 0, byLajnah: {} };
+                    logs.forEach(l => { if(l.scan_result === 'SUCCESS') { stats.total++; stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; } });
                 }
 
-                // Render Stats Panel
                 const statsContainer = document.getElementById('live-stats-container');
                 if (statsContainer) {
-                    let statsHtml = `
-                        <div class="col-span-2 md:col-span-2 bg-gradient-to-r from-sky-400 to-blue-600 rounded-xl p-4 text-white shadow-md flex flex-col justify-center">
-                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Attendees</p>
-                            <h3 class="text-4xl font-black mt-1">${stats.total}</h3>
-                        </div>
-                    `;
-                    
-                    // Always ensure VIP is visible in the stats list
-                    if (stats.byLajnah['VIP'] === undefined) {
-                        stats.byLajnah['VIP'] = 0;
-                    }
-
+                    let statsHtml = `<div class="col-span-2 md:col-span-2 bg-gradient-to-r from-sky-400 to-blue-600 rounded-xl p-4 text-white shadow-md flex flex-col justify-center"><p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Attendees</p><h3 class="text-4xl font-black mt-1">${stats.total}</h3></div>`;
+                    if (stats.byLajnah['VIP'] === undefined) stats.byLajnah['VIP'] = 0;
                     for (const [lajnah, count] of Object.entries(stats.byLajnah)) {
-                        let displayName = lajnah;
-                        let boxClass = "bg-slate-50 border-slate-200 text-slate-800";
-                        let labelClass = "text-slate-500";
-                        
-                        if (lajnah === 'VIP') {
-                            displayName = "🌟 VIP / SPEAKER";
-                            boxClass = "bg-yellow-50 border-yellow-300 text-yellow-700 shadow-sm";
-                            labelClass = "text-yellow-600";
-                        }
-
-                        statsHtml += `
-                            <div class="border rounded-xl p-3 flex flex-col justify-center items-center ${boxClass}">
-                                <h4 class="text-2xl font-bold">${count}</h4>
-                                <p class="text-[9px] font-bold uppercase tracking-widest mt-1 text-center ${labelClass}">${displayName}</p>
-                            </div>
-                        `;
+                        let isVip = lajnah === 'VIP';
+                        statsHtml += `<div class="border rounded-xl p-3 flex flex-col justify-center items-center ${isVip ? 'bg-yellow-50 border-yellow-300 text-yellow-700' : 'bg-slate-50 border-slate-200 text-slate-800'}"><h4 class="text-2xl font-bold">${count}</h4><p class="text-[9px] font-bold uppercase tracking-widest mt-1 text-center ${isVip ? 'text-yellow-600' : 'text-slate-500'}">${isVip ? '🌟 VIP / SPEAKER' : lajnah}</p></div>`;
                     }
                     statsContainer.innerHTML = statsHtml;
                 }
 
-                const tbody = document.getElementById('live-table-body');
-                tbody.innerHTML = '';
-                
+                const tbody = document.getElementById('live-table-body'); tbody.innerHTML = '';
                 logs.forEach(log => {
-                    // 🛑 ONLY SHOW SUCCESSFUL SCANS ON THE LIVE BOARD
                     if (log.scan_result !== 'SUCCESS') return;
-
                     const isVip = log.role === 'Speaker';
                     let statusColor = log.status === 'ON TIME' ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100";
-
-                    const tr = document.createElement('tr');
-                    tr.className = `transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}`;
-                    tr.innerHTML = `
-                        <td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time}</td>
-                        <td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name} ${isVip ? '🌟' : ''}</td>
-                        <td class="p-4 text-sm text-slate-600">${log.lajnah}</td>
-                        <td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name}</td>
-                        <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${log.status!=='-' ? `(${log.status})` : ''}</span></td>
-                    `;
-                    tbody.appendChild(tr);
+                    tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${log.status!=='-' ? `(${log.status})` : ''}</span></td></tr>`;
                 });
             } catch (err) {}
         }
@@ -1108,69 +1059,39 @@
         async function loadAdminData() {
             try {
                 const data = await apiCall('getAllData', { adminPass: state.adminPass });
-                state.subEvents = data.subEvents || [];
-                state.participants = data.participants || [];
-                state.logs = data.logs || [];
-                renderSubEvents();
-                renderParticipants();
-                refreshEventDropdowns();
+                state.subEvents = data.subEvents || []; state.participants = data.participants || []; state.logs = data.logs || [];
+                renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo();
             } catch(e) {}
         }
 
         async function handleAddEvent(e) {
             e.preventDefault();
             try {
-                state.subEvents = await apiCall('manageSubEvent', {
-                    type: 'ADD', adminPass: state.adminPass,
-                    subevent_name: document.getElementById('ev-name').value,
-                    start_time: document.getElementById('ev-start').value.replace('T', ' '),
-                    end_time: document.getElementById('ev-end').value.replace('T', ' ')
-                });
-                renderSubEvents();
-                refreshEventDropdowns();
-                document.getElementById('ev-name').value = '';
-                showToast("Event added", "success");
+                state.subEvents = await apiCall('manageSubEvent', { type: 'ADD', adminPass: state.adminPass, subevent_name: document.getElementById('ev-name').value, start_time: document.getElementById('ev-start').value.replace('T', ' '), end_time: document.getElementById('ev-end').value.replace('T', ' ') });
+                renderSubEvents(); refreshEventDropdowns(); updateScannerEventInfo(); document.getElementById('ev-name').value = ''; showToast("Event added", "success");
             } catch (err) {}
         }
 
         async function toggleEvent(id) {
             try {
                 state.subEvents = await apiCall('manageSubEvent', { type: 'TOGGLE', subevent_id: id, adminPass: state.adminPass });
-                renderSubEvents();
-                refreshEventDropdowns();
-                showToast("Event status updated", "success");
+                renderSubEvents(); refreshEventDropdowns(); updateScannerEventInfo(); showToast("Event status updated", "success");
             } catch (err) {}
         }
 
         function renderSubEvents() {
-            const tbody = document.getElementById('events-table-body');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('events-table-body'); tbody.innerHTML = '';
             state.subEvents.forEach(ev => {
                 const isActive = ev.status === 'ACTIVE';
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0">
-                        <td class="p-3 font-semibold text-slate-800">${ev.subevent_name}</td>
-                        <td class="p-3 text-xs text-slate-500">${ev.start_time}</td>
-                        <td class="p-3 text-xs text-slate-500">${ev.end_time}</td>
-                        <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${ev.status}</span></td>
-                        <td class="p-3"><button onclick="toggleEvent('${ev.subevent_id}')" class="text-xs px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded transition">Toggle</button></td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0"><td class="p-3 font-semibold text-slate-800">${ev.subevent_name}</td><td class="p-3 text-xs text-slate-500">${ev.start_time}</td><td class="p-3 text-xs text-slate-500">${ev.end_time}</td><td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${ev.status}</span></td><td class="p-3"><button onclick="toggleEvent('${ev.subevent_id}')" class="text-xs px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded transition">Toggle</button></td></tr>`;
             });
         }
 
         function renderParticipants() {
-            const tbody = document.getElementById('part-table-body');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('part-table-body'); tbody.innerHTML = '';
             const search = document.getElementById('search-part').value.toLowerCase();
             state.participants.filter(p => p.name.toLowerCase().includes(search)).forEach(p => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0">
-                        <td class="p-3 font-semibold text-slate-800">${p.name}</td>
-                        <td class="p-3 text-slate-600 text-sm">${p.lajnah}</td>
-                        <td class="p-3"><span class="font-bold text-xs px-2 py-1 rounded-full ${p.role === 'Speaker' ? 'bg-yellow-100 text-yellow-700' : 'bg-sky-100 text-sky-700'}">${p.role}</span></td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0"><td class="p-3 font-semibold text-slate-800">${p.name}</td><td class="p-3 text-slate-600 text-sm">${p.lajnah}</td><td class="p-3"><span class="font-bold text-xs px-2 py-1 rounded-full ${p.role === 'Speaker' ? 'bg-yellow-100 text-yellow-700' : 'bg-sky-100 text-sky-700'}">${p.role}</span></td></tr>`;
             });
         }
 
@@ -1182,17 +1103,12 @@
                 const data = await apiCall('getAllData', { adminPass: state.adminPass });
                 const logs = data.logs || [];
                 if(logs.length === 0) { showToast("No data to export", "warning"); return; }
-                const ws = XLSX.utils.json_to_sheet(logs);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Attendance_Log");
-                XLSX.writeFile(wb, `AttendX_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
-                showToast("Export complete!", "success");
+                const ws = XLSX.utils.json_to_sheet(logs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Attendance_Log");
+                XLSX.writeFile(wb, `AttendX_Export_${new Date().toISOString().split('T')[0]}.xlsx`); showToast("Export complete!", "success");
             } catch (err) { showToast("Failed to export Excel", "error"); }
         }
 
-        // Start App
         window.onload = init;
-
     </script>
 </body>
 </html>

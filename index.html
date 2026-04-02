@@ -1065,7 +1065,7 @@
             try {
                 const loginId = document.getElementById('login-name').value;
                 const password = document.getElementById('login-password').value;
-                const qrs = await apiCall('participantLogin', { login_id: loginId, password: password });
+                const qrs = await apiCall('participantLogin', { login_id: loginId, name: loginId, password: password });
                 
                 if(qrs.length === 0) showToast("No passes found.", "warning");
                 else { 

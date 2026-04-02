@@ -133,8 +133,16 @@
         .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
 
         /* Fullscreen White Background Fix */
-        :fullscreen { background-color: #f8fafc !important; padding: 2rem !important; overflow-y: auto !important; }
-        :-webkit-full-screen { background-color: #f8fafc !important; padding: 2rem !important; overflow-y: auto !important; }
+        ::backdrop { background-color: #f8fafc; }
+        :-ms-fullscreen { background-color: #f8fafc; }
+        :-webkit-full-screen { background-color: #f8fafc; width: 100vw; height: 100vh; }
+        :fullscreen { background-color: #f8fafc; width: 100vw; height: 100vh; }
+
+        #tab-scanner:fullscreen, #tab-live:fullscreen {
+            background-color: #f8fafc !important;
+            padding: 2rem !important;
+            overflow-y: auto !important;
+        }
     </style>
 </head>
 <body class="antialiased bg-slate-50 text-slate-800 flex flex-col min-h-screen">
@@ -581,7 +589,7 @@
 
                     <!-- SCAN RESULT OVERLAY -->
                     <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl opacity-0">
-                        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
+                        <div id="scan-result-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-transform duration-300 transform scale-95">
                             <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
                                 <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2"><i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS</span>
                                 <i data-lucide="book-user" class="w-6 h-6 opacity-80"></i>
@@ -950,9 +958,9 @@
 
         function initApp() {
             if (appSession) {
-                appSession.profile = appSession.profile || {};
+                appSession.profile = appSession.profile || {}; // Strict failsafe against old cached logins
                 if(appSession.type === 'admin') { 
-                    state.adminPass = 'adminsaje'; 
+                    state.adminPass = 'adminsaje'; // Restore admin auth
                     loadAdminData(); startGlobalStateSync(); routeTo('hub'); renderHub(); 
                 }
                 else if(appSession.type === 'vip') { routeTo('vip-dashboard'); startVipDashboard(); startGlobalStateSync(); }
@@ -967,6 +975,7 @@
             const target = document.getElementById(`view-${view}`);
             if(target) target.classList.remove('view-hidden');
             
+            // Top Nav
             const navActions = document.getElementById('nav-actions');
             if (view === 'hub' || view === 'profile' || view === 'vip-dashboard') {
                 navActions.innerHTML = `<button onclick="logout()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition"><i data-lucide="log-out" class="w-4 h-4"></i></button>`;
@@ -977,6 +986,7 @@
             } else { navActions.innerHTML = ``; }
             lucide.createIcons({root: document.getElementById('nav-actions')});
 
+            // Bottom Nav Visibility
             const bNav = document.getElementById('bottom-nav');
             if(view === 'hub' || view === 'profile') { bNav.classList.remove('hidden'); bNav.classList.add('flex'); } 
             else { bNav.classList.add('hidden'); bNav.classList.remove('flex'); }
@@ -1315,6 +1325,7 @@
                 if(el) el.innerText = state.status === 'running' ? 'LIVE NOW' : state.status.toUpperCase();
             });
 
+            // Status Styling (Admin vs VIP)
             ['vip-live-timer', 'admin-live-timer'].forEach(id => {
                 const el = document.getElementById(id); if(!el) return;
                 if (id === 'vip-live-timer') {
@@ -1662,6 +1673,7 @@
                 const titleEl = document.getElementById('scanner-main-title');
                 if(titleEl) titleEl.innerText = `SCANNER - ${ev.subevent_name.toUpperCase()}`; 
                 
+                // Add safe-check for info-event-time which is sometimes not perfectly rendered
                 const timeEl = document.getElementById('info-event-time');
                 if(timeEl) {
                     timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
@@ -1692,6 +1704,7 @@
             if (code.includes('|')) { const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; }
             if (sessionScanned.has(actualQrId)) { triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-', scan_time: nowStr }); return; }
 
+            // Safe check for Event Name
             let expectedEventName = "";
             const infoNameEl = document.getElementById('info-event-name');
             if(infoNameEl) expectedEventName = infoNameEl.innerText;
@@ -1716,7 +1729,7 @@
         }
 
         function triggerScannerUI(res) {
-            const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
+            const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('scan-result-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
             const arrivalEl = document.getElementById('scan-arrival-num');
             
             if(res.scan_result === 'SUCCESS') state.localSessionCount++; updateScannerEventInfo();
@@ -1747,12 +1760,19 @@
 
         async function loadAdminData() {
             try {
+                // Fetch the core event data from the backend Google Sheet API
                 const data = await apiCall('getAllData', { adminPass: state.adminPass });
                 state.subEvents = data.subEvents || []; 
                 state.participants = data.participants || []; 
                 state.logs = data.logs || [];
                 
-                renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo(); renderHubConfigAdmin(); renderAdminVipList();
+                // Manually trigger renders for the entire admin panel!
+                renderSubEvents(); 
+                renderParticipants(); 
+                refreshEventDropdowns(); 
+                updateScannerEventInfo(); 
+                renderHubConfigAdmin(); 
+                renderAdminVipList();
             } catch(e) {
                 console.error("loadAdminData Error:", e);
                 showToast("Failed to sync with database. Retrying...", "warning");
@@ -1763,6 +1783,7 @@
             try {
                 const data = await apiCall('getLiveDisplay'); 
                 
+                // Flexible parsing handling older array structures
                 let logs = Array.isArray(data) ? data : (data.logs || []); 
                 let stats = Array.isArray(data) ? { total: 0, byLajnah: {} } : (data.stats || { total: 0, byLajnah: {} });
 
@@ -1787,6 +1808,7 @@
 
                 const tbody = document.getElementById('live-table-body'); tbody.innerHTML = '';
                 logs.forEach(log => {
+                    // Safety check against undefined fields from older database rows
                     if (!log.scan_result || log.scan_result.toUpperCase() !== 'SUCCESS') return;
                     
                     const isVip = log.role === 'Speaker'; 

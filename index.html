@@ -383,14 +383,13 @@
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- AUTH VIEWS (NEW REGISTRATION DESIGN)           -->
-        <!-- ============================================== -->
+        <!-- AUTH VIEWS (Register, Login, VIP Login, Admin Login) -->
         <div id="view-register" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
             <div class="ios-card w-full max-w-md p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 hub-gradient"></div>
                 <button onclick="routeTo('landing')" class="absolute top-6 left-6 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
                 <div class="text-center mb-6 mt-4">
-                    <div class="w-14 h-14 bg-sky-50 text-[#76a8d1] rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="user-plus" class="w-6 h-6"></i></div>
+                    <div class="w-14 h-14 bg-sky-50 text-[#76a8d1] rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="user-plus"></i></div>
                     <h2 class="text-xl font-black text-slate-800 tracking-tight">New Registration</h2>
                     <p class="text-xs text-slate-500 mt-1">Create an account to get passes.</p>
                 </div>
@@ -597,7 +596,7 @@
                                     <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight mb-2"></h3>
                                     <div id="scan-arrival-num" class="hidden bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 mb-4 text-emerald-800 font-bold text-lg">No. -</div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-4 border border-slate-100">
+                                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
                                     <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p><p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p></div>
                                     <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Session / Event</p><p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p></div>
                                 </div>
@@ -809,7 +808,7 @@
         let passSyncInterval = null;
         let currentViewingQrId = null;
 
-        const showToast = (msg, type = 'info') => {
+        function showToast(msg, type = 'info') {
             const container = document.getElementById('toast-container'); const toast = document.createElement('div');
             const colors = { success: 'bg-emerald-500 text-white', error: 'bg-rose-500 text-white', warning: 'bg-amber-500 text-white', info: 'bg-[#203a70] text-white' };
             toast.className = `${colors[type]} px-6 py-3 rounded-xl shadow-lg font-semibold flex items-center gap-3 animate-pop`;
@@ -817,9 +816,25 @@
             toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i> ${msg}`;
             container.appendChild(toast); lucide.createIcons({root: toast});
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
-        };
+        }
 
-        const playSound = (type) => {
+        function toggleFullscreen(id) {
+            const el = document.getElementById(id);
+            if (!document.fullscreenElement) {
+                el.appendChild(document.getElementById('toast-container'));
+                el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                document.body.appendChild(document.getElementById('toast-container'));
+            }
+        });
+
+        function playSound(type) {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             if (type === 'scan') {
                 const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(1500, ctx.currentTime);
@@ -838,7 +853,7 @@
                     }, i * 150);
                 });
             }
-        };
+        }
 
         function openModal(id) {
             const modal = document.getElementById(id);
@@ -880,7 +895,6 @@
             }
         }
 
-        // --- Robust Fallback for Checking Status ---
         async function robustCheckPassStatus(qrId, name, subeventName) {
             try {
                 const res = await apiCall('checkPassStatus', { qr_id: qrId });
@@ -975,9 +989,8 @@
         function logout() { appSession = null; localStorage.removeItem('mynuqoba_session'); state.adminPass = ''; routeTo('landing'); clearInterval(vipPollInterval); clearInterval(passSyncInterval); }
 
         // ==========================================
-        // AUTHENTICATION (UPDATED FIELDS)
+        // AUTHENTICATION
         // ==========================================
-        
         function validateEmailField(input) {
             const icon = document.getElementById('reg-email-check');
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1006,18 +1019,16 @@
 
         async function handleRegistration(e) {
             e.preventDefault(); 
-            
             const pwd = document.getElementById('reg-password').value;
             const pwdConf = document.getElementById('reg-password-confirm').value;
             if(pwd !== pwdConf) { showToast("Passwords do not match!", "error"); return; }
             if(pwd.length < 8) { showToast("Password must be at least 8 characters.", "error"); return; }
-
             const btn = document.getElementById('btn-register'); btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
             
             try {
                 const payload = {
                     username: document.getElementById('reg-username').value,
-                    name: document.getElementById('reg-name').value, // Full Name
+                    name: document.getElementById('reg-name').value,
                     lajnah: document.getElementById('reg-lajnah').value,
                     phone: document.getElementById('reg-phone').value,
                     email: document.getElementById('reg-email').value,
@@ -1027,15 +1038,7 @@
                 const id = "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase();
                 const qrs = await apiCall('registerUser', payload);
                 
-                appSession = { 
-                    type: 'user', 
-                    name: payload.name, 
-                    qrs: qrs, 
-                    id: id, 
-                    profile: { phone: payload.phone },
-                    password: pwd 
-                };
-                
+                appSession = { type: 'user', name: payload.name, qrs: qrs, id: id, profile: { phone: payload.phone }, password: pwd };
                 localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
                 showToast("Account Created!", "success"); 
                 document.getElementById('form-register').reset();
@@ -1060,7 +1063,7 @@
                     localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
                     initApp(); 
                 }
-            } catch (err) { showToast("Invalid credentials.", "error"); } finally { btn.innerHTML = `Log In to Hub`; btn.disabled = false; }
+            } catch (err) { showToast(err.message || "Invalid credentials.", "error"); } finally { btn.innerHTML = `Log In to Hub`; btn.disabled = false; }
         }
 
         function handleAdminLogin(e) {
@@ -1070,7 +1073,7 @@
         }
 
         // ==========================================
-        // VIP PORTAL & ADMIN CONTROLS (WITH GLOBAL SYNC)
+        // VIP PORTAL & ADMIN CONTROLS 
         // ==========================================
         async function handleSpeakerReg(e) {
             e.preventDefault();
@@ -1079,9 +1082,8 @@
                 const qrs = await apiCall('registerSpeaker', { name, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value });
                 const otp = Math.floor(100000 + Math.random() * 900000).toString();
                 
-                // Fetch Global VIPs, append, and save back to backend!
-                const currentState = await apiCall('getVipState');
-                let globalVips = currentState.global_vips || [];
+                const vipStateData = await apiCall('getVipState');
+                let globalVips = vipStateData.global_vips || [];
                 globalVips.push({ name, otp, qrs, active: true });
                 await apiCall('updateVipState', {key: 'global_vips', value: globalVips});
 
@@ -1096,8 +1098,8 @@
         async function handleVipLogin(e) {
             e.preventDefault(); const otp = document.getElementById('vip-otp-input').value;
             try {
-                const state = await apiCall('getVipState');
-                const globalVips = state.global_vips || [];
+                const vipStateData = await apiCall('getVipState');
+                const globalVips = vipStateData.global_vips || [];
                 const vip = globalVips.find(v => v.otp === otp && v.active);
                 
                 if(vip) {
@@ -1105,7 +1107,6 @@
                     localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
                     initApp();
                 } else {
-                    // Fallback to local storage VIPs (for backwards compatibility if created offline)
                     const localVip = hubConfig.vips.find(v => v.otp === otp && v.active);
                     if (localVip) {
                         appSession = { type: 'vip', name: localVip.name, qrs: localVip.qrs, profile: {} };
@@ -1122,8 +1123,8 @@
             container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Loading VIPs...</p>';
             
             try {
-                const state = await apiCall('getVipState');
-                const globalVips = state.global_vips || [];
+                const vipStateData = await apiCall('getVipState');
+                const globalVips = vipStateData.global_vips || [];
                 
                 let hasVips = false;
                 container.innerHTML = '';
@@ -1179,8 +1180,8 @@
         }
 
         async function zoomAdminVipQr(otp) {
-            const state = await apiCall('getVipState');
-            const globalVips = state.global_vips || [];
+            const vipStateData = await apiCall('getVipState');
+            const globalVips = vipStateData.global_vips || [];
             const vip = globalVips.find(v => v.otp === otp);
             if(!vip) return;
 
@@ -1247,8 +1248,13 @@
                     
                     if (appSession.type === 'vip') {
                         const qrSec = document.getElementById('vip-qr-section');
+                        let isPassUsed = false;
+                        if(appSession.qrs && appSession.qrs.length > 0 && appSession.qrs[0].status === 'USED') {
+                            isPassUsed = true;
+                        }
+
                         if (qrSec) {
-                            if (newState.timer.status === 'running' || newState.timer.status === 'paused') {
+                            if (newState.timer.status === 'running' || newState.timer.status === 'paused' || isPassUsed) {
                                 qrSec.style.opacity = '0'; setTimeout(() => qrSec.classList.add('hidden'), 500); 
                             } else {
                                 qrSec.classList.remove('hidden'); setTimeout(() => qrSec.style.opacity = '1', 10);
@@ -1261,12 +1267,16 @@
 
                 globalVipState = newState;
                 
-                // Poll VIP QR status to hide upon successful scan (Self-healing fallback)
                 if(appSession.type === 'vip' && currentViewingQrId) {
                     const statusRes = await robustCheckPassStatus(currentViewingQrId, appSession.name, appSession.qrs[0].subevent_name);
                     if(statusRes && statusRes.status === 'USED') {
                         currentViewingQrId = null; 
                         
+                        if(appSession.qrs.length > 0) {
+                            appSession.qrs[0].status = 'USED';
+                            localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                        }
+
                         document.getElementById('success-overlay-name').innerText = appSession.name;
                         document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
                         openModal('participant-success-overlay');
@@ -1595,7 +1605,7 @@
         // ==========================================
         function openTool(toolName) {
             routeTo('tools'); const sb = document.getElementById('admin-sidebar');
-            loadAdminData(); 
+            loadAdminData(); // Refresh Data strictly when opening tools
             if(toolName === 'scanner') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('scanner'); } 
             else if (toolName === 'live') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('live'); } 
             else if (toolName === 'admin') { sb.classList.remove('hidden', 'md:hidden'); switchAdminTab('subevents'); }
@@ -1653,7 +1663,9 @@
                 if(titleEl) titleEl.innerText = `SCANNER - ${ev.subevent_name.toUpperCase()}`; 
                 
                 const timeEl = document.getElementById('info-event-time');
-                if(timeEl) timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                if(timeEl) {
+                    timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                }
             }
             const totalReg = state.participants.length; 
             const trEl = document.getElementById('stat-total-reg'); if(trEl) trEl.innerText = totalReg; 
@@ -1704,7 +1716,7 @@
         }
 
         function triggerScannerUI(res) {
-            const cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
+            const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
             const arrivalEl = document.getElementById('scan-arrival-num');
             
             if(res.scan_result === 'SUCCESS') state.localSessionCount++; updateScannerEventInfo();
@@ -1741,18 +1753,25 @@
                 state.logs = data.logs || [];
                 
                 renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo(); renderHubConfigAdmin(); renderAdminVipList();
-            } catch(e) { showToast("Failed to sync with database. Retrying...", "warning"); }
+            } catch(e) {
+                console.error("loadAdminData Error:", e);
+                showToast("Failed to sync with database. Retrying...", "warning");
+            }
         }
 
         async function fetchLiveUpdates() {
             try {
                 const data = await apiCall('getLiveDisplay'); 
+                
                 let logs = Array.isArray(data) ? data : (data.logs || []); 
                 let stats = Array.isArray(data) ? { total: 0, byLajnah: {} } : (data.stats || { total: 0, byLajnah: {} });
 
                 if (Array.isArray(data)) {
                     logs.forEach(l => { 
-                        if(l.scan_result && l.scan_result.toUpperCase() === 'SUCCESS') { stats.total++; stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; } 
+                        if(l.scan_result && l.scan_result.toUpperCase() === 'SUCCESS') { 
+                            stats.total++; 
+                            stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; 
+                        } 
                     });
                 }
 
@@ -1769,9 +1788,11 @@
                 const tbody = document.getElementById('live-table-body'); tbody.innerHTML = '';
                 logs.forEach(log => {
                     if (!log.scan_result || log.scan_result.toUpperCase() !== 'SUCCESS') return;
+                    
                     const isVip = log.role === 'Speaker'; 
                     let statusColor = log.status === 'ON TIME' ? "text-emerald-700 bg-emerald-100" : "text-yellow-700 bg-yellow-100";
                     const statusText = log.status && log.status !== '-' ? '(' + log.status + ')' : '';
+                    
                     tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time || ''}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name || ''} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah || ''}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name || ''}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${statusText}</span></td></tr>`;
                 });
             } catch (err) {}

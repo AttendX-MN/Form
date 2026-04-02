@@ -60,6 +60,7 @@
             border-color: #76a8d1;
             box-shadow: 0 0 0 3px rgba(118, 168, 209, 0.2);
         }
+        .input-success { border-color: #10b981 !important; background: #f0fdf4 !important; }
 
         /* Bottom Nav & FAB */
         .bottom-nav-bar {
@@ -105,6 +106,12 @@
             display: flex; justify-content: center; color: white;
             cursor: pointer; font-size: 10px; font-weight: bold;
         }
+
+        /* Password Strength Bar */
+        .pwd-bar { height: 4px; border-radius: 2px; transition: all 0.3s ease; width: 0%; }
+        .pwd-weak { background-color: #ef4444; width: 33%; }
+        .pwd-medium { background-color: #f59e0b; width: 66%; }
+        .pwd-strong { background-color: #10b981; width: 100%; }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -376,17 +383,54 @@
             </div>
         </div>
 
-        <!-- AUTH VIEWS (Register, Login, VIP Login, Admin Login) -->
+        <!-- ============================================== -->
+        <!-- AUTH VIEWS (NEW REGISTRATION DESIGN)           -->
+        <!-- ============================================== -->
         <div id="view-register" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
             <div class="ios-card w-full max-w-md p-6 relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-2 hub-gradient"></div>
                 <button onclick="routeTo('landing')" class="absolute top-6 left-6 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <div class="text-center mb-6 mt-2"><div class="w-12 h-12 bg-sky-50 text-[#76a8d1] rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="user-plus"></i></div><h2 class="text-2xl font-black text-slate-800">Registration</h2></div>
+                <div class="text-center mb-6 mt-4">
+                    <div class="w-14 h-14 bg-sky-50 text-[#76a8d1] rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="user-plus" class="w-6 h-6"></i></div>
+                    <h2 class="text-xl font-black text-slate-800 tracking-tight">New Registration</h2>
+                    <p class="text-xs text-slate-500 mt-1">Create an account to get passes.</p>
+                </div>
+                
                 <form id="form-register" onsubmit="handleRegistration(event)">
-                    <div class="mb-4"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Participant Name</label><input type="text" id="reg-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Full Name"></div>
-                    <div class="mb-4"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Lajnah</label><select id="reg-lajnah" required class="w-full input-style rounded-xl px-4 py-3 text-sm appearance-none focus:ring-[3px] focus:ring-[#76a8d1]/20"><option value="" disabled selected>Select Lajnah</option></select></div>
-                    <div class="mb-6"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Create Password</label><input type="password" id="reg-password" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Secure Password"></div>
-                    <button type="submit" id="btn-register" class="w-full brand-gradient text-white font-bold py-3.5 px-4 rounded-xl transition transform active:scale-95">Create Account</button>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Username</label>
+                        <input type="text" id="reg-username" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Choose a username">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Full Name (IC)</label>
+                        <input type="text" id="reg-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Your full name as per IC">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Lajnah</label>
+                        <select id="reg-lajnah" required class="w-full input-style rounded-xl px-4 py-3 text-sm appearance-none focus:ring-[3px] focus:ring-[#76a8d1]/20">
+                            <option value="" disabled selected>Select Lajnah</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number</label>
+                        <input type="tel" id="reg-phone" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="+60123456789">
+                    </div>
+                    <div class="mb-4 relative">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Email</label>
+                        <input type="email" id="reg-email" required oninput="validateEmailField(this)" class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20 transition-colors" placeholder="user@example.com">
+                        <i data-lucide="check-circle-2" id="reg-email-check" class="absolute right-3 top-9 w-5 h-5 text-emerald-500 hidden"></i>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Create Password</label>
+                        <input type="password" id="reg-password" required oninput="checkPasswordStrength(this.value)" class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Secure Password">
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden flex">
+                            <div id="pwd-strength-bar" class="pwd-bar"></div>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Password</label>
+                        <input type="password" id="reg-password-confirm" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Re-type Password">
+                    </div>
+                    <button type="submit" id="btn-register" class="w-full bg-[#15274d] text-white font-bold py-3.5 px-4 rounded-xl transition transform active:scale-95 hover:bg-[#203a70]">Register</button>
                 </form>
             </div>
         </div>
@@ -397,7 +441,7 @@
                 <button onclick="routeTo('landing')" class="absolute top-6 left-6 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
                 <div class="text-center mb-6 mt-2"><div class="w-12 h-12 bg-sky-50 text-[#76a8d1] rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="user"></i></div><h2 class="text-2xl font-black text-slate-800">Log In</h2></div>
                 <form id="form-user-login" onsubmit="handleUserLogin(event)">
-                    <div class="mb-4"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Participant Name</label><input type="text" id="login-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Registered Name"></div>
+                    <div class="mb-4"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Username or Full Name</label><input type="text" id="login-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="Your Registered ID"></div>
                     <div class="mb-8"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label><input type="password" id="login-password" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-[3px] focus:ring-[#76a8d1]/20" placeholder="••••••••"></div>
                     <button type="submit" id="btn-user-login" class="w-full brand-gradient text-white font-bold py-3.5 px-4 rounded-xl transition transform active:scale-95">Log In to Hub</button>
                 </form>
@@ -442,7 +486,7 @@
 
             <main class="flex-1 w-full overflow-hidden relative h-full flex flex-col">
                 
-                <!-- SCANNER TAB -->
+                <!-- SCANNER TAB (FULL DASHBOARD LAYOUT RESTORED) -->
                 <div id="tab-scanner" class="admin-content animate-pop w-full h-full flex flex-col relative bg-slate-50">
                     <input type="text" id="scanner-input" class="opacity-0 absolute -z-10 w-0 h-0" autofocus autocomplete="off">
                     
@@ -538,7 +582,7 @@
 
                     <!-- SCAN RESULT OVERLAY -->
                     <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl opacity-0">
-                        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transform scale-95 transition-transform duration-300">
+                        <div id="bp-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-all duration-500 transform scale-95 opacity-0 translate-y-8">
                             <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
                                 <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2"><i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS</span>
                                 <i data-lucide="book-user" class="w-6 h-6 opacity-80"></i>
@@ -752,7 +796,6 @@
         let appSession = JSON.parse(localStorage.getItem('mynuqoba_session')) || null;
         let hubConfig = JSON.parse(localStorage.getItem('mynuqoba_hub')) || {};
         
-        // Failsafe configuration initialization
         if (!hubConfig.banners) hubConfig.banners = ['https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80'];
         if (!hubConfig.links) hubConfig.links = [];
         if (!hubConfig.profileFields) hubConfig.profileFields = ['Dietary'];
@@ -775,22 +818,6 @@
             container.appendChild(toast); lucide.createIcons({root: toast});
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
-
-        const toggleFullscreen = (id) => {
-            const el = document.getElementById(id);
-            if (!document.fullscreenElement) {
-                el.appendChild(document.getElementById('toast-container'));
-                el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
-            } else {
-                document.exitFullscreen();
-            }
-        };
-
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                document.body.appendChild(document.getElementById('toast-container'));
-            }
-        });
 
         const playSound = (type) => {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -837,51 +864,40 @@
                 else inner.classList.add('scale-95');
             }
             m.classList.add('opacity-0'); 
-            
-            // Stop polling when big boarding pass closes
             if(id === 'modal-boarding-pass') clearInterval(passSyncInterval);
-            
-            setTimeout(() => { 
-                m.classList.add('hidden'); 
-                m.classList.remove('flex'); 
-            }, 300);
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
         }
 
         async function apiCall(action, payload = {}) {
-            let response;
-            try { response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, payload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }}); } 
-            catch (err) { showToast("Network Error", "error"); throw err; }
-            const result = await response.json(); if (!result.success) throw new Error(result.error); return result.data;
+            try { 
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, payload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }});
+                const result = await response.json(); 
+                if (!result.success) throw new Error(result.error); 
+                return result.data;
+            } catch (err) { 
+                console.error("API Call Error:", err);
+                throw err; 
+            }
         }
 
-        // Robust Fallback API Call
+        // --- Robust Fallback for Checking Status ---
         async function robustCheckPassStatus(qrId, name, subeventName) {
             try {
                 const res = await apiCall('checkPassStatus', { qr_id: qrId });
                 if (res) return res;
-            } catch(e) {
-                // Ignore API direct fail and jump to fallback
-            }
+            } catch(e) {}
             
             try {
                 const data = await apiCall('getLiveDisplay');
                 let logs = Array.isArray(data) ? data : (data.logs || []);
                 const cleanSubeventName = subeventName.replace(/\[#\d+\]\s/, '');
-                
-                const found = logs.find(l => 
-                    l.name.toLowerCase() === name.toLowerCase() && 
-                    l.scan_result === 'SUCCESS' &&
-                    l.subevent_name.includes(cleanSubeventName)
-                );
-                
+                const found = logs.find(l => l.name.toLowerCase() === name.toLowerCase() && l.scan_result === 'SUCCESS' && l.subevent_name.includes(cleanSubeventName));
                 if (found) {
                     const eventLogs = logs.filter(l => l.subevent_name.includes(cleanSubeventName) && l.scan_result === 'SUCCESS').reverse();
                     const arrivalNum = eventLogs.findIndex(l => l.name.toLowerCase() === name.toLowerCase()) + 1;
                     return { status: 'USED', arrival_number: arrivalNum > 0 ? arrivalNum : '-' };
                 }
-            } catch(fallbackErr) {
-                console.error("Fallback check failed.");
-            }
+            } catch(fallbackErr) {}
             return { status: 'UNUSED', arrival_number: '-' };
         }
 
@@ -895,7 +911,6 @@
                 if(appSession && appSession.type === 'user') renderAvailableEvents();
             } catch(e) {}
             
-            // Listen for broadcasts globally
             window.addEventListener('storage', (e) => {
                 if(e.key === 'mynuqoba_broadcast' && e.newValue) {
                     const data = JSON.parse(e.newValue);
@@ -905,7 +920,6 @@
                 }
             });
 
-            // Fast local timer UI updater
             setInterval(updateTimerUI, 1000);
         };
 
@@ -922,13 +936,10 @@
 
         function initApp() {
             if (appSession) {
-                appSession.profile = appSession.profile || {}; // Strict failsafe against old cached logins
+                appSession.profile = appSession.profile || {};
                 if(appSession.type === 'admin') { 
-                    state.adminPass = 'adminsaje'; // Restore admin auth
-                    loadAdminData(); 
-                    startGlobalStateSync(); 
-                    routeTo('hub'); 
-                    renderHub(); 
+                    state.adminPass = 'adminsaje'; 
+                    loadAdminData(); startGlobalStateSync(); routeTo('hub'); renderHub(); 
                 }
                 else if(appSession.type === 'vip') { routeTo('vip-dashboard'); startVipDashboard(); startGlobalStateSync(); }
                 else { routeTo('hub'); renderHub(); if(state.subEvents.length > 0) renderAvailableEvents(); }
@@ -942,7 +953,6 @@
             const target = document.getElementById(`view-${view}`);
             if(target) target.classList.remove('view-hidden');
             
-            // Top Nav
             const navActions = document.getElementById('nav-actions');
             if (view === 'hub' || view === 'profile' || view === 'vip-dashboard') {
                 navActions.innerHTML = `<button onclick="logout()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition"><i data-lucide="log-out" class="w-4 h-4"></i></button>`;
@@ -953,7 +963,6 @@
             } else { navActions.innerHTML = ``; }
             lucide.createIcons({root: document.getElementById('nav-actions')});
 
-            // Bottom Nav Visibility
             const bNav = document.getElementById('bottom-nav');
             if(view === 'hub' || view === 'profile') { bNav.classList.remove('hidden'); bNav.classList.add('flex'); } 
             else { bNav.classList.add('hidden'); bNav.classList.remove('flex'); }
@@ -966,39 +975,97 @@
         function logout() { appSession = null; localStorage.removeItem('mynuqoba_session'); state.adminPass = ''; routeTo('landing'); clearInterval(vipPollInterval); clearInterval(passSyncInterval); }
 
         // ==========================================
-        // AUTHENTICATION
+        // AUTHENTICATION (UPDATED FIELDS)
         // ==========================================
+        
+        function validateEmailField(input) {
+            const icon = document.getElementById('reg-email-check');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if(emailRegex.test(input.value)) {
+                input.classList.add('input-success');
+                icon.classList.remove('hidden');
+            } else {
+                input.classList.remove('input-success');
+                icon.classList.add('hidden');
+            }
+        }
+
+        function checkPasswordStrength(pw) {
+            let score = 0;
+            if(pw.length > 7) score++;
+            if(/[A-Z]/.test(pw)) score++;
+            if(/[0-9]/.test(pw)) score++;
+            if(/[^A-Za-z0-9]/.test(pw)) score++;
+            
+            const bar = document.getElementById('pwd-strength-bar');
+            bar.className = 'pwd-bar';
+            if(score <= 1) bar.classList.add('pwd-weak');
+            else if(score === 2) bar.classList.add('pwd-medium');
+            else bar.classList.add('pwd-strong');
+        }
+
         async function handleRegistration(e) {
-            e.preventDefault(); const btn = document.getElementById('btn-register'); btn.innerHTML = `<div class="loader"></div>`; btn.disabled = true;
+            e.preventDefault(); 
+            
+            const pwd = document.getElementById('reg-password').value;
+            const pwdConf = document.getElementById('reg-password-confirm').value;
+            if(pwd !== pwdConf) { showToast("Passwords do not match!", "error"); return; }
+            if(pwd.length < 8) { showToast("Password must be at least 8 characters.", "error"); return; }
+
+            const btn = document.getElementById('btn-register'); btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
+            
             try {
-                const name = document.getElementById('reg-name').value;
+                const payload = {
+                    username: document.getElementById('reg-username').value,
+                    name: document.getElementById('reg-name').value, // Full Name
+                    lajnah: document.getElementById('reg-lajnah').value,
+                    phone: document.getElementById('reg-phone').value,
+                    email: document.getElementById('reg-email').value,
+                    password: pwd
+                };
+
                 const id = "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-                const qrs = await apiCall('registerUser', { name, lajnah: document.getElementById('reg-lajnah').value, password: document.getElementById('reg-password').value });
-                appSession = { type: 'user', name, qrs, id, profile: {} }; // Profile init
+                const qrs = await apiCall('registerUser', payload);
+                
+                appSession = { 
+                    type: 'user', 
+                    name: payload.name, 
+                    qrs: qrs, 
+                    id: id, 
+                    profile: { phone: payload.phone },
+                    password: pwd 
+                };
+                
                 localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
-                showToast("Account Created!", "success"); initApp();
-            } catch (err) { showToast("Registration failed.", "error"); } finally { btn.innerHTML = `Create Account`; btn.disabled = false; }
+                showToast("Account Created!", "success"); 
+                document.getElementById('form-register').reset();
+                initApp();
+            } catch (err) { 
+                showToast("Registration failed.", "error"); 
+            } finally { 
+                btn.innerHTML = `Register`; btn.disabled = false; 
+            }
         }
 
         async function handleUserLogin(e) {
-            e.preventDefault(); const btn = document.getElementById('btn-user-login'); btn.innerHTML = `<div class="loader"></div>`; btn.disabled = true;
+            e.preventDefault(); const btn = document.getElementById('btn-user-login'); btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
             try {
-                const name = document.getElementById('login-name').value;
-                const qrs = await apiCall('participantLogin', { name, password: document.getElementById('login-password').value });
+                const loginId = document.getElementById('login-name').value;
+                const password = document.getElementById('login-password').value;
+                const qrs = await apiCall('participantLogin', { login_id: loginId, password: password });
+                
                 if(qrs.length === 0) showToast("No passes found.", "warning");
-                else { appSession = { type: 'user', name, qrs, id: "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {}, password: document.getElementById('login-password').value }; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); initApp(); }
-            } catch (err) { showToast(err.message || "Invalid credentials.", "error"); } finally { btn.innerHTML = `Log In to Hub`; btn.disabled = false; }
+                else { 
+                    appSession = { type: 'user', name: qrs[0].name, qrs: qrs, id: "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {}, password: password }; 
+                    localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
+                    initApp(); 
+                }
+            } catch (err) { showToast("Invalid credentials.", "error"); } finally { btn.innerHTML = `Log In to Hub`; btn.disabled = false; }
         }
 
         function handleAdminLogin(e) {
             e.preventDefault(); const pass = document.getElementById('admin-pass').value;
-            if (pass === 'adminsaje') { 
-                state.adminPass = pass; 
-                appSession = { type: 'admin', name: 'Administrator', profile: {} }; 
-                localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
-                loadAdminData(); // Load data on successful login
-                initApp(); 
-            } 
+            if (pass === 'adminsaje') { state.adminPass = pass; appSession = { type: 'admin', name: 'Administrator', profile: {} }; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); initApp(); } 
             else showToast("Incorrect password", "error");
         }
 
@@ -1011,7 +1078,13 @@
                 const name = document.getElementById('spk-name').value;
                 const qrs = await apiCall('registerSpeaker', { name, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value });
                 const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                hubConfig.vips.push({ name, otp, qrs, active: true }); saveHubConfig();
+                
+                // Fetch Global VIPs, append, and save back to backend!
+                const currentState = await apiCall('getVipState');
+                let globalVips = currentState.global_vips || [];
+                globalVips.push({ name, otp, qrs, active: true });
+                await apiCall('updateVipState', {key: 'global_vips', value: globalVips});
+
                 document.getElementById('vip-generated-otp').innerText = otp;
                 document.getElementById('vip-generated-result').classList.remove('hidden');
                 document.getElementById('spk-name').value = '';
@@ -1020,78 +1093,97 @@
             } catch (err) { showToast("Failed to generate VIP", "error"); }
         }
 
-        function handleVipLogin(e) {
+        async function handleVipLogin(e) {
             e.preventDefault(); const otp = document.getElementById('vip-otp-input').value;
-            const vip = hubConfig.vips.find(v => v.otp === otp && v.active);
-            if(vip) {
-                appSession = { type: 'vip', name: vip.name, qrs: vip.qrs, profile: {} };
-                localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
-                initApp();
-            } else showToast("Invalid or expired OTP", "error");
+            try {
+                const state = await apiCall('getVipState');
+                const globalVips = state.global_vips || [];
+                const vip = globalVips.find(v => v.otp === otp && v.active);
+                
+                if(vip) {
+                    appSession = { type: 'vip', name: vip.name, qrs: vip.qrs, profile: {} };
+                    localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                    initApp();
+                } else {
+                    // Fallback to local storage VIPs (for backwards compatibility if created offline)
+                    const localVip = hubConfig.vips.find(v => v.otp === otp && v.active);
+                    if (localVip) {
+                        appSession = { type: 'vip', name: localVip.name, qrs: localVip.qrs, profile: {} };
+                        localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                        initApp();
+                    } else showToast("Invalid or expired OTP", "error");
+                }
+            } catch(err) { showToast("Failed to verify OTP", "error"); }
         }
 
-        function renderAdminVipList() {
+        async function renderAdminVipList() {
             const container = document.getElementById('vip-admin-list');
             if(!container) return;
-            container.innerHTML = '';
+            container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Loading VIPs...</p>';
             
-            let hasVips = false;
+            try {
+                const state = await apiCall('getVipState');
+                const globalVips = state.global_vips || [];
+                
+                let hasVips = false;
+                container.innerHTML = '';
 
-            // 1. Render Local VIPs with OTPs
-            if(hubConfig.vips && hubConfig.vips.length > 0) {
-                hasVips = true;
-                hubConfig.vips.slice().reverse().forEach((vip, idx) => {
-                    const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
-                    const card = document.createElement('div');
-                    card.className = "p-3 border border-slate-100 rounded-xl bg-white flex justify-between items-center gap-3 shadow-sm mb-3";
-                    card.innerHTML = `
-                        <div class="flex-1 min-w-0">
-                            <p class="font-bold text-sm text-slate-800 truncate">${vip.name}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${subevent.replace(/\[#\d+\]\s/, '')}</p>
-                            <div class="mt-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OTP: ${vip.otp}</div>
-                        </div>
-                        <div class="w-12 h-12 bg-slate-50 rounded-lg border border-slate-200 shrink-0 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors group relative" onclick="zoomAdminVipQr('${vip.otp}')" id="admin-vip-qr-${idx}">
-                            <div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                    
-                    if(vip.qrs.length > 0) {
-                        const qrText = `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}`;
-                        new QRCode(document.getElementById(`admin-vip-qr-${idx}`), { text: qrText, width: 44, height: 44, colorDark:"#0f172a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
+                if(globalVips.length > 0) {
+                    hasVips = true;
+                    globalVips.slice().reverse().forEach((vip, idx) => {
+                        const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
+                        const card = document.createElement('div');
+                        card.className = "p-3 border border-slate-100 rounded-xl bg-white flex justify-between items-center gap-3 shadow-sm mb-3";
+                        card.innerHTML = `
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-sm text-slate-800 truncate">${vip.name}</p>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${subevent.replace(/\[#\d+\]\s/, '')}</p>
+                                <div class="mt-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OTP: ${vip.otp}</div>
+                            </div>
+                            <div class="w-12 h-12 bg-slate-50 rounded-lg border border-slate-200 shrink-0 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors group relative" onclick="zoomAdminVipQr('${vip.otp}')" id="admin-vip-qr-${idx}">
+                                <div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                        if(vip.qrs.length > 0) {
+                            const qrText = `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}`;
+                            new QRCode(document.getElementById(`admin-vip-qr-${idx}`), { text: qrText, width: 44, height: 44, colorDark:"#0f172a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
+                        }
+                    });
+                }
+
+                const dbVips = state.participants.filter(p => p.role === 'Speaker');
+                dbVips.forEach(dbVip => {
+                    const isGlobal = globalVips.find(v => v.name.toLowerCase() === dbVip.name.toLowerCase());
+                    if (!isGlobal) {
+                        hasVips = true;
+                        const card = document.createElement('div');
+                        card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70";
+                        card.innerHTML = `
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p>
+                                <div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div>
+                            </div>
+                        `;
+                        container.appendChild(card);
                     }
                 });
+
+                if(!hasVips) container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';
+                lucide.createIcons({root: container});
+
+            } catch(e) {
+                container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Failed to load VIPs.</p>';
             }
-
-            // 2. Render Old Database VIPs (Without OTPs) as fallback
-            const dbVips = state.participants.filter(p => p.role === 'Speaker');
-            dbVips.forEach(dbVip => {
-                const isLocal = hubConfig.vips && hubConfig.vips.find(v => v.name.toLowerCase() === dbVip.name.toLowerCase());
-                if (!isLocal) {
-                    hasVips = true;
-                    const card = document.createElement('div');
-                    card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70";
-                    card.innerHTML = `
-                        <div class="flex-1 min-w-0">
-                            <p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p>
-                            <div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-
-            if(!hasVips) {
-                container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';
-            }
-
-            lucide.createIcons({root: container});
         }
 
-        function zoomAdminVipQr(otp) {
-            const vip = hubConfig.vips.find(v => v.otp === otp);
+        async function zoomAdminVipQr(otp) {
+            const state = await apiCall('getVipState');
+            const globalVips = state.global_vips || [];
+            const vip = globalVips.find(v => v.otp === otp);
             if(!vip) return;
+
             const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
             const qrText = vip.qrs.length > 0 ? `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}` : '';
             
@@ -1129,7 +1221,6 @@
                 }
 
                 if (newState.broadcast && newState.broadcast.ts > lastBroadcastTs) {
-                    // Always show if it's new, even on first load if it was sent within the last 15 seconds
                     const isRecent = (Date.now() - newState.broadcast.ts) < 15000;
                     if (lastBroadcastTs !== 0 || isRecent) { 
                        const ov = document.getElementById('vip-broadcast-overlay');
@@ -1154,7 +1245,6 @@
                         setTimeout(() => { closeModal('vip-timer-announcement'); }, 3000);
                     }
                     
-                    // Hide VIP QR Section if timer is active
                     if (appSession.type === 'vip') {
                         const qrSec = document.getElementById('vip-qr-section');
                         if (qrSec) {
@@ -1171,11 +1261,11 @@
 
                 globalVipState = newState;
                 
-                // Also poll for VIP QR status so it can disappear upon scan, even if timer isn't running yet!
+                // Poll VIP QR status to hide upon successful scan (Self-healing fallback)
                 if(appSession.type === 'vip' && currentViewingQrId) {
                     const statusRes = await robustCheckPassStatus(currentViewingQrId, appSession.name, appSession.qrs[0].subevent_name);
                     if(statusRes && statusRes.status === 'USED') {
-                        currentViewingQrId = null; // stop polling
+                        currentViewingQrId = null; 
                         
                         document.getElementById('success-overlay-name').innerText = appSession.name;
                         document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
@@ -1215,7 +1305,6 @@
                 if(el) el.innerText = state.status === 'running' ? 'LIVE NOW' : state.status.toUpperCase();
             });
 
-            // Status Styling (Admin vs VIP)
             ['vip-live-timer', 'admin-live-timer'].forEach(id => {
                 const el = document.getElementById(id); if(!el) return;
                 if (id === 'vip-live-timer') {
@@ -1251,9 +1340,9 @@
             }
             
             globalVipState.timer = state;
-            updateTimerUI(); // Fast local update
+            updateTimerUI(); 
             showToast("Timer " + action, "success");
-            await apiCall('updateVipState', {key: 'timer', value: state}); // Sync to Cloud
+            await apiCall('updateVipState', {key: 'timer', value: state}); 
         }
         
         async function saveVipNotes() { 
@@ -1276,11 +1365,11 @@
         }
 
         // ==========================================
-        // PROFILE SYSTEM (Compress & Store)
+        // PROFILE SYSTEM 
         // ==========================================
         function renderProfile() {
             if (!appSession) return;
-            if (!appSession.profile) appSession.profile = {}; // Failsafe for older cached accounts
+            if (!appSession.profile) appSession.profile = {}; 
             
             const profName = document.getElementById('prof-name');
             const profId = document.getElementById('prof-nuqoba-id');
@@ -1312,7 +1401,7 @@
                     const canvas = document.createElement('canvas'); const size = Math.min(img.width, img.height);
                     canvas.width = 300; canvas.height = 300; const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, 300, 300);
-                    const base64 = canvas.toDataURL('image/jpeg', 0.6); // Compress to 60% quality JS crop
+                    const base64 = canvas.toDataURL('image/jpeg', 0.6); 
                     document.getElementById('profile-img').src = base64;
                     appSession.photo = base64; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
                 }; img.src = event.target.result;
@@ -1322,7 +1411,7 @@
         function saveProfileDetails(e) {
             e.preventDefault();
             if(!appSession) return;
-            if(!appSession.profile) appSession.profile = {}; // Failsafe
+            if(!appSession.profile) appSession.profile = {}; 
             
             const phoneInput = document.getElementById('prof-phone');
             if(phoneInput) appSession.profile.phone = phoneInput.value;
@@ -1339,7 +1428,7 @@
         }
 
         // ==========================================
-        // THE HUB & AVAILABLE EVENTS
+        // THE HUB
         // ==========================================
         function renderHub() {
             document.getElementById('hub-user-name').innerText = appSession.name;
@@ -1370,20 +1459,11 @@
                     const card = document.createElement('div');
                     card.className = "ios-card p-4 flex justify-between items-center border border-[#76a8d1]/30 shadow-sm";
                     
-                    let actionBtn = '';
-                    if(isClaimed) {
-                        actionBtn = `<button disabled class="bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-none cursor-not-allowed border border-slate-200"><i data-lucide="check" class="w-3 h-3 inline mr-1"></i>Claimed</button>`;
-                    } else {
-                        actionBtn = `<button onclick="claimEventPass('${ev.subevent_id}')" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition">Get Pass</button>`;
-                    }
+                    let actionBtn = isClaimed 
+                        ? `<button disabled class="bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-none cursor-not-allowed border border-slate-200"><i data-lucide="check" class="w-3 h-3 inline mr-1"></i>Claimed</button>`
+                        : `<button onclick="claimEventPass('${ev.subevent_id}')" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition">Get Pass</button>`;
 
-                    card.innerHTML = `
-                        <div class="flex-1 pr-4">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Available Session</p>
-                            <h4 class="font-bold text-slate-800 text-sm leading-tight">${ev.subevent_name}</h4>
-                        </div>
-                        ${actionBtn}
-                    `;
+                    card.innerHTML = `<div class="flex-1 pr-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Available Session</p><h4 class="font-bold text-slate-800 text-sm leading-tight">${ev.subevent_name}</h4></div>${actionBtn}`;
                     grid.appendChild(card);
                 });
                 sec.classList.remove('hidden'); sec.classList.add('flex');
@@ -1396,7 +1476,6 @@
         async function claimEventPass(eventId) {
             showToast("Claiming pass...", "info");
             try {
-                // Must have password stored from login
                 if(!appSession.password) throw new Error("Please re-login to claim passes.");
                 const newPass = await apiCall('claimEventPass', { name: appSession.name, password: appSession.password, subevent_id: eventId });
                 if(!appSession.qrs) appSession.qrs = [];
@@ -1404,16 +1483,14 @@
                 localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
                 showToast("Pass added successfully!", "success");
                 renderAvailableEvents();
-            } catch(err) {
-                showToast(err.message || "Failed to claim pass", "error");
-            }
+            } catch(err) { showToast(err.message || "Failed to claim pass", "error"); }
         }
         
         function togglePassesModal() {
             if(!appSession || appSession.type !== 'user' || !appSession.qrs || appSession.qrs.length === 0) { showToast("No passes available.", "warning"); return; }
             const container = document.getElementById('hub-qr-container');
             container.innerHTML = '';
-            appSession.qrs.slice().reverse().forEach((data) => { // Reverse so newest are top
+            appSession.qrs.slice().reverse().forEach((data) => { 
                 const isExpired = data.status === 'USED';
                 const cleanName = data.subevent_name.replace(/\[#\d+\]\s/, '');
                 const card = document.createElement('div'); card.className = "w-full bg-white rounded-2xl border border-slate-200 p-4 shadow-sm relative overflow-hidden flex items-center gap-4 cursor-pointer hover:border-[#76a8d1] transition-colors group";
@@ -1428,7 +1505,6 @@
             openModal('modal-passes');
         }
 
-        // Expanded Boarding Pass + Sync for Normal Users
         function zoomUserBoardingPass(data) {
             closeModal('modal-passes');
             const cleanName = data.subevent_name.replace(/\[#\d+\]\s/, '');
@@ -1455,15 +1531,12 @@
                     if(statusRes && statusRes.status === 'USED') {
                         clearInterval(passSyncInterval);
                         
-                        // Update local storage so it reflects correctly
                         let passIdx = appSession.qrs.findIndex(q => q.qr_id === currentViewingQrId);
                         if(passIdx > -1) { appSession.qrs[passIdx].status = 'USED'; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); }
                         
-                        // Visual changes to QR
                         qrBox.classList.add('grayscale', 'opacity-30');
                         document.getElementById('user-bp-header').className = "px-6 py-4 flex justify-between items-center text-white bg-slate-500 relative z-10";
                         
-                        // Show Global Success Overlay
                         document.getElementById('success-overlay-name').innerText = data.name;
                         document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
                         openModal('participant-success-overlay');
@@ -1522,7 +1595,7 @@
         // ==========================================
         function openTool(toolName) {
             routeTo('tools'); const sb = document.getElementById('admin-sidebar');
-            loadAdminData(); // Refresh Data strictly when opening tools
+            loadAdminData(); 
             if(toolName === 'scanner') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('scanner'); } 
             else if (toolName === 'live') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('live'); } 
             else if (toolName === 'admin') { sb.classList.remove('hidden', 'md:hidden'); switchAdminTab('subevents'); }
@@ -1579,11 +1652,8 @@
                 const titleEl = document.getElementById('scanner-main-title');
                 if(titleEl) titleEl.innerText = `SCANNER - ${ev.subevent_name.toUpperCase()}`; 
                 
-                // Add safe-check for info-event-time which is sometimes not perfectly rendered
                 const timeEl = document.getElementById('info-event-time');
-                if(timeEl) {
-                    timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-                }
+                if(timeEl) timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
             }
             const totalReg = state.participants.length; 
             const trEl = document.getElementById('stat-total-reg'); if(trEl) trEl.innerText = totalReg; 
@@ -1610,7 +1680,6 @@
             if (code.includes('|')) { const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; }
             if (sessionScanned.has(actualQrId)) { triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-', scan_time: nowStr }); return; }
 
-            // Safe check for Event Name
             let expectedEventName = "";
             const infoNameEl = document.getElementById('info-event-name');
             if(infoNameEl) expectedEventName = infoNameEl.innerText;
@@ -1622,12 +1691,10 @@
             } else {
                 sessionScanned.add(actualQrId); setTimeout(() => sessionScanned.delete(actualQrId), 10000); 
                 
-                // Optimistic update locally
                 let displayObj = { scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME', scan_time: nowStr, arrival_number: 'Syncing...' };
                 triggerScannerUI(displayObj);
                 
                 apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).then(res => {
-                    // Update arrival number visually if modal is still open
                     const arrEl = document.getElementById('scan-arrival-num');
                     if(arrEl && !arrEl.classList.contains('hidden') && res.arrival_number) {
                         arrEl.innerText = `No. ${res.arrival_number}`;
@@ -1637,7 +1704,7 @@
         }
 
         function triggerScannerUI(res) {
-            const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
+            const cardInner = document.getElementById('bp-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
             const arrivalEl = document.getElementById('scan-arrival-num');
             
             if(res.scan_result === 'SUCCESS') state.localSessionCount++; updateScannerEventInfo();
@@ -1666,44 +1733,26 @@
             scanResetTimeout = setTimeout(() => { closeModal('scan-result-card'); setTimeout(() => {if(scInput) scInput.focus();}, 300); }, 4000);
         }
 
-        // ==========================================
-        // DATA LOADERS & DATA SYNC (BULLETPROOF)
-        // ==========================================
         async function loadAdminData() {
             try {
-                // Fetch the core event data from the backend Google Sheet API
                 const data = await apiCall('getAllData', { adminPass: state.adminPass });
                 state.subEvents = data.subEvents || []; 
                 state.participants = data.participants || []; 
                 state.logs = data.logs || [];
                 
-                // Manually trigger renders for the entire admin panel!
-                renderSubEvents(); 
-                renderParticipants(); 
-                refreshEventDropdowns(); 
-                updateScannerEventInfo(); 
-                renderHubConfigAdmin(); 
-                renderAdminVipList();
-            } catch(e) {
-                console.error("loadAdminData Error:", e);
-                showToast("Failed to sync with database. Retrying...", "warning");
-            }
+                renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo(); renderHubConfigAdmin(); renderAdminVipList();
+            } catch(e) { showToast("Failed to sync with database. Retrying...", "warning"); }
         }
 
         async function fetchLiveUpdates() {
             try {
                 const data = await apiCall('getLiveDisplay'); 
-                
-                // Flexible parsing handling older array structures
                 let logs = Array.isArray(data) ? data : (data.logs || []); 
                 let stats = Array.isArray(data) ? { total: 0, byLajnah: {} } : (data.stats || { total: 0, byLajnah: {} });
 
                 if (Array.isArray(data)) {
                     logs.forEach(l => { 
-                        if(l.scan_result && l.scan_result.toUpperCase() === 'SUCCESS') { 
-                            stats.total++; 
-                            stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; 
-                        } 
+                        if(l.scan_result && l.scan_result.toUpperCase() === 'SUCCESS') { stats.total++; stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; } 
                     });
                 }
 
@@ -1719,13 +1768,10 @@
 
                 const tbody = document.getElementById('live-table-body'); tbody.innerHTML = '';
                 logs.forEach(log => {
-                    // Safety check against undefined fields from older database rows
                     if (!log.scan_result || log.scan_result.toUpperCase() !== 'SUCCESS') return;
-                    
                     const isVip = log.role === 'Speaker'; 
                     let statusColor = log.status === 'ON TIME' ? "text-emerald-700 bg-emerald-100" : "text-yellow-700 bg-yellow-100";
                     const statusText = log.status && log.status !== '-' ? '(' + log.status + ')' : '';
-                    
                     tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time || ''}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name || ''} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah || ''}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name || ''}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${statusText}</span></td></tr>`;
                 });
             } catch (err) {}

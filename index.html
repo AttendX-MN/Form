@@ -16,7 +16,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
     <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
@@ -142,6 +142,79 @@
             background-color: #f8fafc !important;
             padding: 2rem !important;
             overflow-y: auto !important;
+        }
+
+
+        /* Loading Spinner */
+        .loader {
+            width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+        }
+        .loader-dark {
+            width: 20px; height: 20px;
+            border: 3px solid rgba(15,23,42,0.15);
+            border-top-color: #0f172a;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* VIP Mini Preview Screens */
+        .vip-mini-screen {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .vip-mini-screen-header {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .vip-mini-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.6); }
+        .vip-mini-content {
+            padding: 6px 8px;
+            font-size: 9px;
+            color: #475569;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .vip-mini-timer {
+            font-family: monospace;
+            font-weight: 900;
+            font-size: 14px;
+            color: #dc2626;
+            text-align: center;
+            background: #1e293b;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .vip-mini-name {
+            font-size: 8px;
+            font-weight: 700;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .vip-mini-badge {
+            font-size: 7px;
+            font-weight: 700;
+            color: #b45309;
+            background: #fef3c7;
+            border-radius: 3px;
+            padding: 1px 4px;
+            display: inline-block;
         }
 
         /* VIP Dashboard - landscape / tablet layout helper */
@@ -332,7 +405,7 @@
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                             <i data-lucide="sticky-note" class="w-4 h-4"></i> Important Notes
                         </h3>
-                        <div class="p-4 bg-yellow-50 border border-yellow-100 rounded-xl text-base landscape:text-lg md:text-lg text-slate-700 whitespace-pre-wrap leading-relaxed font-medium" id="vip-notes-display">No special notes at this time.</div>
+                        <div class="p-4 bg-yellow-50 border border-yellow-100 rounded-xl text-base landscape:text-lg md:text-lg text-slate-700 leading-relaxed font-medium" id="vip-notes-display">No special notes at this time.</div>
                     </div>
                 </div>
             </div>
@@ -683,8 +756,10 @@
                             <div class="flex items-center gap-3 mb-6"><div class="p-2 bg-yellow-50 rounded-xl text-yellow-600"><i data-lucide="crown" class="w-6 h-6"></i></div><h2 class="text-xl font-black text-slate-800">Generate VIP Pass</h2></div>
                             <form onsubmit="handleSpeakerReg(event)">
                                 <div class="mb-4"><input type="text" id="spk-name" required class="w-full input-style rounded-xl px-4 py-3 text-sm focus:ring-yellow-500/20" placeholder="VIP Name"></div>
-                                <div class="mb-4"><select id="spk-event" class="w-full input-style rounded-xl px-4 py-3 text-sm appearance-none focus:ring-yellow-500/20"><option value="">-- Universal Master Pass --</option></select></div>
-                                <button type="submit" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-amber-500/30">Generate & Get OTP</button>
+                                <div class="mb-4"><select id="spk-event" class="w-full input-style rounded-xl px-4 py-3 text-sm appearance-none focus:ring-yellow-500/20"><option value="ALL">🌟 Universal Master Pass</option></select></div>
+                                <button type="submit" id="btn-gen-vip" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition active:scale-95">
+                                    <i data-lucide="crown" class="w-4 h-4"></i> Generate & Get OTP
+                                </button>
                             </form>
                             <div id="vip-generated-result" class="mt-4 hidden p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
                                 <p class="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-1">VIP OTP Code</p>
@@ -693,22 +768,43 @@
                             </div>
                             
                             <div class="mt-6 border-t border-slate-100 pt-4 flex-1">
-                                <h3 class="text-sm font-bold text-slate-800 mb-3">Generated VIP Passes</h3>
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-sm font-bold text-slate-800">VIP Passes</h3>
+                                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Each VIP gets a private page</span>
+                                </div>
                                 <div id="vip-admin-list" class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-2">
                                     <!-- Injected via JS -->
+                                </div>
+                            </div>
+
+                            <!-- MINI VIP SCREEN PREVIEWS -->
+                            <div class="mt-5 border-t border-slate-100 pt-4">
+                                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="monitor" class="w-4 h-4 text-slate-400"></i> Live VIP Screen Previews
+                                </h3>
+                                <div id="vip-mini-screens-grid" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">
+                                    <p class="text-xs text-slate-400 italic col-span-full">No VIPs yet.</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- VIP Live Controls -->
-                        <div class="ios-card p-6 flex flex-col gap-6">
+                        <div class="ios-card p-6 flex flex-col gap-5">
+                            <!-- VIP Selector -->
                             <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2"><i data-lucide="users" class="text-yellow-500 w-4 h-4"></i> Target VIP</h3>
+                                <select id="admin-vip-target" class="w-full input-style rounded-lg px-3 py-2 text-sm font-bold" onchange="refreshVipMiniScreens()">
+                                    <option value="ALL">🌟 All VIPs</option>
+                                </select>
+                            </div>
+
+                            <div class="border-t border-slate-100 pt-4">
                                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="clock" class="text-sky-500 w-4 h-4"></i> Live Timer Control</h3>
                                 <div class="text-center py-3 bg-slate-800 rounded-xl shadow-inner mb-3">
                                     <span class="font-mono text-3xl font-black text-slate-500 tracking-wider" id="admin-live-timer">00:00:00</span>
                                     <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest" id="admin-timer-status">WAITING</p>
                                 </div>
-                                <div class="flex gap-2 mb-3 items-center">
+                                <div class="flex gap-2 mb-3 items-center flex-wrap">
                                     <input type="number" id="admin-timer-mins" class="input-style rounded-lg px-3 py-2 text-sm w-20 text-center font-bold" value="5" min="1">
                                     <span class="text-xs font-bold text-slate-500">Mins</span>
                                     <button onclick="ctrlTimer('start')" class="flex-1 bg-emerald-500 text-white py-2 rounded-lg text-xs font-bold"><i data-lucide="play" class="w-3 h-3 inline"></i> Start</button>
@@ -718,14 +814,26 @@
                             </div>
                             <div class="border-t border-slate-100 pt-4">
                                 <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="radio" class="text-rose-500 w-4 h-4"></i> Send Broadcast</h3>
-                                <div class="flex gap-2">
+                                <div class="flex flex-col gap-2">
                                     <input type="text" id="vip-broadcast-input" class="w-full input-style rounded-lg px-3 py-2 text-sm" placeholder="e.g. Time is Up!">
-                                    <button onclick="sendBroadcast()" class="bg-rose-500 text-white px-4 rounded-lg text-xs font-bold">Push</button>
+                                    <div class="flex gap-2 items-center">
+                                        <label class="text-xs font-bold text-slate-500 whitespace-nowrap">Auto-dismiss:</label>
+                                        <select id="broadcast-dismiss-secs" class="input-style rounded-lg px-3 py-2 text-sm flex-1">
+                                            <option value="0">Manual dismiss</option>
+                                            <option value="1">1 second</option>
+                                            <option value="2">2 seconds</option>
+                                            <option value="3" selected>3 seconds</option>
+                                            <option value="5">5 seconds</option>
+                                            <option value="7">7 seconds</option>
+                                            <option value="10">10 seconds</option>
+                                        </select>
+                                        <button onclick="sendBroadcast()" class="bg-rose-500 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">Push</button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="border-t border-slate-100 pt-4">
                                 <h3 class="text-sm font-bold text-slate-800 mb-2">Update VIP Notes</h3>
-                                <textarea id="vip-notes-input" class="w-full input-style rounded-lg px-3 py-2 text-sm h-20" placeholder="Notes will appear on VIP dashboard..."></textarea>
+                                <textarea id="vip-notes-input" class="w-full input-style rounded-lg px-3 py-2 text-sm h-20" placeholder="Notes will appear on VIP dashboard. URLs (https://...) become clickable links."></textarea>
                                 <button onclick="saveVipNotes()" class="w-full mt-2 bg-slate-800 text-white py-2 rounded-lg text-xs font-bold">Save Notes</button>
                             </div>
                         </div>
@@ -844,16 +952,19 @@
 
         let bannerIdx = 0; let bannerInterval = null;
         let timerInterval = null; let vipPollInterval = null;
-        let globalVipState = { timer: {status: 'idle', elapsed: 0, duration: 300000}, notes: '', broadcast: {ts: 0, msg: ''} };
+        let globalVipState = { timer: {status: 'idle', elapsed: 0, duration: 300000}, notes: '', broadcast: {ts: 0, msg: '', dismissSecs: 0} };
         let lastTimerStatus = 'idle'; let lastBroadcastTs = 0;
         let tempAppIconBase64 = null;
         let passSyncInterval = null;
         let currentViewingQrId = null;
+        // Cache of all VIPs from last API fetch (for fast QR zoom)
+        let cachedGlobalVips = [];
+        let vipDashboardStarted = false; // prevent double welcome
 
         function showToast(msg, type = 'info') {
             const container = document.getElementById('toast-container'); const toast = document.createElement('div');
             const colors = { success: 'bg-emerald-500 text-white', error: 'bg-rose-500 text-white', warning: 'bg-amber-500 text-white', info: 'bg-[#203a70] text-white' };
-            toast.className = `${colors[type]} px-6 py-3 rounded-xl shadow-lg font-semibold flex items-center gap-3 animate-pop`;
+            toast.className = `${colors[type]} px-6 py-3 rounded-xl shadow-lg font-semibold flex items-center gap-3 animate-pop pointer-events-auto`;
             let icon = 'info'; if(type==='success') icon = 'check-circle'; if(type==='error') icon = 'alert-triangle';
             toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i> ${msg}`;
             container.appendChild(toast); lucide.createIcons({root: toast});
@@ -865,15 +976,11 @@
             if (!document.fullscreenElement) {
                 el.appendChild(document.getElementById('toast-container'));
                 el.requestFullscreen().catch(err => showToast(`Error enabling fullscreen`, 'error'));
-            } else {
-                document.exitFullscreen();
-            }
+            } else { document.exitFullscreen(); }
         }
 
         document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                document.body.appendChild(document.getElementById('toast-container'));
-            }
+            if (!document.fullscreenElement) { document.body.appendChild(document.getElementById('toast-container')); }
         });
 
         function playSound(type) {
@@ -905,10 +1012,7 @@
             modal.classList.add('flex'); 
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                if(inner) {
-                    inner.classList.remove('scale-95');
-                    inner.classList.remove('translate-y-full'); 
-                }
+                if(inner) { inner.classList.remove('scale-95'); inner.classList.remove('translate-y-full'); }
             }, 10);
         }
 
@@ -942,7 +1046,6 @@
                 const res = await apiCall('checkPassStatus', { qr_id: qrId });
                 if (res) return res;
             } catch(e) {}
-            
             try {
                 const data = await apiCall('getLiveDisplay');
                 let logs = Array.isArray(data) ? data : (data.logs || []);
@@ -957,35 +1060,24 @@
             return { status: 'UNUSED', arrival_number: '-' };
         }
 
+        // ============================================================
+        // INIT
+        // ============================================================
         window.onload = async () => {
             initApp();
             try {
                 const data = await apiCall('getInitialData');
                 state.lajnahs = data.lajnahs || [];
                 state.subEvents = data.subEvents || [];
-
                 const lajnahSelect = document.getElementById('reg-lajnah');
                 if (lajnahSelect) {
                     lajnahSelect.innerHTML = '<option value="" disabled selected>Select Lajnah</option>';
                     state.lajnahs.forEach(l => lajnahSelect.innerHTML += `<option value="${l}">${l}</option>`);
                 }
                 refreshEventDropdowns();
-
-                // Always (re-)render available events for logged-in users after data arrives
-                if(appSession && appSession.type === 'user') {
-                    renderAvailableEvents();
-                }
+                if(appSession && appSession.type === 'user') renderAvailableEvents();
             } catch(e) { console.warn("Initial data load failed:", e); }
             
-            window.addEventListener('storage', (e) => {
-                if(e.key === 'mynuqoba_broadcast' && e.newValue) {
-                    const data = JSON.parse(e.newValue);
-                    const ov = document.getElementById('vip-broadcast-overlay');
-                    if(document.getElementById('vip-broadcast-msg')) document.getElementById('vip-broadcast-msg').innerText = data.msg;
-                    if(ov) { ov.classList.remove('hidden'); ov.classList.add('flex'); playSound('scan'); }
-                }
-            });
-
             setInterval(updateTimerUI, 1000);
         };
 
@@ -1001,16 +1093,20 @@
         }
 
         function initApp() {
+            vipDashboardStarted = false;
             if (appSession) {
                 appSession.profile = appSession.profile || {};
                 if(appSession.type === 'admin') { 
                     state.adminPass = 'adminsaje';
                     loadAdminData(); startGlobalStateSync(); routeTo('hub'); renderHub(); 
                 }
-                else if(appSession.type === 'vip') { routeTo('vip-dashboard'); startVipDashboard(); startGlobalStateSync(); }
+                else if(appSession.type === 'vip') { 
+                    routeTo('vip-dashboard'); 
+                    if(!vipDashboardStarted) { startVipDashboard(); vipDashboardStarted = true; }
+                    startGlobalStateSync(); 
+                }
                 else { 
                     routeTo('hub'); renderHub();
-                    // Render available events — state.subEvents may already be populated from cache
                     if(state.subEvents.length > 0) renderAvailableEvents();
                 }
             } else { routeTo('landing'); }
@@ -1023,7 +1119,6 @@
             const target = document.getElementById(`view-${view}`);
             if(target) target.classList.remove('view-hidden');
             
-            // Top Nav
             const navActions = document.getElementById('nav-actions');
             if (view === 'hub' || view === 'profile' || view === 'vip-dashboard') {
                 navActions.innerHTML = `<button onclick="logout()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition"><i data-lucide="log-out" class="w-4 h-4"></i></button>`;
@@ -1034,7 +1129,6 @@
             } else { navActions.innerHTML = ``; }
             lucide.createIcons({root: document.getElementById('nav-actions')});
 
-            // Bottom Nav Visibility
             const bNav = document.getElementById('bottom-nav');
             if(view === 'hub' || view === 'profile') { bNav.classList.remove('hidden'); bNav.classList.add('flex'); } 
             else { bNav.classList.add('hidden'); bNav.classList.remove('flex'); }
@@ -1044,21 +1138,20 @@
         }
 
         function switchView(v) { routeTo(v); }
-        function logout() { appSession = null; localStorage.removeItem('mynuqoba_session'); state.adminPass = ''; routeTo('landing'); clearInterval(vipPollInterval); clearInterval(passSyncInterval); }
+        function logout() { 
+            appSession = null; localStorage.removeItem('mynuqoba_session'); state.adminPass = ''; 
+            vipDashboardStarted = false;
+            routeTo('landing'); clearInterval(vipPollInterval); clearInterval(passSyncInterval); 
+        }
 
-        // ==========================================
+        // ============================================================
         // AUTHENTICATION
-        // ==========================================
+        // ============================================================
         function validateEmailField(input) {
             const icon = document.getElementById('reg-email-check');
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if(emailRegex.test(input.value)) {
-                input.classList.add('input-success');
-                icon.classList.remove('hidden');
-            } else {
-                input.classList.remove('input-success');
-                icon.classList.add('hidden');
-            }
+            if(emailRegex.test(input.value)) { input.classList.add('input-success'); icon.classList.remove('hidden'); }
+            else { input.classList.remove('input-success'); icon.classList.add('hidden'); }
         }
 
         function checkPasswordStrength(pw) {
@@ -1067,12 +1160,18 @@
             if(/[A-Z]/.test(pw)) score++;
             if(/[0-9]/.test(pw)) score++;
             if(/[^A-Za-z0-9]/.test(pw)) score++;
-            
             const bar = document.getElementById('pwd-strength-bar');
             bar.className = 'pwd-bar';
             if(score <= 1) bar.classList.add('pwd-weak');
             else if(score === 2) bar.classList.add('pwd-medium');
             else bar.classList.add('pwd-strong');
+        }
+
+        function setButtonLoading(btnId, loading, originalHtml) {
+            const btn = document.getElementById(btnId);
+            if(!btn) return;
+            if(loading) { btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true; }
+            else { btn.innerHTML = originalHtml; btn.disabled = false; }
         }
 
         async function handleRegistration(e) {
@@ -1081,8 +1180,8 @@
             const pwdConf = document.getElementById('reg-password-confirm').value;
             if(pwd !== pwdConf) { showToast("Passwords do not match!", "error"); return; }
             if(pwd.length < 8) { showToast("Password must be at least 8 characters.", "error"); return; }
-            const btn = document.getElementById('btn-register'); btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
-            
+            const btn = document.getElementById('btn-register'); 
+            btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
             try {
                 const payload = {
                     username: document.getElementById('reg-username').value,
@@ -1092,36 +1191,33 @@
                     email: document.getElementById('reg-email').value,
                     password: pwd
                 };
-
                 const id = "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase();
                 const qrs = await apiCall('registerUser', payload);
-                
                 appSession = { type: 'user', name: payload.name, qrs: qrs, id: id, profile: { phone: payload.phone }, password: pwd };
                 localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
                 showToast("Account Created!", "success"); 
                 document.getElementById('form-register').reset();
                 initApp();
-            } catch (err) { 
-                showToast("Registration failed.", "error"); 
-            } finally { 
-                btn.innerHTML = `Register`; btn.disabled = false; 
-            }
+            } catch (err) { showToast("Registration failed.", "error"); } 
+            finally { btn.innerHTML = `Register`; btn.disabled = false; }
         }
 
         async function handleUserLogin(e) {
-            e.preventDefault(); const btn = document.getElementById('btn-user-login'); btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
+            e.preventDefault(); 
+            const btn = document.getElementById('btn-user-login'); 
+            btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
             try {
                 const loginId = document.getElementById('login-name').value;
                 const password = document.getElementById('login-password').value;
                 const qrs = await apiCall('participantLogin', { login_id: loginId, name: loginId, password: password });
-                
                 if(qrs.length === 0) showToast("No passes found.", "warning");
                 else { 
                     appSession = { type: 'user', name: qrs[0].name, qrs: qrs, id: "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {}, password: password }; 
                     localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
                     initApp(); 
                 }
-            } catch (err) { showToast(err.message || "Invalid credentials.", "error"); } finally { btn.innerHTML = `Log In to Hub`; btn.disabled = false; }
+            } catch (err) { showToast(err.message || "Invalid credentials.", "error"); } 
+            finally { btn.innerHTML = `Log In to Hub`; btn.disabled = false; }
         }
 
         function handleAdminLogin(e) {
@@ -1130,11 +1226,13 @@
             else showToast("Incorrect password", "error");
         }
 
-        // ==========================================
+        // ============================================================
         // VIP PORTAL & ADMIN CONTROLS 
-        // ==========================================
+        // ============================================================
         async function handleSpeakerReg(e) {
             e.preventDefault();
+            const btn = document.getElementById('btn-gen-vip');
+            btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
             try {
                 const name = document.getElementById('spk-name').value;
                 const qrs = await apiCall('registerSpeaker', { name, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value });
@@ -1144,17 +1242,23 @@
                 let globalVips = vipStateData.global_vips || [];
                 globalVips.push({ name, otp, qrs, active: true });
                 await apiCall('updateVipState', {key: 'global_vips', value: globalVips});
+                cachedGlobalVips = globalVips;
 
                 document.getElementById('vip-generated-otp').innerText = otp;
                 document.getElementById('vip-generated-result').classList.remove('hidden');
                 document.getElementById('spk-name').value = '';
                 showToast("VIP OTP Generated", "success");
                 renderAdminVipList();
+                populateVipTargetSelector(globalVips);
             } catch (err) { showToast("Failed to generate VIP", "error"); }
+            finally { btn.innerHTML = `<i data-lucide="crown" class="w-4 h-4 inline"></i> Generate & Get OTP`; btn.disabled = false; lucide.createIcons({root: btn}); }
         }
 
         async function handleVipLogin(e) {
-            e.preventDefault(); const otp = document.getElementById('vip-otp-input').value;
+            e.preventDefault(); 
+            const otp = document.getElementById('vip-otp-input').value;
+            const btn = e.submitter;
+            if(btn) { btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true; }
             try {
                 const vipStateData = await apiCall('getVipState');
                 const globalVips = vipStateData.global_vips || [];
@@ -1173,6 +1277,16 @@
                     } else showToast("Invalid or expired OTP", "error");
                 }
             } catch(err) { showToast("Failed to verify OTP", "error"); }
+            finally { if(btn) { btn.innerHTML = `Verify & Enter`; btn.disabled = false; } }
+        }
+
+        function populateVipTargetSelector(vips) {
+            const sel = document.getElementById('admin-vip-target');
+            if(!sel) return;
+            const current = sel.value;
+            sel.innerHTML = '<option value="ALL">🌟 All VIPs</option>';
+            (vips || []).forEach(v => { sel.innerHTML += `<option value="${v.otp}">${v.name}</option>`; });
+            if(current) sel.value = current;
         }
 
         async function renderAdminVipList() {
@@ -1183,6 +1297,8 @@
             try {
                 const vipStateData = await apiCall('getVipState');
                 const globalVips = vipStateData.global_vips || [];
+                cachedGlobalVips = globalVips;
+                populateVipTargetSelector(globalVips);
                 
                 let hasVips = false;
                 container.innerHTML = '';
@@ -1199,14 +1315,15 @@
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${subevent.replace(/\[#\d+\]\s/, '')}</p>
                                 <div class="mt-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OTP: ${vip.otp}</div>
                             </div>
-                            <div class="w-12 h-12 bg-slate-50 rounded-lg border border-slate-200 shrink-0 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors group relative" onclick="zoomAdminVipQr('${vip.otp}')" id="admin-vip-qr-${idx}">
-                                <div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div>
+                            <div class="w-12 h-12 bg-slate-50 rounded-lg border border-slate-200 shrink-0 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors group relative" onclick="zoomAdminVipQr('${vip.otp}')" id="admin-vip-qr-${globalVips.length - 1 - idx}">
+                                <div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 rounded-lg"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div>
                             </div>
                         `;
                         container.appendChild(card);
+                        const qrContainerId = `admin-vip-qr-${globalVips.length - 1 - idx}`;
                         if(vip.qrs.length > 0) {
                             const qrText = `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}`;
-                            new QRCode(document.getElementById(`admin-vip-qr-${idx}`), { text: qrText, width: 44, height: 44, colorDark:"#0f172a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
+                            new QRCode(document.getElementById(qrContainerId), { text: qrText, width: 44, height: 44, colorDark:"#0f172a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
                         }
                     });
                 }
@@ -1218,30 +1335,24 @@
                         hasVips = true;
                         const card = document.createElement('div');
                         card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70";
-                        card.innerHTML = `
-                            <div class="flex-1 min-w-0">
-                                <p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p>
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p>
-                                <div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div>
-                            </div>
-                        `;
+                        card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p><div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div></div>`;
                         container.appendChild(card);
                     }
                 });
 
                 if(!hasVips) container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';
                 lucide.createIcons({root: container});
+                renderVipMiniScreens(globalVips);
 
             } catch(e) {
                 container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Failed to load VIPs.</p>';
             }
         }
 
-        async function zoomAdminVipQr(otp) {
-            const vipStateData = await apiCall('getVipState');
-            const globalVips = vipStateData.global_vips || [];
-            const vip = globalVips.find(v => v.otp === otp);
-            if(!vip) return;
+        // FIX: Use cached VIPs for instant QR zoom — no API call needed
+        function zoomAdminVipQr(otp) {
+            const vip = cachedGlobalVips.find(v => v.otp === otp);
+            if(!vip) { showToast("VIP not found", "error"); return; }
 
             const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
             const qrText = vip.qrs.length > 0 ? `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}` : '';
@@ -1254,9 +1365,57 @@
             openModal('modal-vip-zoom');
         }
 
+        // Mini VIP screen previews
+        function renderVipMiniScreens(vips) {
+            const grid = document.getElementById('vip-mini-screens-grid');
+            if(!grid) return;
+            if(!vips || vips.length === 0) { grid.innerHTML = '<p class="text-xs text-slate-400 italic col-span-full">No VIPs yet.</p>'; return; }
+
+            // Single VIP → 1 screen; multiple → multi grid
+            const cols = vips.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(130px, 1fr))';
+            grid.style.gridTemplateColumns = cols;
+
+            grid.innerHTML = '';
+            const timerState = globalVipState.timer || { status: 'idle', elapsed: 0, duration: 300000 };
+            let totalElapsed = timerState.elapsed || 0;
+            if(timerState.status === 'running') totalElapsed += (Date.now() - timerState.startTs);
+            let remaining = Math.max(0, (timerState.duration || 300000) - totalElapsed);
+            const s = Math.ceil(remaining / 1000);
+            const hrs = String(Math.floor(s / 3600)).padStart(2,'0');
+            const mins = String(Math.floor((s % 3600)/60)).padStart(2,'0');
+            const secs = String(s % 60).padStart(2,'0');
+            const timerStr = `${hrs}:${mins}:${secs}`;
+
+            vips.forEach(vip => {
+                const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name.replace(/\[#\d+\]\s/, '') : 'Master Pass';
+                const notesText = (globalVipState.notes || 'No notes').substring(0, 40);
+                const mini = document.createElement('div');
+                mini.className = 'vip-mini-screen';
+                mini.innerHTML = `
+                    <div class="vip-mini-screen-header">
+                        <div class="vip-mini-dot"></div>
+                        <div class="vip-mini-dot"></div>
+                        <div class="vip-mini-dot"></div>
+                        <span style="font-size:8px;color:rgba(255,255,255,0.9);font-weight:700;margin-left:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${vip.name}</span>
+                    </div>
+                    <div class="vip-mini-content">
+                        <span class="vip-mini-badge">${subevent.substring(0,20)}</span>
+                        <div class="vip-mini-timer">${timerStr}</div>
+                        <div style="font-size:8px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${notesText}${notesText.length >= 40 ? '...' : ''}</div>
+                        <div style="font-size:8px;color:#94a3b8;">Status: ${timerState.status.toUpperCase()}</div>
+                    </div>
+                `;
+                grid.appendChild(mini);
+            });
+        }
+
+        function refreshVipMiniScreens() {
+            renderVipMiniScreens(cachedGlobalVips);
+        }
+
         function startVipDashboard() {
             document.getElementById('vip-dash-name').innerText = appSession.name;
-            if(appSession.qrs.length>0) {
+            if(appSession.qrs && appSession.qrs.length>0) {
                 document.getElementById('vip-dash-event').innerText = appSession.qrs[0].subevent_name.replace(/\[#\d+\]\s/, '');
                 const qrText = `${appSession.qrs[0].qr_id}|${appSession.name}|VIP|Speaker|${appSession.qrs[0].subevent_name}`;
                 document.getElementById('vip-qr-box').innerHTML = '';
@@ -1267,27 +1426,67 @@
 
         function startGlobalStateSync() {
             clearInterval(vipPollInterval);
-            fetchGlobalState(); // Initial fetch
-            vipPollInterval = setInterval(fetchGlobalState, 3000); // Poll every 3s
+            fetchGlobalState();
+            vipPollInterval = setInterval(fetchGlobalState, 3000);
         }
+
+        // Utility: render notes with clickable links
+        function renderNotesWithLinks(text) {
+            const el = document.getElementById('vip-notes-display');
+            if(!el) return;
+            if(!text) { el.innerHTML = 'No special notes at this time.'; return; }
+            // Replace URLs with clickable anchors
+            const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const linked = escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:underline;word-break:break-all;">$1</a>');
+            el.innerHTML = linked.replace(/\n/g, '<br>');
+        }
+
+        let broadcastDismissTimeout = null;
 
         async function fetchGlobalState() {
             try {
                 const newState = await apiCall('getVipState');
                 
-                if (newState.notes && document.getElementById('vip-notes-display')) {
-                    document.getElementById('vip-notes-display').innerText = newState.notes;
+                // Update notes with link rendering
+                if (newState.notes !== undefined) {
+                    renderNotesWithLinks(newState.notes || '');
+                    if(document.getElementById('vip-notes-input') && !document.getElementById('vip-notes-input').matches(':focus')) {
+                        document.getElementById('vip-notes-input').value = newState.notes || '';
+                    }
                 }
 
+                // Broadcast handling with auto-dismiss
                 if (newState.broadcast && newState.broadcast.ts > lastBroadcastTs) {
                     const isRecent = (Date.now() - newState.broadcast.ts) < 15000;
                     if (lastBroadcastTs !== 0 || isRecent) { 
-                       const ov = document.getElementById('vip-broadcast-overlay');
-                       if (ov && (appSession.type === 'vip' || appSession.type === 'admin')) {
-                           document.getElementById('vip-broadcast-msg').innerText = newState.broadcast.msg;
-                           openModal('vip-broadcast-overlay');
-                           playSound('scan');
-                       }
+                        const targetOtp = newState.broadcast.targetOtp;
+                        // Check if this broadcast targets this VIP or all
+                        let shouldShow = false;
+                        if(appSession.type === 'vip') {
+                            // Find this VIP's OTP from their session — match by name since VIP doesn't store OTP in session
+                            shouldShow = (!targetOtp || targetOtp === 'ALL');
+                            if(!shouldShow && cachedGlobalVips.length > 0) {
+                                const myVip = cachedGlobalVips.find(v => v.name === appSession.name);
+                                if(myVip && myVip.otp === targetOtp) shouldShow = true;
+                            }
+                        } else if(appSession.type === 'admin') {
+                            shouldShow = true;
+                        }
+                        
+                        if(shouldShow) {
+                            const ov = document.getElementById('vip-broadcast-overlay');
+                            if (ov) {
+                                document.getElementById('vip-broadcast-msg').innerText = newState.broadcast.msg;
+                                openModal('vip-broadcast-overlay');
+                                playSound('scan');
+                                // Auto dismiss if set
+                                const dismissSecs = newState.broadcast.dismissSecs || 0;
+                                clearTimeout(broadcastDismissTimeout);
+                                if(dismissSecs > 0) {
+                                    broadcastDismissTimeout = setTimeout(() => closeModal('vip-broadcast-overlay'), dismissSecs * 1000);
+                                }
+                            }
+                        }
                     }
                     lastBroadcastTs = newState.broadcast.ts;
                 }
@@ -1306,55 +1505,48 @@
                     
                     if (appSession.type === 'vip') {
                         const qrSec = document.getElementById('vip-qr-section');
-                        let isPassUsed = false;
-                        if(appSession.qrs && appSession.qrs.length > 0 && appSession.qrs[0].status === 'USED') {
-                            isPassUsed = true;
-                        }
-
+                        let isPassUsed = appSession.qrs && appSession.qrs.length > 0 && appSession.qrs[0].status === 'USED';
                         if (qrSec) {
                             if (newState.timer.status === 'running' || newState.timer.status === 'paused' || isPassUsed) {
-                                qrSec.style.opacity = '0';
+                                qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s';
                                 setTimeout(() => qrSec.classList.add('hidden'), 500); 
                             } else {
                                 qrSec.classList.remove('hidden');
-                                // Reset opacity in case it was faded by a previous scan
                                 setTimeout(() => { qrSec.style.opacity = '1'; qrSec.style.transition = 'opacity 0.5s'; }, 10);
                                 const qrBox = document.getElementById('vip-qr-box');
-                                if (qrBox) { qrBox.style.opacity = '1'; }
+                                if (qrBox) qrBox.style.opacity = '1';
                             }
                         }
                     }
-
                     lastTimerStatus = newState.timer.status;
                 }
 
                 globalVipState = newState;
+
+                // Update mini screens in admin panel
+                if(appSession.type === 'admin') {
+                    renderVipMiniScreens(cachedGlobalVips);
+                }
                 
                 if(appSession.type === 'vip' && currentViewingQrId) {
                     const statusRes = await robustCheckPassStatus(currentViewingQrId, appSession.name, appSession.qrs[0].subevent_name);
                     if(statusRes && statusRes.status === 'USED') {
                         currentViewingQrId = null; 
-                        
                         if(appSession.qrs.length > 0) {
                             appSession.qrs[0].status = 'USED';
                             localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
                         }
-
-                        // Auto-hide QR section after 1 second — no manual refresh needed
                         const qrSec = document.getElementById('vip-qr-section');
                         const qrBox = document.getElementById('vip-qr-box');
                         if (qrSec) {
-                            // Show scanned badge briefly
                             const badge = document.getElementById('vip-qr-scanned-badge');
                             if (badge) badge.classList.remove('hidden');
                             if (qrBox) { qrBox.style.opacity = '0.2'; qrBox.style.transition = 'opacity 0.5s'; }
                             setTimeout(() => {
-                                qrSec.style.opacity = '0';
-                                qrSec.style.transition = 'opacity 0.5s';
+                                qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s';
                                 setTimeout(() => { qrSec.classList.add('hidden'); }, 500);
-                            }, 1000); // 1 second delay then fade out
+                            }, 1000);
                         }
-
                         document.getElementById('success-overlay-name').innerText = appSession.name;
                         document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
                         openModal('participant-success-overlay');
@@ -1366,38 +1558,30 @@
         }
 
         function updateTimerUI() {
-            const state = globalVipState.timer || {status: 'idle', elapsed: 0, duration: 300000};
-            let totalElapsed = state.elapsed || 0;
-            if(state.status === 'running') {
-                totalElapsed += (Date.now() - state.startTs);
-            }
-            let remaining = (state.duration || 300000) - totalElapsed;
+            const st = globalVipState.timer || {status: 'idle', elapsed: 0, duration: 300000};
+            let totalElapsed = st.elapsed || 0;
+            if(st.status === 'running') totalElapsed += (Date.now() - st.startTs);
+            let remaining = (st.duration || 300000) - totalElapsed;
             if (remaining < 0) remaining = 0;
-
             const s = Math.ceil(remaining / 1000);
             const hrs = String(Math.floor(s / 3600)).padStart(2,'0');
             const mins = String(Math.floor((s % 3600)/60)).padStart(2,'0');
             const secs = String(s % 60).padStart(2,'0');
             const timeStr = `${hrs}:${mins}:${secs}`;
-
-            ['vip-live-timer', 'admin-live-timer'].forEach(id => {
-                const el = document.getElementById(id); if(el) el.innerText = timeStr;
-            });
+            ['vip-live-timer', 'admin-live-timer'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = timeStr; });
             ['vip-timer-status', 'admin-timer-status'].forEach(id => {
                 const el = document.getElementById(id);
-                if(el) el.innerText = state.status === 'running' ? 'LIVE NOW' : state.status.toUpperCase();
+                if(el) el.innerText = st.status === 'running' ? 'LIVE NOW' : st.status.toUpperCase();
             });
-
-            // Status Styling (Admin vs VIP)
             ['vip-live-timer', 'admin-live-timer'].forEach(id => {
                 const el = document.getElementById(id); if(!el) return;
                 if (id === 'vip-live-timer') {
-                    if(remaining === 0 && state.status !== 'idle') el.className = 'font-mono text-5xl font-black text-white tracking-wider animate-pulse';
-                    else if(state.status === 'running') el.className = 'font-mono text-5xl font-black text-white tracking-wider';
+                    if(remaining === 0 && st.status !== 'idle') el.className = 'font-mono text-5xl font-black text-white tracking-wider animate-pulse';
+                    else if(st.status === 'running') el.className = 'font-mono text-5xl font-black text-white tracking-wider';
                     else el.className = 'font-mono text-5xl font-black text-white/80 tracking-wider';
                 } else {
-                    if(remaining === 0 && state.status !== 'idle') el.className = 'font-mono text-3xl md:text-4xl font-black text-rose-500 tracking-wider animate-pulse';
-                    else if(state.status === 'running') el.className = 'font-mono text-3xl md:text-4xl font-black text-emerald-400 tracking-wider';
+                    if(remaining === 0 && st.status !== 'idle') el.className = 'font-mono text-3xl md:text-4xl font-black text-rose-500 tracking-wider animate-pulse';
+                    else if(st.status === 'running') el.className = 'font-mono text-3xl md:text-4xl font-black text-emerald-400 tracking-wider';
                     else el.className = 'font-mono text-3xl md:text-4xl font-black text-slate-500 tracking-wider';
                 }
             });
@@ -1406,27 +1590,25 @@
         async function ctrlTimer(action) {
             const minsInput = document.getElementById('admin-timer-mins');
             let inputMins = minsInput ? (parseFloat(minsInput.value) || 5) : 5;
-            let state = globalVipState.timer || {status: 'idle', elapsed: 0, duration: inputMins * 60000};
+            let st = globalVipState.timer || {status: 'idle', elapsed: 0, duration: inputMins * 60000};
             
             if(action === 'start') {
-                if(state.status !== 'running') {
-                    state.status = 'running';
-                    state.startTs = Date.now();
-                    if(state.elapsed === 0) state.duration = inputMins * 60000;
-                }
+                if(st.status !== 'running') { st.status = 'running'; st.startTs = Date.now(); if(st.elapsed === 0) st.duration = inputMins * 60000; }
             } else if (action === 'pause') {
-                if(state.status === 'running') {
-                    state.status = 'paused';
-                    state.elapsed += (Date.now() - state.startTs);
-                }
+                if(st.status === 'running') { st.status = 'paused'; st.elapsed += (Date.now() - st.startTs); }
             } else if (action === 'reset') {
-                state = {status: 'idle', elapsed: 0, duration: inputMins * 60000};
+                st = {status: 'idle', elapsed: 0, duration: inputMins * 60000};
             }
+
+            // Apply targeting
+            const targetSel = document.getElementById('admin-vip-target');
+            const targetOtp = targetSel ? targetSel.value : 'ALL';
+            st.targetOtp = targetOtp;
             
-            globalVipState.timer = state;
+            globalVipState.timer = st;
             updateTimerUI(); 
             showToast("Timer " + action, "success");
-            await apiCall('updateVipState', {key: 'timer', value: state}); 
+            await apiCall('updateVipState', {key: 'timer', value: st}); 
         }
         
         async function saveVipNotes() { 
@@ -1440,31 +1622,33 @@
         
         async function sendBroadcast() { 
             const bInput = document.getElementById('vip-broadcast-input');
+            const dismissSel = document.getElementById('broadcast-dismiss-secs');
             if(!bInput) return;
             const msg = bInput.value;
+            if(!msg.trim()) { showToast("Please enter a message", "warning"); return; }
+            const dismissSecs = dismissSel ? parseInt(dismissSel.value) : 0;
+            const targetSel = document.getElementById('admin-vip-target');
+            const targetOtp = targetSel ? targetSel.value : 'ALL';
             showToast("Pushing broadcast...", "info");
-            await apiCall('updateVipState', {key: 'broadcast', value: {msg: msg, ts: Date.now()}});
+            await apiCall('updateVipState', {key: 'broadcast', value: {msg, ts: Date.now(), dismissSecs, targetOtp}});
             showToast("Broadcast pushed!", "success"); 
             bInput.value = '';
         }
 
-        // ==========================================
+        // ============================================================
         // PROFILE SYSTEM 
-        // ==========================================
+        // ============================================================
         function renderProfile() {
             if (!appSession) return;
             if (!appSession.profile) appSession.profile = {}; 
-            
             const profName = document.getElementById('prof-name');
             const profId = document.getElementById('prof-nuqoba-id');
             const profImg = document.getElementById('profile-img');
             const profPhone = document.getElementById('prof-phone');
-            
             if(profName) profName.innerText = appSession.name || 'User';
             if(profId) profId.innerText = appSession.id || "NQ-UNKNOWN";
             if(profImg && appSession.photo) profImg.src = appSession.photo;
             if(profPhone) profPhone.value = appSession.profile.phone || '';
-            
             const dynCont = document.getElementById('prof-custom-fields'); 
             if(dynCont && hubConfig.profileFields) {
                 dynCont.innerHTML = '';
@@ -1496,10 +1680,8 @@
             e.preventDefault();
             if(!appSession) return;
             if(!appSession.profile) appSession.profile = {}; 
-            
             const phoneInput = document.getElementById('prof-phone');
             if(phoneInput) appSession.profile.phone = phoneInput.value;
-            
             if(hubConfig.profileFields) {
                 hubConfig.profileFields.forEach(f => {
                     const safeId = f.replace(/[^a-zA-Z0-9]/g, '');
@@ -1511,9 +1693,9 @@
             showToast("Profile saved locally!", "success");
         }
 
-        // ==========================================
+        // ============================================================
         // THE HUB
-        // ==========================================
+        // ============================================================
         function renderHub() {
             document.getElementById('hub-user-name').innerText = appSession.name;
             renderHubBanners();
@@ -1532,45 +1714,28 @@
             const sec = document.getElementById('hub-available-events-section');
             const grid = document.getElementById('hub-available-events-grid');
             if(!sec || !grid || !state.subEvents) return;
-            
-            // Build a set of already-claimed subevent IDs from the session
             const myEventIds = new Set((appSession.qrs || []).map(q => q.subevent_id));
-            // Also include 'ALL' universal passes as covering every event
             const hasUniversalPass = myEventIds.has('ALL');
             const activeEvents = state.subEvents.filter(e => e.status === 'ACTIVE' && e.subevent_id !== 'ALL');
-            
             if(activeEvents.length > 0) {
                 grid.innerHTML = '';
                 activeEvents.forEach(ev => {
                     const isClaimed = hasUniversalPass || myEventIds.has(ev.subevent_id);
                     const card = document.createElement('div');
                     card.className = "ios-card p-4 flex justify-between items-center border border-[#76a8d1]/30 shadow-sm";
-                    
                     let actionBtn = isClaimed 
-                        ? `<button disabled class="bg-slate-200 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-none cursor-not-allowed border border-slate-300 opacity-70 select-none">
-                               <i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Pass Claimed
-                           </button>`
-                        : `<button onclick="claimEventPass('${ev.subevent_id}', this)" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition active:scale-95">
-                               <i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i>Get Pass
-                           </button>`;
-
+                        ? `<button disabled class="bg-slate-200 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-none cursor-not-allowed border border-slate-300 opacity-70 select-none"><i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Pass Claimed</button>`
+                        : `<button onclick="claimEventPass('${ev.subevent_id}', this)" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition active:scale-95"><i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i>Get Pass</button>`;
                     card.innerHTML = `<div class="flex-1 pr-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Available Session</p><h4 class="font-bold text-slate-800 text-sm leading-tight">${ev.subevent_name}</h4></div>${actionBtn}`;
                     grid.appendChild(card);
                 });
                 sec.classList.remove('hidden'); sec.classList.add('flex');
-            } else {
-                sec.classList.add('hidden'); sec.classList.remove('flex');
-            }
+            } else { sec.classList.add('hidden'); sec.classList.remove('flex'); }
             lucide.createIcons({root: grid});
         }
 
         async function claimEventPass(eventId, btnEl) {
-            // Immediately grey out the button so user can't double-click
-            if (btnEl) {
-                btnEl.disabled = true;
-                btnEl.innerHTML = `<div class="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin inline-block mr-1"></div> Claiming...`;
-                btnEl.className = "bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-not-allowed border border-slate-300";
-            }
+            if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = `<div class="loader-dark inline-block mr-1"></div> Claiming...`; btnEl.className = "bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-not-allowed border border-slate-300"; }
             try {
                 if(!appSession.password) throw new Error("Please re-login to claim passes.");
                 const newPass = await apiCall('claimEventPass', { name: appSession.name, password: appSession.password, subevent_id: eventId });
@@ -1578,12 +1743,8 @@
                 appSession.qrs.push(newPass);
                 localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
                 showToast("Pass claimed successfully!", "success");
-                renderAvailableEvents(); // Re-render — button becomes grey "Pass Claimed"
-            } catch(err) {
-                showToast(err.message || "Failed to claim pass", "error");
-                // Re-enable button on failure so user can retry
                 renderAvailableEvents();
-            }
+            } catch(err) { showToast(err.message || "Failed to claim pass", "error"); renderAvailableEvents(); }
         }
         
         function togglePassesModal() {
@@ -1595,9 +1756,7 @@
                 const cleanName = data.subevent_name.replace(/\[#\d+\]\s/, '');
                 const card = document.createElement('div'); card.className = "w-full bg-white rounded-2xl border border-slate-200 p-4 shadow-sm relative overflow-hidden flex items-center gap-4 cursor-pointer hover:border-[#76a8d1] transition-colors group";
                 card.onclick = () => zoomUserBoardingPass(data);
-                card.innerHTML = `<div class="w-16 h-16 shrink-0 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center p-1 relative" id="pass-qr-${data.qr_id}">
-                    <div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 rounded-xl"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div>
-                </div><div class="flex-1 min-w-0"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${data.lajnah}</p><h4 class="font-bold text-slate-800 text-sm truncate">${cleanName}</h4><span class="text-[10px] font-bold px-2 py-0.5 rounded-sm mt-1 inline-block ${isExpired?'bg-slate-100 text-slate-500':'bg-[#76a8d1]/20 text-[#203a70]'}">${isExpired?'EXPIRED':'VALID'}</span></div>`;
+                card.innerHTML = `<div class="w-16 h-16 shrink-0 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center p-1 relative" id="pass-qr-${data.qr_id}"><div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 rounded-xl"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div></div><div class="flex-1 min-w-0"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${data.lajnah}</p><h4 class="font-bold text-slate-800 text-sm truncate">${cleanName}</h4><span class="text-[10px] font-bold px-2 py-0.5 rounded-sm mt-1 inline-block ${isExpired?'bg-slate-100 text-slate-500':'bg-[#76a8d1]/20 text-[#203a70]'}">${isExpired?'EXPIRED':'VALID'}</span></div>`;
                 container.appendChild(card);
                 new QRCode(document.getElementById(`pass-qr-${data.qr_id}`), { text: `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`, width: 60, height: 60, colorDark: isExpired?"#94a3b8":"#0f172a", correctLevel: QRCode.CorrectLevel.L });
             });
@@ -1612,17 +1771,12 @@
             document.getElementById('user-bp-role').innerText = data.role;
             document.getElementById('user-bp-lajnah').innerText = data.lajnah;
             document.getElementById('user-bp-event').innerText = cleanName;
-            
             const qrBox = document.getElementById('user-bp-qr');
-            qrBox.innerHTML = '';
-            qrBox.classList.remove('grayscale', 'opacity-30');
+            qrBox.innerHTML = ''; qrBox.classList.remove('grayscale', 'opacity-30');
             document.getElementById('user-bp-header').className = "px-6 py-4 flex justify-between items-center text-white brand-gradient relative z-10";
-
             const isExpired = data.status === 'USED';
             new QRCode(qrBox, { text: `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`, width: 200, height: 200, colorDark: isExpired?"#94a3b8":"#0f172a" });
-
             openModal('modal-boarding-pass');
-            
             if(!isExpired) {
                 currentViewingQrId = data.qr_id;
                 clearInterval(passSyncInterval);
@@ -1630,13 +1784,10 @@
                     const statusRes = await robustCheckPassStatus(currentViewingQrId, data.name, data.subevent_name);
                     if(statusRes && statusRes.status === 'USED') {
                         clearInterval(passSyncInterval);
-                        
                         let passIdx = appSession.qrs.findIndex(q => q.qr_id === currentViewingQrId);
                         if(passIdx > -1) { appSession.qrs[passIdx].status = 'USED'; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); }
-                        
                         qrBox.classList.add('grayscale', 'opacity-30');
                         document.getElementById('user-bp-header').className = "px-6 py-4 flex justify-between items-center text-white bg-slate-500 relative z-10";
-                        
                         document.getElementById('success-overlay-name').innerText = data.name;
                         document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
                         openModal('participant-success-overlay');
@@ -1650,7 +1801,6 @@
             }
         }
 
-        // --- Banners & Links ---
         function renderHubBanners() {
             const cont = document.getElementById('hub-banner-indicators'); cont.innerHTML = '';
             if (!hubConfig.banners || hubConfig.banners.length <= 1) return;
@@ -1684,18 +1834,16 @@
             const colors = { sky: 'bg-sky-50 text-sky-600', emerald: 'bg-emerald-50 text-emerald-600', slate: 'bg-slate-100 text-slate-700', indigo: 'bg-indigo-50 text-indigo-600' };
             window[`__action_${id}`] = onClickStr;
             let innerHtml = `<i data-lucide="${iconOrImg}" class="w-6 h-6 md:w-7 md:h-7"></i>`;
-            if (iconOrImg.startsWith('data:image')) {
-                innerHtml = `<img src="${iconOrImg}" class="w-full h-full object-cover">`;
-            }
-            return `<div class="flex flex-col items-center gap-2 cursor-pointer app-icon w-full max-w-[80px]" onclick="window['__action_${id}']()"><div class="w-14 h-14 md:w-16 md:h-16 rounded-[20px] ${colors[color]||colors.sky} flex items-center justify-center shadow-sm border border-slate-200/50 overflow-hidden">${innerHtml}</div><span class="text-[10px] md:text-xs font-semibold text-slate-600 text-center leading-tight line-clamp-2">${title}</span></div>`;
+            if (iconOrImg && iconOrImg.startsWith('data:image')) { innerHtml = `<img src="${iconOrImg}" class="w-full h-full object-cover">`; }
+            return `<div class="flex flex-col items-center gap-2 cursor-pointer app-icon w-full max-w-[80px]" onclick="window['__action_${id}']()" ><div class="w-14 h-14 md:w-16 md:h-16 rounded-[20px] ${colors[color]||colors.sky} flex items-center justify-center shadow-sm border border-slate-200/50 overflow-hidden">${innerHtml}</div><span class="text-[10px] md:text-xs font-semibold text-slate-600 text-center leading-tight line-clamp-2">${title}</span></div>`;
         }
 
-        // ==========================================
+        // ============================================================
         // ADMIN PANEL
-        // ==========================================
+        // ============================================================
         function openTool(toolName) {
             routeTo('tools'); const sb = document.getElementById('admin-sidebar');
-            loadAdminData(); // Refresh Data strictly when opening tools
+            loadAdminData();
             if(toolName === 'scanner') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('scanner'); } 
             else if (toolName === 'live') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('live'); } 
             else if (toolName === 'admin') { sb.classList.remove('hidden', 'md:hidden'); switchAdminTab('subevents'); }
@@ -1715,13 +1863,11 @@
         function renderHubConfigAdmin() {
             const bList = document.getElementById('config-banners-list'); bList.innerHTML = '';
             if(hubConfig.banners) hubConfig.banners.forEach((url, i) => bList.innerHTML += `<div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100"><img src="${url}" class="w-12 h-8 object-cover rounded"><div class="text-[10px] text-slate-500 truncate flex-1">${url}</div><button type="button" onclick="removeHubBanner(${i})" class="text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`);
-            
             const lList = document.getElementById('config-links-list'); lList.innerHTML = '';
             if(hubConfig.links) hubConfig.links.forEach((link, i) => {
-                let imgOrIcon = link.icon.startsWith('data:image') ? `<img src="${link.icon}" class="w-6 h-6 rounded object-cover">` : `<i data-lucide="${link.icon}" class="w-4 h-4"></i>`;
+                let imgOrIcon = link.icon && link.icon.startsWith('data:image') ? `<img src="${link.icon}" class="w-6 h-6 rounded object-cover">` : `<i data-lucide="${link.icon||'link'}" class="w-4 h-4"></i>`;
                 lList.innerHTML += `<div class="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-100"><div class="p-1 bg-slate-200 text-slate-600 rounded-md shrink-0 w-8 h-8 flex items-center justify-center">${imgOrIcon}</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-slate-700 truncate">${link.title}</p><p class="text-[9px] text-slate-400 truncate">${link.url}</p></div><button type="button" onclick="removeHubLink(${i})" class="text-red-500 p-1 shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
             });
-            
             const fList = document.getElementById('config-fields-list'); fList.innerHTML = '';
             if(hubConfig.profileFields) hubConfig.profileFields.forEach((f, i) => fList.innerHTML += `<div class="bg-[#76a8d1]/10 text-[#203a70] border border-[#76a8d1]/20 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">${f} <button type="button" onclick="removeProfileField(${i})" class="text-red-500 hover:text-red-700"><i data-lucide="x" class="w-3 h-3"></i></button></div>`);
             lucide.createIcons();
@@ -1730,7 +1876,7 @@
         function removeHubBanner(idx) { hubConfig.banners.splice(idx, 1); saveHubConfig(); }
         function addHubLink(e) { 
             e.preventDefault(); 
-            let finalIcon = tempAppIconBase64 || document.getElementById('hub-link-icon').value;
+            let finalIcon = tempAppIconBase64 || 'link';
             hubConfig.links.push({ id: 'link'+Date.now(), title: document.getElementById('hub-link-title').value, url: document.getElementById('hub-link-url').value, icon: finalIcon }); 
             document.getElementById('hub-link-title').value=''; document.getElementById('hub-link-url').value=''; 
             tempAppIconBase64 = null; document.getElementById('hub-link-preview').classList.add('hidden'); document.getElementById('hub-link-icon-placeholder').classList.remove('hidden');
@@ -1740,23 +1886,17 @@
         function addProfileField(e) { e.preventDefault(); hubConfig.profileFields.push(document.getElementById('hub-field-name').value); document.getElementById('hub-field-name').value=''; saveHubConfig(); }
         function removeProfileField(idx) { hubConfig.profileFields.splice(idx, 1); saveHubConfig(); }
 
-        // ==========================================
-        // SCANNER LOGIC
-        // ==========================================
+        // ============================================================
+        // SCANNER LOGIC — FIX: recent scans now populate table
+        // ============================================================
         function updateScannerEventInfo() {
             const sel = document.getElementById('scanner-event-select'); if(!sel || !sel.value) return;
             const ev = state.subEvents.find(e => e.subevent_id === sel.value);
             if(ev) { 
-                const nameEl = document.getElementById('info-event-name');
-                if(nameEl) nameEl.innerText = ev.subevent_name; 
-                const titleEl = document.getElementById('scanner-main-title');
-                if(titleEl) titleEl.innerText = `SCANNER - ${ev.subevent_name.toUpperCase()}`; 
-                
-                // Add safe-check for info-event-time which is sometimes not perfectly rendered
+                const nameEl = document.getElementById('info-event-name'); if(nameEl) nameEl.innerText = ev.subevent_name; 
+                const titleEl = document.getElementById('scanner-main-title'); if(titleEl) titleEl.innerText = `SCANNER - ${ev.subevent_name.toUpperCase()}`; 
                 const timeEl = document.getElementById('info-event-time');
-                if(timeEl) {
-                    timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-                }
+                if(timeEl) timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
             }
             const totalReg = state.participants.length; 
             const trEl = document.getElementById('stat-total-reg'); if(trEl) trEl.innerText = totalReg; 
@@ -1779,39 +1919,61 @@
             if(!expectedEventId) { showToast("Please select an Event to scan for first!", "warning"); return; }
             let actualQrId = code, optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-';
             const nowStr = new Date().toLocaleString('en-GB');
-
             if (code.includes('|')) { const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; }
             if (sessionScanned.has(actualQrId)) { triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-', scan_time: nowStr }); return; }
-
-            // Safe check for Event Name
             let expectedEventName = "";
             const infoNameEl = document.getElementById('info-event-name');
             if(infoNameEl) expectedEventName = infoNameEl.innerText;
-            
             const qrEventNameBase = optSubevent.replace(/\[#\d+\]\s/, '');
-            
-            if(optSubevent !== 'Universal Master Pass' && qrEventNameBase !== expectedEventName) {
+            if(optSubevent !== 'Universal Master Pass' && qrEventNameBase !== expectedEventName && expectedEventName !== 'Select an event...') {
                 triggerScannerUI({ scan_result: 'WRONG EVENT', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Expected: ${expectedEventName}`, status: '-', scan_time: nowStr });
             } else {
                 sessionScanned.add(actualQrId); setTimeout(() => sessionScanned.delete(actualQrId), 10000); 
-                
                 let displayObj = { scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME', scan_time: nowStr, arrival_number: 'Syncing...' };
                 triggerScannerUI(displayObj);
-                
                 apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).then(res => {
                     const arrEl = document.getElementById('scan-arrival-num');
-                    if(arrEl && !arrEl.classList.contains('hidden') && res.arrival_number) {
-                        arrEl.innerText = `No. ${res.arrival_number}`;
-                    }
+                    if(arrEl && !arrEl.classList.contains('hidden') && res.arrival_number) { arrEl.innerText = `No. ${res.arrival_number}`; }
                 }).catch(e => console.error(e));
             }
+        }
+
+        function addRecentScanRow(res) {
+            const tbody = document.getElementById('recent-scans-body');
+            if(!tbody) return;
+            // Remove placeholder row if present
+            const placeholder = tbody.querySelector('td[colspan]');
+            if(placeholder) placeholder.parentElement.remove();
+
+            const colorMap = {
+                'SUCCESS': 'bg-emerald-100 text-emerald-700',
+                'DUPLICATE': 'bg-amber-100 text-amber-700',
+                'WRONG EVENT': 'bg-rose-100 text-rose-700',
+                'INVALID': 'bg-slate-100 text-slate-500'
+            };
+            const statusColor = colorMap[res.scan_result] || 'bg-slate-100 text-slate-500';
+            const cleanSubevent = (res.subevent_name || '-').replace(/\[#\d+\]\s/, '');
+            const row = document.createElement('tr');
+            row.className = 'border-b border-slate-50 animate-pop';
+            row.innerHTML = `
+                <td class="py-3 pr-2 font-semibold text-slate-800 text-sm">${res.name || 'Unknown'}</td>
+                <td class="py-3 pr-2 text-xs text-slate-500">${cleanSubevent}</td>
+                <td class="py-3 pr-2 text-xs text-slate-400 font-mono">${res.scan_time || ''}</td>
+                <td class="py-3 text-right"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusColor}">${res.scan_result}</span></td>
+            `;
+            tbody.insertBefore(row, tbody.firstChild);
+            // Keep max 20 rows
+            while(tbody.rows.length > 20) tbody.deleteRow(tbody.rows.length - 1);
         }
 
         function triggerScannerUI(res) {
             const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('scan-result-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
             const arrivalEl = document.getElementById('scan-arrival-num');
-            
-            if(res.scan_result === 'SUCCESS') state.localSessionCount++; updateScannerEventInfo();
+            if(res.scan_result === 'SUCCESS') state.localSessionCount++;
+            updateScannerEventInfo();
+
+            // Add to recent scans table immediately
+            addRecentScanRow(res);
             
             if (res.scan_result === 'SUCCESS') {
                 nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">SELAMAT DATANG,</span>${res.name}`; badge.innerText = "DIPERSILAKAN MASUK";
@@ -1826,32 +1988,21 @@
                 headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-rose-600"; iconBox.innerHTML = `<i data-lucide="x-circle" class="w-16 h-16 text-rose-600 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-rose-100 text-rose-700"; playSound('error');
                 arrivalEl.classList.add('hidden');
             }
-
             lucide.createIcons({root: cardInner}); 
             openModal('scan-result-card');
-            
             const scInput = document.getElementById('scanner-input');
             if(scInput) scInput.focus();
-            
             clearTimeout(scanResetTimeout);
             scanResetTimeout = setTimeout(() => { closeModal('scan-result-card'); setTimeout(() => {if(scInput) scInput.focus();}, 300); }, 4000);
         }
 
         async function loadAdminData() {
             try {
-                // Fetch the core event data from the backend Google Sheet API
                 const data = await apiCall('getAllData', { adminPass: state.adminPass });
                 state.subEvents = data.subEvents || []; 
                 state.participants = data.participants || []; 
                 state.logs = data.logs || [];
-                
-                // Manually trigger renders for the entire admin panel!
-                renderSubEvents(); 
-                renderParticipants(); 
-                refreshEventDropdowns(); 
-                updateScannerEventInfo(); 
-                renderHubConfigAdmin(); 
-                renderAdminVipList();
+                renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo(); renderHubConfigAdmin(); renderAdminVipList();
             } catch(e) {
                 console.error("loadAdminData Error:", e);
                 showToast("Failed to sync with database. Retrying...", "warning");
@@ -1861,20 +2012,11 @@
         async function fetchLiveUpdates() {
             try {
                 const data = await apiCall('getLiveDisplay'); 
-                
-                // Flexible parsing handling older array structures
                 let logs = Array.isArray(data) ? data : (data.logs || []); 
                 let stats = Array.isArray(data) ? { total: 0, byLajnah: {} } : (data.stats || { total: 0, byLajnah: {} });
-
                 if (Array.isArray(data)) {
-                    logs.forEach(l => { 
-                        if(l.scan_result && l.scan_result.toUpperCase() === 'SUCCESS') { 
-                            stats.total++; 
-                            stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; 
-                        } 
-                    });
+                    logs.forEach(l => { if(l.scan_result && l.scan_result.toUpperCase() === 'SUCCESS') { stats.total++; stats.byLajnah[l.lajnah] = (stats.byLajnah[l.lajnah] || 0) + 1; } });
                 }
-
                 const statsContainer = document.getElementById('live-stats-container');
                 if (statsContainer) {
                     let statsHtml = `<div class="col-span-2 md:col-span-2 brand-gradient rounded-xl p-4 text-white shadow-md flex flex-col justify-center"><p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Attendees</p><h3 class="text-4xl font-black mt-1">${stats.total}</h3></div>`;
@@ -1884,16 +2026,12 @@
                     }
                     statsContainer.innerHTML = statsHtml;
                 }
-
                 const tbody = document.getElementById('live-table-body'); tbody.innerHTML = '';
                 logs.forEach(log => {
-                    // Safety check against undefined fields from older database rows
                     if (!log.scan_result || log.scan_result.toUpperCase() !== 'SUCCESS') return;
-                    
                     const isVip = log.role === 'Speaker'; 
                     let statusColor = log.status === 'ON TIME' ? "text-emerald-700 bg-emerald-100" : "text-yellow-700 bg-yellow-100";
                     const statusText = log.status && log.status !== '-' ? '(' + log.status + ')' : '';
-                    
                     tbody.innerHTML += `<tr class="transition border-b border-slate-100 last:border-0 ${isVip ? 'bg-yellow-50' : 'hover:bg-slate-50'}"><td class="p-4 whitespace-nowrap text-sm text-slate-500 font-medium">${log.scan_time || ''}</td><td class="p-4 font-bold ${isVip ? 'text-yellow-600' : 'text-slate-800'}">${log.name || ''} ${isVip ? '🌟' : ''}</td><td class="p-4 text-sm text-slate-600">${log.lajnah || ''}</td><td class="p-4 text-sm text-slate-600 font-medium">${log.subevent_name || ''}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">SUCCESS ${statusText}</span></td></tr>`;
                 });
             } catch (err) {}
@@ -1902,15 +2040,12 @@
         async function handleAddEvent(e) {
             e.preventDefault();
             try {
-                // Send the raw datetime-local value — backend normalises it to en-GB string
-                const startRaw = document.getElementById('ev-start').value; // e.g. "2026-04-02T14:30"
+                const startRaw = document.getElementById('ev-start').value;
                 const endRaw   = document.getElementById('ev-end').value;
                 state.subEvents = await apiCall('manageSubEvent', {
-                    type: 'ADD',
-                    adminPass: state.adminPass,
+                    type: 'ADD', adminPass: state.adminPass,
                     subevent_name: document.getElementById('ev-name').value,
-                    start_time: startRaw,
-                    end_time: endRaw
+                    start_time: startRaw, end_time: endRaw
                 });
                 renderSubEvents(); refreshEventDropdowns(); updateScannerEventInfo();
                 document.getElementById('ev-name').value = '';

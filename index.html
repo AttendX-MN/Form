@@ -1486,12 +1486,15 @@
                     routeTo('hub'); renderHub();
                     if (state.subEvents.length > 0) renderAvailableEvents();
                     clearInterval(userEventPollInterval);
-                    // Poll events + hub config + form config every 1 second for live updates
+                    // Immediately load hub config from server so apps appear right away
+                    loadHubDataFromServer();
+                    loadFormConfigFromServer();
+                    // Then keep polling every 2 seconds for live updates
                     userEventPollInterval = setInterval(async () => {
                         await pollUserEvents();
                         await loadHubDataFromServer();
                         await loadFormConfigFromServer();
-                    }, 1000);
+                    }, 2000);
                 }
             } else { routeTo('landing'); }
         }
@@ -1723,11 +1726,20 @@
                 new QRCode(document.getElementById('vip-qr-box'), { text: qrText, width: 180, height: 180, colorDark:"#0f172a" });
                 currentViewingQrId = appSession.qrs[0].qr_id;
             }
+            // Show a welcoming note placeholder immediately so the section is never blank
+            const notesDisplay = document.getElementById('vip-notes-display');
+            if (notesDisplay && notesDisplay.innerText.trim() === '') {
+                notesDisplay.innerHTML = 'Loading notes...';
+            }
+            // Fetch global state immediately so notes/timer/broadcast appear without waiting for first poll
+            fetchGlobalState();
         }
 
         function startGlobalStateSync() {
             clearInterval(vipPollInterval);
-            fetchGlobalState();
+            // For VIP: startVipDashboard already calls fetchGlobalState() immediately.
+            // For admin: call it now so mini screens and notes populate right away.
+            if (appSession && appSession.type === 'admin') fetchGlobalState();
             vipPollInterval = setInterval(fetchGlobalState, 3000);
         }
 
@@ -1908,9 +1920,13 @@
                 grid.innerHTML += createAppIcon('scanner', 'Scanner', 'scan', 'sky', () => openTool('scanner'));
                 grid.innerHTML += createAppIcon('admin', 'Admin Panel', 'shield', 'slate', () => openTool('admin'));
             }
-            if(hubConfig.links) {
-                hubConfig.links.forEach(link => { grid.innerHTML += createAppIcon(link.id, link.title, link.icon, 'indigo', () => window.open(link.url, '_blank')); });
-            }
+            // Always render hub_links from current hubConfig (source of truth is server via loadHubDataFromServer)
+            const links = Array.isArray(hubConfig.links) ? hubConfig.links : [];
+            links.forEach(link => {
+                if (link && link.id && link.title) {
+                    grid.innerHTML += createAppIcon(link.id, link.title, link.icon, 'indigo', () => window.open(link.url, '_blank'));
+                }
+            });
             lucide.createIcons({root: grid});
         }
 
@@ -2136,7 +2152,9 @@
         function saveHubConfig() { 
             localStorage.setItem('myclub_hub', JSON.stringify(hubConfig)); 
             renderHubConfigAdmin(); 
-            renderAdminVipList(); 
+            renderAdminVipList();
+            // Re-render hub app grid immediately so admin sees updated apps right away
+            if (appSession) renderHub();
             // Sync banners + full hub config to server so all users see admin's settings
             syncHubConfigToServer();
         }
@@ -2179,9 +2197,9 @@
                     }
                 }
 
-                // ── App links ──
-                if (vipState.hub_links && Array.isArray(vipState.hub_links)) {
-                    const newLinks = vipState.hub_links;
+                // ── App links — always sync from server (source of truth) ──
+                if (Object.prototype.hasOwnProperty.call(vipState, 'hub_links')) {
+                    const newLinks = Array.isArray(vipState.hub_links) ? vipState.hub_links : [];
                     if (JSON.stringify(newLinks) !== JSON.stringify(hubConfig.links)) {
                         hubConfig.links = newLinks;
                         changed = true;
@@ -2190,11 +2208,12 @@
 
                 if (changed) {
                     localStorage.setItem('myclub_hub', JSON.stringify(hubConfig));
-                    // Only re-render app grid if user is currently on hub view
-                    const hubView = document.getElementById('view-hub');
-                    if (hubView && !hubView.classList.contains('view-hidden') && appSession) {
-                        renderHub();
-                    }
+                }
+
+                // Always re-render hub app grid when user is on hub view so apps appear immediately
+                const hubView = document.getElementById('view-hub');
+                if (hubView && !hubView.classList.contains('view-hidden') && appSession) {
+                    renderHub();
                 }
             } catch(e) { /* silent — use cached data */ }
         }
@@ -2647,11 +2666,21 @@
         // ============================================================
         // 3. FORM SETUP SYSTEM
         // ============================================================
-        // formConfig stored in localStorage per event; responses stored in localStorage
+        // formConfig stored in localStorage per event; responses persisted to Google Sheets
         let formConfig = JSON.parse(localStorage.getItem('myclub_formconfig')) || {};
         // formConfig = { ALL: { title, questions: [{id,label,type,options,required}] }, eventId: {...} }
-        let formResponses = JSON.parse(localStorage.getItem('myclub_formresponses')) || [];
-        // formResponses = [{name, userId, eventId, eventName, ts, answers: {qId: value}}]
+        // formResponses is loaded from server (Google Sheets) on admin init — NOT from localStorage
+        let formResponses = [];
+
+        // Load form responses from Google Sheets server
+        async function loadFormResponsesFromServer() {
+            try {
+                const rows = await apiCall('getFormResponses');
+                if (Array.isArray(rows)) { formResponses = rows; }
+            } catch(e) { console.warn('Could not load form responses from server:', e); }
+        }
+
+
 
         let pendingFormEventId = null; // set when user clicks "Get Pass" but form is needed
         let pendingFormEventEl = null;
@@ -2961,7 +2990,8 @@
             const filterSel = document.getElementById('form-response-event-filter');
             if(assignSel) { assignSel.innerHTML = '<option value="ALL">🌟 All Events (Global)</option>'; state.subEvents.forEach(e => assignSel.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`); }
             if(filterSel) { filterSel.innerHTML = '<option value="ALL">All Events</option>'; state.subEvents.forEach(e => filterSel.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`); }
-            renderFormResponses();
+            // Always load fresh responses from server
+            loadFormResponsesFromServer().then(() => renderFormResponses());
         }
 
         // ============================================================
@@ -3108,14 +3138,15 @@
             }
             if (!valid) return;
 
-            // Save response locally
+            // Save response to Google Sheets (server) — not localStorage
             const evName = (state.subEvents.find(e => e.subevent_id === pendingFormEventId) || {}).subevent_name || pendingFormEventId;
-            formResponses.push({
-                name: appSession.name, userId: appSession.id,
+            const responsePayload = {
+                name: appSession.name, userId: appSession.id || '',
                 eventId: pendingFormEventId, eventName: evName,
                 ts: Date.now(), answers, questions: form.questions
-            });
-            localStorage.setItem('myclub_formresponses', JSON.stringify(formResponses));
+            };
+            // Optimistically add to local array so admin sees it immediately if on same device
+            formResponses.push(Object.assign({ ts: Date.now() }, responsePayload));
 
             // Claim pass
             btn.innerHTML = `<div class="loader mx-auto"></div> Getting your pass...`;
@@ -3123,6 +3154,8 @@
             const savedEventId = pendingFormEventId;
 
             try {
+                // Save to server (fire-and-forget — don't block pass claim on this)
+                apiCall('saveFormResponse', responsePayload).catch(e => console.warn('Form response save failed:', e));
                 await claimEventPass(savedEventId, null);
                 closeModal('modal-form-submit');
                 showToast("Form submitted — pass claimed! 🎉", "success");
@@ -3276,15 +3309,21 @@
                         }
                     });
                 }
-                const dbVips = state.participants.filter(p => p.role === 'Speaker');
-                dbVips.forEach(dbVip => {
-                    const isGlobal = vips.find(v => v.name && v.name.toLowerCase() === dbVip.name.toLowerCase());
-                    if (!isGlobal) { hasVips = true; const card = document.createElement('div'); card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70"; card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p><div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div></div>`; container.appendChild(card); }
-                });
+                // Show legacy DB speaker records only if state.participants already loaded
+                if (Array.isArray(state.participants) && state.participants.length > 0) {
+                    const dbVips = state.participants.filter(p => p.role === 'Speaker');
+                    dbVips.forEach(dbVip => {
+                        const isGlobal = vips.find(v => v.name && v.name.toLowerCase() === dbVip.name.toLowerCase());
+                        if (!isGlobal) { hasVips = true; const card = document.createElement('div'); card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70"; card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p><div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div></div>`; container.appendChild(card); }
+                    });
+                }
                 if(!hasVips) container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';
                 lucide.createIcons({root: container});
                 renderVipMiniScreens(vips);
-            } catch(e) { container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Failed to load VIPs.</p>'; }
+            } catch(e) {
+                console.error('renderAdminVipList error:', e);
+                container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Failed to load VIPs. Please check your internet connection.</p>';
+            }
         }
 
         // Override fetchGlobalState to use per-key VIP storage  
@@ -3426,6 +3465,8 @@
                 state.logs = data.logs || [];
                 state.qrCodes = data.qrCodes || [];
                 renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo(); renderHubConfigAdmin(); renderAdminVipList();
+                // Also load form responses from server so admin sees all submissions
+                loadFormResponsesFromServer().then(() => renderFormResponses()).catch(() => {});
             } catch(e) {
                 console.error("loadAdminData Error:", e);
                 showToast("Failed to sync with database. Retrying...", "warning");

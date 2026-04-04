@@ -1065,7 +1065,6 @@
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyFWuEj2HqVNEajQoJREEFyVPXkJkiBsInGOSS9NSsLBN9z2CuhaTA4D0jmpFsPREP/exec';
-        lucide.createIcons();
 
         let state = { lajnahs: [], subEvents: [], participants: [], localSessionScans: [], localSessionCount: 0, adminPass: '' };
         let sessionScanned = new Set(); let scanResetTimeout = null;
@@ -1193,6 +1192,7 @@
         // INIT
         // ============================================================
         window.onload = async () => {
+            lucide.createIcons();
             initApp();
             try {
                 const data = await apiCall('getInitialData');
@@ -1572,120 +1572,6 @@
 
         let broadcastDismissTimeout = null;
 
-        async function fetchGlobalState() {
-            try {
-                const newState = await apiCall('getVipState');
-                
-                // Update notes with link rendering
-                if (newState.notes !== undefined) {
-                    renderNotesWithLinks(newState.notes || '');
-                    if(document.getElementById('vip-notes-input') && !document.getElementById('vip-notes-input').matches(':focus')) {
-                        document.getElementById('vip-notes-input').value = newState.notes || '';
-                    }
-                }
-
-                // Broadcast handling with auto-dismiss
-                if (newState.broadcast && newState.broadcast.ts > lastBroadcastTs) {
-                    const isRecent = (Date.now() - newState.broadcast.ts) < 15000;
-                    if (lastBroadcastTs !== 0 || isRecent) { 
-                        const targetOtp = newState.broadcast.targetOtp;
-                        // Check if this broadcast targets this VIP or all
-                        let shouldShow = false;
-                        if(appSession.type === 'vip') {
-                            // Find this VIP's OTP from their session — match by name since VIP doesn't store OTP in session
-                            shouldShow = (!targetOtp || targetOtp === 'ALL');
-                            if(!shouldShow && cachedGlobalVips.length > 0) {
-                                const myVip = cachedGlobalVips.find(v => v.name === appSession.name);
-                                if(myVip && myVip.otp === targetOtp) shouldShow = true;
-                            }
-                        } else if(appSession.type === 'admin') {
-                            shouldShow = true;
-                        }
-                        
-                        if(shouldShow) {
-                            const ov = document.getElementById('vip-broadcast-overlay');
-                            if (ov) {
-                                document.getElementById('vip-broadcast-msg').innerText = newState.broadcast.msg;
-                                openModal('vip-broadcast-overlay');
-                                playSound('scan');
-                                // Auto dismiss if set
-                                const dismissSecs = newState.broadcast.dismissSecs || 0;
-                                clearTimeout(broadcastDismissTimeout);
-                                if(dismissSecs > 0) {
-                                    broadcastDismissTimeout = setTimeout(() => closeModal('vip-broadcast-overlay'), dismissSecs * 1000);
-                                }
-                            }
-                        }
-                    }
-                    lastBroadcastTs = newState.broadcast.ts;
-                }
-
-                if (newState.timer) {
-                    globalVipState.timer = newState.timer;
-                    
-                    if(appSession.type === 'vip' && newState.timer.status === 'running' && lastTimerStatus !== 'running') {
-                        const mins = Math.round(newState.timer.duration / 60000);
-                        const announceMsg = document.getElementById('vip-timer-announce-msg');
-                        if (announceMsg) announceMsg.innerText = `Masa diberi ${mins} minit, terima kasih`;
-                        openModal('vip-timer-announcement');
-                        playSound('success');
-                        setTimeout(() => { closeModal('vip-timer-announcement'); }, 3000);
-                    }
-                    
-                    if (appSession.type === 'vip') {
-                        const qrSec = document.getElementById('vip-qr-section');
-                        let isPassUsed = appSession.qrs && appSession.qrs.length > 0 && appSession.qrs[0].status === 'USED';
-                        if (qrSec) {
-                            if (newState.timer.status === 'running' || newState.timer.status === 'paused' || isPassUsed) {
-                                qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s';
-                                setTimeout(() => qrSec.classList.add('hidden'), 500); 
-                            } else {
-                                qrSec.classList.remove('hidden');
-                                setTimeout(() => { qrSec.style.opacity = '1'; qrSec.style.transition = 'opacity 0.5s'; }, 10);
-                                const qrBox = document.getElementById('vip-qr-box');
-                                if (qrBox) qrBox.style.opacity = '1';
-                            }
-                        }
-                    }
-                    lastTimerStatus = newState.timer.status;
-                }
-
-                globalVipState = newState;
-
-                // Update mini screens in admin panel
-                if(appSession.type === 'admin') {
-                    renderVipMiniScreens(cachedGlobalVips);
-                }
-                
-                if(appSession.type === 'vip' && currentViewingQrId) {
-                    const statusRes = await robustCheckPassStatus(currentViewingQrId, appSession.name, appSession.qrs[0].subevent_name);
-                    if(statusRes && statusRes.status === 'USED') {
-                        currentViewingQrId = null; 
-                        if(appSession.qrs.length > 0) {
-                            appSession.qrs[0].status = 'USED';
-                            localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
-                        }
-                        const qrSec = document.getElementById('vip-qr-section');
-                        const qrBox = document.getElementById('vip-qr-box');
-                        if (qrSec) {
-                            const badge = document.getElementById('vip-qr-scanned-badge');
-                            if (badge) badge.classList.remove('hidden');
-                            if (qrBox) { qrBox.style.opacity = '0.2'; qrBox.style.transition = 'opacity 0.5s'; }
-                            setTimeout(() => {
-                                qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s';
-                                setTimeout(() => { qrSec.classList.add('hidden'); }, 500);
-                            }, 1000);
-                        }
-                        document.getElementById('success-overlay-name').innerText = appSession.name;
-                        document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
-                        openModal('participant-success-overlay');
-                        playSound('success');
-                        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
-                    }
-                }
-            } catch(e) {}
-        }
-
         function updateTimerUI() {
             const st = globalVipState.timer || {status: 'idle', elapsed: 0, duration: 300000};
             let totalElapsed = st.elapsed || 0;
@@ -1977,30 +1863,7 @@
             else if (toolName === 'live') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('live'); } 
             else if (toolName === 'admin') { sb.classList.remove('hidden', 'md:hidden'); switchAdminTab('subevents'); }
         }
-        const switchAdminTab = (tabId) => {
-            document.querySelectorAll('.admin-content').forEach(el => el.classList.add('view-hidden'));
-            document.querySelectorAll('.admin-tab').forEach(el => { el.classList.remove('brand-gradient', 'text-white', 'shadow-md', 'border-[#15274d]'); el.classList.add('text-slate-600', 'hover:bg-slate-100'); });
-            document.getElementById(`tab-${tabId}`).classList.remove('view-hidden');
-            const btn = document.getElementById(`tab-btn-${tabId}`); if(btn) { btn.classList.remove('text-slate-600', 'hover:bg-slate-100'); btn.classList.add('brand-gradient', 'text-white', 'shadow-md', 'border', 'border-[#15274d]'); }
-            if(tabId === 'scanner') setTimeout(() => document.getElementById('scanner-input').focus(), 100);
-            if(tabId === 'speaker') renderAdminVipList();
-            if(tabId === 'hubconfig') renderHubConfigAdmin();
-            if(tabId === 'live') { fetchLiveUpdates(); state.liveInterval = setInterval(fetchLiveUpdates, 3000); } else clearInterval(state.liveInterval);
-        };
-
         function saveHubConfig() { localStorage.setItem('mynuqoba_hub', JSON.stringify(hubConfig)); renderHubConfigAdmin(); renderAdminVipList(); }
-        function renderHubConfigAdmin() {
-            const bList = document.getElementById('config-banners-list'); bList.innerHTML = '';
-            if(hubConfig.banners) hubConfig.banners.forEach((url, i) => bList.innerHTML += `<div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100"><img src="${url}" class="w-12 h-8 object-cover rounded"><div class="text-[10px] text-slate-500 truncate flex-1">${url}</div><button type="button" onclick="removeHubBanner(${i})" class="text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`);
-            const lList = document.getElementById('config-links-list'); lList.innerHTML = '';
-            if(hubConfig.links) hubConfig.links.forEach((link, i) => {
-                let imgOrIcon = link.icon && link.icon.startsWith('data:image') ? `<img src="${link.icon}" class="w-6 h-6 rounded object-cover">` : `<i data-lucide="${link.icon||'link'}" class="w-4 h-4"></i>`;
-                lList.innerHTML += `<div class="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-100"><div class="p-1 bg-slate-200 text-slate-600 rounded-md shrink-0 w-8 h-8 flex items-center justify-center">${imgOrIcon}</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-slate-700 truncate">${link.title}</p><p class="text-[9px] text-slate-400 truncate">${link.url}</p></div><button type="button" onclick="removeHubLink(${i})" class="text-red-500 p-1 shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
-            });
-            const fList = document.getElementById('config-fields-list'); fList.innerHTML = '';
-            if(hubConfig.profileFields) hubConfig.profileFields.forEach((f, i) => fList.innerHTML += `<div class="bg-[#76a8d1]/10 text-[#203a70] border border-[#76a8d1]/20 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">${f} <button type="button" onclick="removeProfileField(${i})" class="text-red-500 hover:text-red-700"><i data-lucide="x" class="w-3 h-3"></i></button></div>`);
-            lucide.createIcons();
-        }
         function addHubBanner(e) { e.preventDefault(); hubConfig.banners.push(document.getElementById('hub-banner-url').value); document.getElementById('hub-banner-url').value=''; saveHubConfig(); }
         function removeHubBanner(idx) { hubConfig.banners.splice(idx, 1); saveHubConfig(); }
         function addHubLink(e) { 
@@ -2123,19 +1986,6 @@
             if(scInput) scInput.focus();
             clearTimeout(scanResetTimeout);
             scanResetTimeout = setTimeout(() => { closeModal('scan-result-card'); setTimeout(() => {if(scInput) scInput.focus();}, 300); }, 4000);
-        }
-
-        async function loadAdminData() {
-            try {
-                const data = await apiCall('getAllData', { adminPass: state.adminPass });
-                state.subEvents = data.subEvents || []; 
-                state.participants = data.participants || []; 
-                state.logs = data.logs || [];
-                renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo(); renderHubConfigAdmin(); renderAdminVipList();
-            } catch(e) {
-                console.error("loadAdminData Error:", e);
-                showToast("Failed to sync with database. Retrying...", "warning");
-            }
         }
 
         async function fetchLiveUpdates() {
@@ -2557,8 +2407,7 @@
         // ============================================================
         // 4. FORM SUBMISSION FLOW: intercept "Get Pass" 
         // ============================================================
-        // Override renderAvailableEvents to intercept with form
-        const _origRenderAvailableEvents = renderAvailableEvents;
+        // renderAvailableEventsWithForm overrides renderAvailableEvents for form gating
         function renderAvailableEventsWithForm() {
             const sec = document.getElementById('hub-available-events-section');
             const grid = document.getElementById('hub-available-events-grid');
@@ -2711,8 +2560,7 @@
         // ============================================================
         // 5. PATCH switchAdminTab to include formsetup
         // ============================================================
-        const _baseSwitchAdminTab = switchAdminTab;
-        const switchAdminTab = (tabId) => {
+        function switchAdminTab(tabId) {
             document.querySelectorAll('.admin-content').forEach(el => el.classList.add('view-hidden'));
             document.querySelectorAll('.admin-tab').forEach(el => { el.classList.remove('brand-gradient', 'text-white', 'shadow-md', 'border-[#15274d]'); el.classList.add('text-slate-600', 'hover:bg-slate-100'); });
             const tabEl = document.getElementById(`tab-${tabId}`); if(tabEl) tabEl.classList.remove('view-hidden');
@@ -2726,9 +2574,8 @@
         };
 
         // ============================================================
-        // 6. PATCH renderHubConfigAdmin to call banners separately
+        // 6. renderHubConfigAdmin (calls banners separately)
         // ============================================================
-        const _origRHCA = renderHubConfigAdmin;
         function renderHubConfigAdmin() {
             renderHubConfigAdminBanners();
             const lList = document.getElementById('config-links-list'); if(!lList) return;

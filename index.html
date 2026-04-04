@@ -2677,7 +2677,13 @@
             try {
                 const rows = await apiCall('getFormResponses');
                 if (Array.isArray(rows)) { formResponses = rows; }
-            } catch(e) { console.warn('Could not load form responses from server:', e); }
+            } catch(e) {
+                // Silently ignore "Unknown action" — means Code_v6.gs hasn't been deployed yet.
+                // Responses will still be saved to sheet once GS is updated; no error shown to user.
+                if (!e.message || !e.message.includes('Unknown action')) {
+                    console.warn('Could not load form responses from server:', e);
+                }
+            }
         }
 
 
@@ -3155,7 +3161,11 @@
 
             try {
                 // Save to server (fire-and-forget — don't block pass claim on this)
-                apiCall('saveFormResponse', responsePayload).catch(e => console.warn('Form response save failed:', e));
+                apiCall('saveFormResponse', responsePayload).catch(e => {
+                    if (!e.message || !e.message.includes('Unknown action')) {
+                        console.warn('Form response save failed:', e);
+                    }
+                });
                 await claimEventPass(savedEventId, null);
                 closeModal('modal-form-submit');
                 showToast("Form submitted — pass claimed! 🎉", "success");
@@ -3313,8 +3323,10 @@
                 if (Array.isArray(state.participants) && state.participants.length > 0) {
                     const dbVips = state.participants.filter(p => p.role === 'Speaker');
                     dbVips.forEach(dbVip => {
-                        const isGlobal = vips.find(v => v.name && v.name.toLowerCase() === dbVip.name.toLowerCase());
-                        if (!isGlobal) { hasVips = true; const card = document.createElement('div'); card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70"; card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p><div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div></div>`; container.appendChild(card); }
+                        const dbName = String(dbVip.name || dbVip.full_name || '').toLowerCase().trim();
+                        if (!dbName) return; // skip rows with no name
+                        const isGlobal = vips.find(v => String(v.name || '').toLowerCase().trim() === dbName);
+                        if (!isGlobal) { hasVips = true; const card = document.createElement('div'); card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70"; card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${dbVip.name || dbVip.full_name || 'Unknown'}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p><div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div></div>`; container.appendChild(card); }
                     });
                 }
                 if(!hasVips) container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';

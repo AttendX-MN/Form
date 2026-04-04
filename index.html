@@ -16,7 +16,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
     <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
@@ -297,13 +297,14 @@
             </div>
 
             <!-- Banner Carousel -->
-            <div class="w-full h-44 md:h-56 rounded-[28px] overflow-hidden relative shadow-xl border border-slate-200/50 bg-slate-100">
+            <div class="w-full h-44 md:h-56 rounded-[28px] overflow-hidden relative shadow-xl border border-slate-200/50 bg-slate-100 cursor-pointer" onclick="handleBannerClick()">
                 <img id="hub-banner-img" src="" class="w-full h-full object-cover transition-opacity duration-700 ease-in-out"/>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <div class="absolute bottom-4 left-6 right-6 flex justify-between items-end">
                     <h3 class="text-white font-bold text-lg tracking-wide drop-shadow-md">Updates & Announcements</h3>
                     <div id="hub-banner-indicators" class="flex gap-1.5"></div>
                 </div>
+                <div id="hub-banner-link-badge" class="hidden absolute top-3 right-3 bg-black/40 text-white text-[9px] font-bold px-2 py-1 rounded-full backdrop-blur-sm flex items-center gap-1"><i data-lucide="external-link" class="w-3 h-3"></i> Tap to open</div>
             </div>
 
             <!-- Available/New Events -->
@@ -408,6 +409,25 @@
                         <div class="p-4 bg-yellow-50 border border-yellow-100 rounded-xl text-base landscape:text-lg md:text-lg text-slate-700 leading-relaxed font-medium" id="vip-notes-display">No special notes at this time.</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: FORM SUBMISSION (before getting pass)    -->
+        <!-- ============================================== -->
+        <div id="view-form-submit" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in w-full max-w-lg">
+            <div class="ios-card w-full p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 hub-gradient"></div>
+                <button onclick="cancelFormSubmit()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <div class="text-center mt-4 mb-6">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="clipboard-list" class="w-6 h-6"></i></div>
+                    <h2 class="text-xl font-black text-slate-800" id="form-submit-title">Event Registration Form</h2>
+                    <p class="text-xs text-slate-500 mt-1" id="form-submit-subtitle">Please fill in all required fields to get your pass.</p>
+                </div>
+                <div id="form-submit-fields" class="flex flex-col gap-4 mb-6"></div>
+                <button onclick="submitEventForm()" id="btn-submit-form" class="w-full brand-gradient text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                    <i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass
+                </button>
             </div>
         </div>
 
@@ -596,6 +616,7 @@
                 <button onclick="switchAdminTab('subevents')" id="tab-btn-subevents" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="calendar-plus" class="w-4 h-4"></i> Events Mgmt</button>
                 <button onclick="switchAdminTab('participants')" id="tab-btn-participants" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="users" class="w-4 h-4"></i> Participants</button>
                 <button onclick="switchAdminTab('hubconfig')" id="tab-btn-hubconfig" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="layout-grid" class="w-4 h-4"></i> Hub Setup</button>
+                <button onclick="switchAdminTab('formsetup')" id="tab-btn-formsetup" class="admin-tab w-full text-left px-4 py-3 rounded-xl transition flex items-center gap-3 font-semibold text-sm"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Form Setup</button>
             </aside>
 
             <main class="flex-1 w-full overflow-hidden relative h-full flex flex-col">
@@ -750,6 +771,23 @@
 
                 <!-- ADMIN VIP MGMT -->
                 <div id="tab-speaker" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
+                    <!-- MINI SCREEN PREVIEWS (TOP, COLLAPSIBLE) -->
+                    <div class="ios-card p-4 mb-5">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleMiniScreens()">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i data-lucide="monitor" class="w-4 h-4 text-slate-400"></i> Live VIP Screen Previews
+                            </h3>
+                            <button class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full flex items-center gap-1" id="mini-screen-toggle-btn">
+                                <i data-lucide="eye-off" class="w-3 h-3"></i> Hide
+                            </button>
+                        </div>
+                        <div id="vip-mini-screens-wrapper" class="mt-3">
+                            <div id="vip-mini-screens-grid" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">
+                                <p class="text-xs text-slate-400 italic col-span-full">No VIPs yet.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Generate VIP Pass -->
                         <div class="ios-card p-6 flex flex-col">
@@ -777,15 +815,6 @@
                                 </div>
                             </div>
 
-                            <!-- MINI VIP SCREEN PREVIEWS -->
-                            <div class="mt-5 border-t border-slate-100 pt-4">
-                                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-                                    <i data-lucide="monitor" class="w-4 h-4 text-slate-400"></i> Live VIP Screen Previews
-                                </h3>
-                                <div id="vip-mini-screens-grid" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">
-                                    <p class="text-xs text-slate-400 italic col-span-full">No VIPs yet.</p>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- VIP Live Controls -->
@@ -889,10 +918,31 @@
                 <!-- HUB SETUP TAB -->
                 <div id="tab-hubconfig" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="ios-card p-6">
-                            <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="image" class="text-[#76a8d1] w-5 h-5"></i>Banners</h2>
-                            <form onsubmit="addHubBanner(event)" class="flex gap-2 mb-4"><input type="url" id="hub-banner-url" required class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="Image URL"><button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold">Add</button></form>
-                            <div id="config-banners-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto"></div>
+                        <div class="ios-card p-6 md:col-span-2">
+                            <h2 class="text-lg font-black text-slate-800 mb-1 flex items-center gap-2"><i data-lucide="image" class="text-[#76a8d1] w-5 h-5"></i>Banners</h2>
+                            <p class="text-xs text-slate-400 mb-4">Canva size: <strong>1000 × 500 px</strong> (2:1 ratio). Images are compressed to Base64. Each banner can have a clickable link.</p>
+                            <div class="flex flex-col gap-3 mb-4">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Upload Banner Image</label>
+                                <input type="file" id="hub-banner-file" accept="image/*" class="w-full input-style rounded-xl px-3 py-2 text-sm" onchange="handleBannerFileSelect(event)">
+                                <!-- Cropper Preview -->
+                                <div id="banner-crop-area" class="hidden flex-col gap-2">
+                                    <div class="relative w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100" style="height:200px;">
+                                        <img id="banner-crop-img" class="max-w-full max-h-full block" style="display:block;"/>
+                                        <div id="banner-crop-overlay" class="absolute inset-0 flex items-center justify-center">
+                                            <div id="banner-crop-box" class="absolute border-2 border-[#76a8d1] cursor-move" style="width:80%;height:80%;top:10%;left:10%;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);">
+                                                <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white cursor-nwse-resize" data-corner="tl"></div>
+                                                <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white cursor-nesw-resize" data-corner="tr"></div>
+                                                <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white cursor-nesw-resize" data-corner="bl"></div>
+                                                <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white cursor-nwse-resize" data-corner="br"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400">Drag the box to crop the area you want to show.</p>
+                                </div>
+                                <input type="url" id="hub-banner-link" class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="Optional: Click link (e.g. https://forms.google.com/...)">
+                                <button type="button" onclick="addHubBannerBase64()" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold">Add Banner</button>
+                            </div>
+                            <div id="config-banners-list" class="flex flex-col gap-2 max-h-52 overflow-y-auto"></div>
                         </div>
                         <div class="ios-card p-6">
                             <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="link" class="text-indigo-500 w-5 h-5"></i>App Links</h2>
@@ -917,6 +967,85 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- FORM SETUP TAB -->
+                <div id="tab-formsetup" class="admin-content view-hidden animate-pop h-full overflow-y-auto pb-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Form Builder -->
+                        <div class="ios-card p-6 flex flex-col gap-4">
+                            <div class="flex items-center gap-2 mb-2"><i data-lucide="clipboard-list" class="text-emerald-500 w-5 h-5"></i><h2 class="text-lg font-black text-slate-800">Form Builder</h2></div>
+                            <p class="text-xs text-slate-400">Build a form that users must complete before getting a QR pass. You can assign a form per event or use a global form.</p>
+                            
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Form Title</label>
+                                <input type="text" id="form-title-input" class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="e.g. Event Attendance Form" value="Event Attendance Form">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Assign to Event</label>
+                                <select id="form-event-assign" class="w-full input-style rounded-xl px-3 py-2 text-sm appearance-none">
+                                    <option value="ALL">🌟 All Events (Global)</option>
+                                </select>
+                            </div>
+
+                            <div class="border-t border-slate-100 pt-4">
+                                <h3 class="text-sm font-bold text-slate-700 mb-3">Add Question</h3>
+                                <div class="flex flex-col gap-2">
+                                    <input type="text" id="q-label" class="w-full input-style rounded-xl px-3 py-2 text-sm" placeholder="Question label e.g. Status Kehadiran">
+                                    <select id="q-type" class="w-full input-style rounded-xl px-3 py-2 text-sm appearance-none" onchange="renderQTypeOptions()">
+                                        <option value="radio">Radio (Single Choice)</option>
+                                        <option value="checkbox">Checkbox (Multiple Choice)</option>
+                                        <option value="dropdown">Dropdown</option>
+                                        <option value="short">Short Text</option>
+                                        <option value="long">Long Text (Paragraph)</option>
+                                        <option value="date">Date</option>
+                                        <option value="number">Number</option>
+                                        <option value="scale">Rating Scale (1–5)</option>
+                                        <option value="yesno">Yes / No</option>
+                                        <option value="attendance">Hadir / Tidak Hadir (with reason)</option>
+                                    </select>
+                                    <div id="q-options-area" class="hidden flex-col gap-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Options (one per line)</label>
+                                        <textarea id="q-options" class="w-full input-style rounded-xl px-3 py-2 text-sm h-20" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
+                                            <input type="checkbox" id="q-required" checked class="w-4 h-4 accent-[#203a70]"> Required
+                                        </label>
+                                        <button type="button" onclick="addFormQuestion()" class="flex-1 bg-emerald-500 text-white py-2 rounded-xl text-sm font-bold">+ Add Question</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-slate-100 pt-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-sm font-bold text-slate-700">Questions</h3>
+                                    <span class="text-[10px] text-slate-400" id="q-count-label">0 questions</span>
+                                </div>
+                                <div id="form-questions-list" class="flex flex-col gap-2 max-h-60 overflow-y-auto"></div>
+                            </div>
+                            <button onclick="saveFormConfig()" class="w-full bg-[#15274d] text-white py-3 rounded-xl font-bold text-sm">Save Form Config</button>
+                        </div>
+
+                        <!-- Form Responses -->
+                        <div class="ios-card p-6 flex flex-col gap-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2"><i data-lucide="bar-chart-2" class="text-sky-500 w-5 h-5"></i><h2 class="text-lg font-black text-slate-800">Form Responses</h2></div>
+                                <select id="form-response-event-filter" class="input-style rounded-lg px-2 py-1 text-xs font-bold" onchange="renderFormResponses()">
+                                    <option value="ALL">All Events</option>
+                                </select>
+                            </div>
+                            <div id="form-response-summary" class="grid grid-cols-2 gap-3"></div>
+                            <div class="border-t border-slate-100 pt-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">All Submissions</h3>
+                                    <input type="text" id="form-response-search" placeholder="Search name..." class="input-style rounded-lg px-2 py-1 text-xs w-32" oninput="renderFormResponses()">
+                                </div>
+                                <div id="form-responses-table" class="overflow-y-auto max-h-[400px] flex flex-col gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
@@ -1113,7 +1242,7 @@
         }
 
         function routeTo(view) {
-            ['view-landing', 'view-register', 'view-user-login', 'view-vip-login', 'view-admin-login', 'view-hub', 'view-tools', 'view-profile', 'view-vip-dashboard'].forEach(v => {
+            ['view-landing', 'view-register', 'view-user-login', 'view-vip-login', 'view-admin-login', 'view-hub', 'view-tools', 'view-profile', 'view-vip-dashboard', 'view-form-submit'].forEach(v => {
                 const el = document.getElementById(v); if(el) el.classList.add('view-hidden');
             });
             const target = document.getElementById(`view-${view}`);
@@ -2094,6 +2223,771 @@
             } catch (err) { showToast("Failed to export Excel", "error"); }
         }
 
-    </script>
+    
+
+        // ============================================================
+        // 1. MINI SCREEN TOGGLE
+        // ============================================================
+        let miniScreensVisible = true;
+        function toggleMiniScreens() {
+            const wrapper = document.getElementById('vip-mini-screens-wrapper');
+            const btn = document.getElementById('mini-screen-toggle-btn');
+            miniScreensVisible = !miniScreensVisible;
+            if(miniScreensVisible) {
+                wrapper.style.display = '';
+                btn.innerHTML = '<i data-lucide="eye-off" class="w-3 h-3"></i> Hide';
+            } else {
+                wrapper.style.display = 'none';
+                btn.innerHTML = '<i data-lucide="eye" class="w-3 h-3"></i> Show';
+            }
+            lucide.createIcons({root: btn});
+        }
+
+        // ============================================================
+        // 2. BANNER BASE64 UPLOAD WITH CROP + LINK
+        // ============================================================
+        let bannerCropState = { img: null, box: { x: 0.1, y: 0.1, w: 0.8, h: 0.8 }, dragging: false, resizing: null, startX: 0, startY: 0 };
+        let bannerRawDataUrl = null;
+
+        function handleBannerFileSelect(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                bannerRawDataUrl = ev.target.result;
+                const img = document.getElementById('banner-crop-img');
+                img.src = bannerRawDataUrl;
+                img.onload = () => {
+                    document.getElementById('banner-crop-area').classList.remove('hidden');
+                    document.getElementById('banner-crop-area').classList.add('flex');
+                    setupCropListeners();
+                    updateCropBoxDisplay();
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateCropBoxDisplay() {
+            const overlay = document.getElementById('banner-crop-overlay');
+            const box = document.getElementById('banner-crop-box');
+            const W = overlay.offsetWidth; const H = overlay.offsetHeight;
+            const s = bannerCropState.box;
+            box.style.left = (s.x * W) + 'px';
+            box.style.top = (s.y * H) + 'px';
+            box.style.width = (s.w * W) + 'px';
+            box.style.height = (s.h * H) + 'px';
+        }
+
+        function setupCropListeners() {
+            const box = document.getElementById('banner-crop-box');
+            const overlay = document.getElementById('banner-crop-overlay');
+            // Drag box
+            box.onmousedown = box.ontouchstart = (e) => {
+                if(e.target.dataset.corner) return; // handled by corners
+                bannerCropState.dragging = true;
+                const pt = e.touches ? e.touches[0] : e;
+                bannerCropState.startX = pt.clientX; bannerCropState.startY = pt.clientY;
+                e.preventDefault();
+            };
+            // Resize corners
+            box.querySelectorAll('[data-corner]').forEach(corner => {
+                corner.onmousedown = corner.ontouchstart = (e) => {
+                    bannerCropState.resizing = e.currentTarget.dataset.corner;
+                    const pt = e.touches ? e.touches[0] : e;
+                    bannerCropState.startX = pt.clientX; bannerCropState.startY = pt.clientY;
+                    e.stopPropagation(); e.preventDefault();
+                };
+            });
+            document.onmousemove = document.ontouchmove = (e) => {
+                if(!bannerCropState.dragging && !bannerCropState.resizing) return;
+                const pt = e.touches ? e.touches[0] : e;
+                const dx = (pt.clientX - bannerCropState.startX) / overlay.offsetWidth;
+                const dy = (pt.clientY - bannerCropState.startY) / overlay.offsetHeight;
+                bannerCropState.startX = pt.clientX; bannerCropState.startY = pt.clientY;
+                let s = bannerCropState.box;
+                if(bannerCropState.dragging) {
+                    s.x = Math.max(0, Math.min(1 - s.w, s.x + dx));
+                    s.y = Math.max(0, Math.min(1 - s.h, s.y + dy));
+                } else {
+                    const c = bannerCropState.resizing;
+                    if(c.includes('r')) { s.w = Math.max(0.1, Math.min(1 - s.x, s.w + dx)); }
+                    if(c.includes('b')) { s.h = Math.max(0.1, Math.min(1 - s.y, s.h + dy)); }
+                    if(c.includes('l')) { const newX = s.x + dx; const newW = s.w - dx; if(newW > 0.1 && newX >= 0) { s.x = newX; s.w = newW; } }
+                    if(c.includes('t')) { const newY = s.y + dy; const newH = s.h - dy; if(newH > 0.1 && newY >= 0) { s.y = newY; s.h = newH; } }
+                }
+                updateCropBoxDisplay();
+                e.preventDefault();
+            };
+            document.onmouseup = document.ontouchend = () => { bannerCropState.dragging = false; bannerCropState.resizing = null; };
+        }
+
+        function cropAndCompressBanner() {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    const s = bannerCropState.box;
+                    const sx = Math.round(s.x * img.naturalWidth);
+                    const sy = Math.round(s.y * img.naturalHeight);
+                    const sw = Math.round(s.w * img.naturalWidth);
+                    const sh = Math.round(s.h * img.naturalHeight);
+                    // Target 1000x500 (2:1) compressed
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 1000; canvas.height = 500;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 1000, 500);
+                    // Compress: start at 0.7 quality, reduce if needed to stay under ~150KB base64
+                    let quality = 0.7;
+                    let result = canvas.toDataURL('image/jpeg', quality);
+                    while(result.length > 200000 && quality > 0.2) { quality -= 0.1; result = canvas.toDataURL('image/jpeg', quality); }
+                    resolve(result);
+                };
+                img.src = bannerRawDataUrl;
+            });
+        }
+
+        async function addHubBannerBase64() {
+            if(!bannerRawDataUrl) { showToast("Please select an image first", "warning"); return; }
+            showToast("Compressing image...", "info");
+            const base64 = await cropAndCompressBanner();
+            const link = document.getElementById('hub-banner-link').value.trim();
+            hubConfig.banners.push({ src: base64, link: link || null });
+            document.getElementById('hub-banner-file').value = '';
+            document.getElementById('hub-banner-link').value = '';
+            document.getElementById('banner-crop-area').classList.add('hidden');
+            document.getElementById('banner-crop-area').classList.remove('flex');
+            bannerRawDataUrl = null;
+            saveHubConfig();
+            showToast("Banner added!", "success");
+        }
+
+        // Legacy support: banners can be string URLs or {src, link} objects
+        function getBannerSrc(b) { return typeof b === 'string' ? b : (b.src || ''); }
+        function getBannerLink(b) { return typeof b === 'string' ? null : (b.link || null); }
+
+        function handleBannerClick() {
+            if(!hubConfig.banners || hubConfig.banners.length === 0) return;
+            const current = hubConfig.banners[bannerIdx];
+            const link = getBannerLink(current);
+            if(link) window.open(link, '_blank');
+        }
+
+        // ─── Patch startBannerRotator to support new banner format ───────────
+        function startBannerRotator() {
+            stopBannerRotator();
+            if (!hubConfig.banners || hubConfig.banners.length === 0) return;
+            const img = document.getElementById('hub-banner-img');
+            const badge = document.getElementById('hub-banner-link-badge');
+            const setImg = () => {
+                img.style.opacity = 0;
+                setTimeout(() => {
+                    const b = hubConfig.banners[bannerIdx];
+                    img.src = getBannerSrc(b);
+                    img.style.opacity = 1;
+                    renderHubBanners();
+                    if(badge) {
+                        const link = getBannerLink(b);
+                        if(link) { badge.classList.remove('hidden'); badge.classList.add('flex'); }
+                        else { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+                        lucide.createIcons({root: badge});
+                    }
+                }, 300);
+            };
+            setImg();
+            if (hubConfig.banners.length > 1) bannerInterval = setInterval(() => { bannerIdx = (bannerIdx + 1) % hubConfig.banners.length; setImg(); }, 5000);
+        }
+
+        // ─── Patch renderHubConfigAdmin banners to show new format ───────────
+        function renderHubConfigAdminBanners() {
+            const bList = document.getElementById('config-banners-list'); if(!bList) return;
+            bList.innerHTML = '';
+            if(hubConfig.banners) hubConfig.banners.forEach((b, i) => {
+                const src = getBannerSrc(b);
+                const link = getBannerLink(b);
+                bList.innerHTML += `<div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <img src="${src}" class="w-16 h-8 object-cover rounded flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[10px] text-slate-500 truncate">${src.startsWith('data:') ? '[Base64 Image]' : src}</div>
+                        ${link ? `<div class="text-[9px] text-sky-500 truncate">${link}</div>` : ''}
+                    </div>
+                    <button type="button" onclick="removeHubBanner(${i})" class="text-red-500 p-1 flex-shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>`;
+            });
+            lucide.createIcons({root: bList});
+        }
+
+        // ============================================================
+        // 3. FORM SETUP SYSTEM
+        // ============================================================
+        // formConfig stored in localStorage per event; responses stored in localStorage
+        let formConfig = JSON.parse(localStorage.getItem('mynuqoba_formconfig')) || {};
+        // formConfig = { ALL: { title, questions: [{id,label,type,options,required}] }, eventId: {...} }
+        let formResponses = JSON.parse(localStorage.getItem('mynuqoba_formresponses')) || [];
+        // formResponses = [{name, userId, eventId, eventName, ts, answers: {qId: value}}]
+
+        let pendingFormEventId = null; // set when user clicks "Get Pass" but form is needed
+        let pendingFormEventEl = null;
+
+        function saveFormConfig() {
+            const title = document.getElementById('form-title-input').value || 'Event Form';
+            const eventId = document.getElementById('form-event-assign').value || 'ALL';
+            const questions = getFormQuestions();
+            formConfig[eventId] = { title, questions };
+            localStorage.setItem('mynuqoba_formconfig', JSON.stringify(formConfig));
+            showToast("Form config saved!", "success");
+            renderFormResponses();
+        }
+
+        function getFormForEvent(eventId) {
+            return formConfig[eventId] || formConfig['ALL'] || null;
+        }
+
+        // Admin: add question
+        let tempQuestions = [];
+
+        function renderQTypeOptions() {
+            const type = document.getElementById('q-type').value;
+            const area = document.getElementById('q-options-area');
+            const needsOptions = ['radio','checkbox','dropdown'].includes(type);
+            if(needsOptions) { area.classList.remove('hidden'); area.classList.add('flex'); }
+            else { area.classList.add('hidden'); area.classList.remove('flex'); }
+        }
+
+        function addFormQuestion() {
+            const label = document.getElementById('q-label').value.trim();
+            const type = document.getElementById('q-type').value;
+            const required = document.getElementById('q-required').checked;
+            const optionsRaw = document.getElementById('q-options') ? document.getElementById('q-options').value : '';
+            if(!label) { showToast("Please enter a question label", "warning"); return; }
+            const options = optionsRaw.split('\n').map(o => o.trim()).filter(Boolean);
+            if(['radio','checkbox','dropdown'].includes(type) && options.length < 2) { showToast("Please enter at least 2 options", "warning"); return; }
+            tempQuestions.push({ id: 'q' + Date.now(), label, type, options, required });
+            document.getElementById('q-label').value = '';
+            document.getElementById('q-options').value = '';
+            renderAdminQuestionsList();
+        }
+
+        function getFormQuestions() { return [...tempQuestions]; }
+
+        function renderAdminQuestionsList() {
+            const list = document.getElementById('form-questions-list');
+            const countEl = document.getElementById('q-count-label');
+            if(!list) return;
+            countEl.innerText = `${tempQuestions.length} question${tempQuestions.length!==1?'s':''}`;
+            list.innerHTML = '';
+            tempQuestions.forEach((q, idx) => {
+                const typeLabels = {radio:'Radio',checkbox:'Checkbox',dropdown:'Dropdown',short:'Short Text',long:'Long Text',date:'Date',number:'Number',scale:'Rating (1-5)',yesno:'Yes/No',attendance:'Hadir/Tidak Hadir'};
+                list.innerHTML += `<div class="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-slate-800">${q.label}</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">${typeLabels[q.type]||q.type}${q.required?' · Required':''}</p>
+                        ${q.options.length ? `<p class="text-[9px] text-slate-400 mt-0.5">${q.options.join(', ')}</p>` : ''}
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="moveQuestion(${idx}, -1)" class="p-1 text-slate-400 hover:text-slate-700"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
+                        <button onclick="moveQuestion(${idx}, 1)" class="p-1 text-slate-400 hover:text-slate-700"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
+                        <button onclick="removeQuestion(${idx})" class="p-1 text-red-400 hover:text-red-600"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+                </div>`;
+            });
+            lucide.createIcons({root: list});
+        }
+
+        function moveQuestion(idx, dir) {
+            const newIdx = idx + dir;
+            if(newIdx < 0 || newIdx >= tempQuestions.length) return;
+            [tempQuestions[idx], tempQuestions[newIdx]] = [tempQuestions[newIdx], tempQuestions[idx]];
+            renderAdminQuestionsList();
+        }
+        function removeQuestion(idx) { tempQuestions.splice(idx, 1); renderAdminQuestionsList(); }
+
+        function renderFormResponses() {
+            const eventFilter = document.getElementById('form-response-event-filter') ? document.getElementById('form-response-event-filter').value : 'ALL';
+            const search = document.getElementById('form-response-search') ? document.getElementById('form-response-search').value.toLowerCase() : '';
+            let filtered = formResponses.filter(r => (eventFilter === 'ALL' || r.eventId === eventFilter));
+            if(search) filtered = filtered.filter(r => (r.name||'').toLowerCase().includes(search));
+
+            // Summary
+            const summary = document.getElementById('form-response-summary'); if(!summary) return;
+            const totalHadir = filtered.filter(r => Object.values(r.answers||{}).some(v => typeof v==='string' && v.toLowerCase().includes('hadir') && !v.toLowerCase().includes('tidak'))).length;
+            const totalTidak = filtered.filter(r => Object.values(r.answers||{}).some(v => typeof v==='string' && v.toLowerCase().includes('tidak hadir'))).length;
+            summary.innerHTML = `
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center"><p class="text-2xl font-black text-emerald-700">${filtered.length}</p><p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Total Submitted</p></div>
+                <div class="bg-sky-50 border border-sky-200 rounded-xl p-3 text-center"><p class="text-2xl font-black text-sky-700">${totalHadir}</p><p class="text-[10px] font-bold text-sky-600 uppercase tracking-widest">Hadir</p></div>
+                ${totalTidak > 0 ? `<div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center col-span-2"><p class="text-2xl font-black text-rose-700">${totalTidak}</p><p class="text-[10px] font-bold text-rose-600 uppercase tracking-widest">Tidak Hadir</p></div>` : ''}
+            `;
+
+            const table = document.getElementById('form-responses-table'); if(!table) return;
+            table.innerHTML = '';
+            if(filtered.length === 0) { table.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">No submissions yet.</p>'; return; }
+            filtered.slice().reverse().forEach(r => {
+                const answersHtml = Object.entries(r.answers||{}).map(([qid, val]) => {
+                    const q = (r.questions||[]).find(qq => qq.id === qid);
+                    const label = q ? q.label : qid;
+                    return `<p class="text-[10px] text-slate-500"><span class="font-bold">${label}:</span> ${Array.isArray(val) ? val.join(', ') : val}</p>`;
+                }).join('');
+                table.innerHTML += `<div class="p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="font-bold text-sm text-slate-800">${r.name||'Unknown'}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">${r.eventName||''}</p>
+                    </div>
+                    ${answersHtml}
+                    <p class="text-[9px] text-slate-300 mt-1">${new Date(r.ts).toLocaleString('en-GB')}</p>
+                </div>`;
+            });
+        }
+
+        function initFormSetupTab() {
+            // Load existing config into the builder
+            const eventId = document.getElementById('form-event-assign') ? document.getElementById('form-event-assign').value : 'ALL';
+            const existing = formConfig[eventId];
+            if(existing) {
+                document.getElementById('form-title-input').value = existing.title || 'Event Attendance Form';
+                tempQuestions = [...(existing.questions || [])];
+            } else {
+                tempQuestions = [];
+            }
+            renderAdminQuestionsList();
+            // Populate event dropdowns
+            const assignSel = document.getElementById('form-event-assign');
+            const filterSel = document.getElementById('form-response-event-filter');
+            if(assignSel) { assignSel.innerHTML = '<option value="ALL">🌟 All Events (Global)</option>'; state.subEvents.forEach(e => assignSel.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`); }
+            if(filterSel) { filterSel.innerHTML = '<option value="ALL">All Events</option>'; state.subEvents.forEach(e => filterSel.innerHTML += `<option value="${e.subevent_id}">${e.subevent_name}</option>`); }
+            renderFormResponses();
+        }
+
+        // ============================================================
+        // 4. FORM SUBMISSION FLOW: intercept "Get Pass" 
+        // ============================================================
+        // Override renderAvailableEvents to intercept with form
+        const _origRenderAvailableEvents = renderAvailableEvents;
+        function renderAvailableEventsWithForm() {
+            const sec = document.getElementById('hub-available-events-section');
+            const grid = document.getElementById('hub-available-events-grid');
+            if(!sec || !grid || !state.subEvents) return;
+            const myEventIds = new Set((appSession.qrs || []).map(q => q.subevent_id));
+            const hasUniversalPass = myEventIds.has('ALL');
+            const activeEvents = state.subEvents.filter(e => e.status === 'ACTIVE' && e.subevent_id !== 'ALL');
+            if(activeEvents.length > 0) {
+                grid.innerHTML = '';
+                activeEvents.forEach(ev => {
+                    const isClaimed = hasUniversalPass || myEventIds.has(ev.subevent_id);
+                    const card = document.createElement('div');
+                    card.className = "ios-card p-4 flex justify-between items-center border border-[#76a8d1]/30 shadow-sm";
+                    let actionBtn = isClaimed 
+                        ? `<button disabled class="bg-slate-200 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-none cursor-not-allowed border border-slate-300 opacity-70 select-none"><i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Pass Claimed</button>`
+                        : `<button onclick="handleGetPassClick('${ev.subevent_id}','${ev.subevent_name.replace(/'/g,"\'")}',this)" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition active:scale-95"><i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i>Get Pass</button>`;
+                    card.innerHTML = `<div class="flex-1 pr-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Available Session</p><h4 class="font-bold text-slate-800 text-sm leading-tight">${ev.subevent_name}</h4></div>${actionBtn}`;
+                    grid.appendChild(card);
+                });
+                sec.classList.remove('hidden'); sec.classList.add('flex');
+            } else { sec.classList.add('hidden'); sec.classList.remove('flex'); }
+            lucide.createIcons({root: grid});
+        }
+        // Replace the function
+        renderAvailableEvents = renderAvailableEventsWithForm;
+
+        function handleGetPassClick(eventId, eventName, btnEl) {
+            const form = getFormForEvent(eventId);
+            if(form && form.questions && form.questions.length > 0) {
+                // Show form first
+                pendingFormEventId = eventId;
+                pendingFormEventEl = btnEl;
+                openFormView(form, eventName, eventId);
+            } else {
+                // No form, claim directly
+                claimEventPass(eventId, btnEl);
+            }
+        }
+
+        function openFormView(form, eventName, eventId) {
+            document.getElementById('form-submit-title').innerText = form.title || 'Event Form';
+            document.getElementById('form-submit-subtitle').innerText = `For: ${eventName}`;
+            const fieldsEl = document.getElementById('form-submit-fields');
+            fieldsEl.innerHTML = '';
+            (form.questions || []).forEach(q => {
+                fieldsEl.appendChild(buildFormField(q));
+            });
+            lucide.createIcons({root: fieldsEl});
+            routeTo('form-submit');
+        }
+
+        function buildFormField(q) {
+            const wrap = document.createElement('div');
+            wrap.className = 'flex flex-col gap-1.5';
+            const reqStar = q.required ? '<span class="text-red-500 ml-0.5">*</span>' : '';
+            const label = `<label class="text-xs font-bold text-slate-700">${q.label}${reqStar}</label>`;
+            let control = '';
+            if(q.type === 'short') {
+                control = `<input type="text" data-qid="${q.id}" ${q.required?'required':''} class="w-full input-style rounded-xl px-4 py-2.5 text-sm" placeholder="Your answer">`;
+            } else if(q.type === 'long') {
+                control = `<textarea data-qid="${q.id}" ${q.required?'required':''} class="w-full input-style rounded-xl px-4 py-2.5 text-sm h-24" placeholder="Your answer..."></textarea>`;
+            } else if(q.type === 'date') {
+                control = `<input type="date" data-qid="${q.id}" ${q.required?'required':''} class="w-full input-style rounded-xl px-4 py-2.5 text-sm">`;
+            } else if(q.type === 'number') {
+                control = `<input type="number" data-qid="${q.id}" ${q.required?'required':''} class="w-full input-style rounded-xl px-4 py-2.5 text-sm" placeholder="0">`;
+            } else if(q.type === 'yesno') {
+                control = `<div class="flex gap-3">${['Ya','Tidak'].map(opt=>`<label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700"><input type="radio" name="${q.id}" data-qid="${q.id}" value="${opt}" class="w-4 h-4 accent-[#203a70]" ${q.required?'required':''}> ${opt}</label>`).join('')}</div>`;
+            } else if(q.type === 'scale') {
+                control = `<div class="flex gap-2 flex-wrap">${[1,2,3,4,5].map(n=>`<label class="flex flex-col items-center gap-1 cursor-pointer"><input type="radio" name="${q.id}" data-qid="${q.id}" value="${n}" class="w-4 h-4 accent-[#203a70]" ${q.required?'required':''}><span class="text-xs font-bold text-slate-600">${n}</span></label>`).join('')}</div>`;
+            } else if(q.type === 'attendance') {
+                control = `<div class="flex flex-col gap-2">
+                    <div class="flex gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700"><input type="radio" name="${q.id}" data-qid="${q.id}" value="Hadir" class="w-4 h-4 accent-emerald-500" onclick="toggleAttendanceReason('${q.id}', false)" ${q.required?'required':''}> ✅ Hadir</label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700"><input type="radio" name="${q.id}" data-qid="${q.id}" value="Tidak Hadir" class="w-4 h-4 accent-rose-500" onclick="toggleAttendanceReason('${q.id}', true)" ${q.required?'required':''}> ❌ Tidak Hadir</label>
+                    </div>
+                    <div id="reason-box-${q.id}" class="hidden"><input type="text" data-qid="${q.id}-reason" class="w-full input-style rounded-xl px-4 py-2.5 text-sm" placeholder="Sebab tidak hadir..."></div>
+                </div>`;
+            } else if(q.type === 'radio') {
+                control = `<div class="flex flex-col gap-2">${(q.options||[]).map(opt=>`<label class="flex items-center gap-2 cursor-pointer text-sm text-slate-700 font-medium"><input type="radio" name="${q.id}" data-qid="${q.id}" value="${opt}" class="w-4 h-4 accent-[#203a70]" ${q.required?'required':''}> ${opt}</label>`).join('')}</div>`;
+            } else if(q.type === 'checkbox') {
+                control = `<div class="flex flex-col gap-2">${(q.options||[]).map(opt=>`<label class="flex items-center gap-2 cursor-pointer text-sm text-slate-700 font-medium"><input type="checkbox" data-qid="${q.id}" data-cbgroup="${q.id}" value="${opt}" class="w-4 h-4 accent-[#203a70]"> ${opt}</label>`).join('')}</div>`;
+            } else if(q.type === 'dropdown') {
+                control = `<select data-qid="${q.id}" ${q.required?'required':''} class="w-full input-style rounded-xl px-4 py-2.5 text-sm appearance-none"><option value="" disabled selected>Select an option</option>${(q.options||[]).map(opt=>`<option value="${opt}">${opt}</option>`).join('')}</select>`;
+            }
+            wrap.innerHTML = label + control;
+            return wrap;
+        }
+
+        function toggleAttendanceReason(qId, show) {
+            const box = document.getElementById(`reason-box-${qId}`);
+            if(box) { box.classList.toggle('hidden', !show); box.classList.toggle('flex', show); }
+        }
+
+        function cancelFormSubmit() {
+            pendingFormEventId = null; pendingFormEventEl = null;
+            routeTo('hub');
+        }
+
+        async function submitEventForm() {
+            const form = getFormForEvent(pendingFormEventId);
+            if(!form) { await claimEventPass(pendingFormEventId, pendingFormEventEl); routeTo('hub'); return; }
+            const fieldsEl = document.getElementById('form-submit-fields');
+            const answers = {};
+            let valid = true;
+            (form.questions || []).forEach(q => {
+                let val;
+                if(q.type === 'checkbox') {
+                    val = [...fieldsEl.querySelectorAll(`[data-cbgroup="${q.id}"]:checked`)].map(cb => cb.value);
+                    if(q.required && val.length === 0) { valid = false; showToast(`"${q.label}" is required`, "warning"); }
+                } else if(q.type === 'attendance') {
+                    const radioVal = fieldsEl.querySelector(`input[name="${q.id}"]:checked`);
+                    if(q.required && !radioVal) { valid = false; showToast(`"${q.label}" is required`, "warning"); return; }
+                    val = radioVal ? radioVal.value : '';
+                    if(val === 'Tidak Hadir') {
+                        const reasonInput = fieldsEl.querySelector(`[data-qid="${q.id}-reason"]`);
+                        const reason = reasonInput ? reasonInput.value.trim() : '';
+                        val = reason ? `Tidak Hadir (${reason})` : 'Tidak Hadir';
+                    }
+                } else if(['radio','yesno','scale'].includes(q.type)) {
+                    const r = fieldsEl.querySelector(`input[name="${q.id}"]:checked`);
+                    if(q.required && !r) { valid = false; showToast(`"${q.label}" is required`, "warning"); return; }
+                    val = r ? r.value : '';
+                } else {
+                    const el = fieldsEl.querySelector(`[data-qid="${q.id}"]`);
+                    val = el ? el.value.trim() : '';
+                    if(q.required && !val) { valid = false; showToast(`"${q.label}" is required`, "warning"); }
+                }
+                answers[q.id] = val;
+            });
+            if(!valid) return;
+
+            // Save response
+            const evName = (state.subEvents.find(e => e.subevent_id === pendingFormEventId)||{}).subevent_name || pendingFormEventId;
+            formResponses.push({ name: appSession.name, userId: appSession.id, eventId: pendingFormEventId, eventName: evName, ts: Date.now(), answers, questions: form.questions });
+            localStorage.setItem('mynuqoba_formresponses', JSON.stringify(formResponses));
+
+            const btn = document.getElementById('btn-submit-form');
+            btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
+            try {
+                await claimEventPass(pendingFormEventId, null);
+                routeTo('hub');
+                showToast("Form submitted & pass claimed!", "success");
+            } catch(e) {
+                btn.innerHTML = `<i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass`; btn.disabled = false;
+                lucide.createIcons({root: btn});
+            }
+            pendingFormEventId = null; pendingFormEventEl = null;
+        }
+
+        // ============================================================
+        // 5. PATCH switchAdminTab to include formsetup
+        // ============================================================
+        const _baseSwitchAdminTab = switchAdminTab;
+        const switchAdminTab = (tabId) => {
+            document.querySelectorAll('.admin-content').forEach(el => el.classList.add('view-hidden'));
+            document.querySelectorAll('.admin-tab').forEach(el => { el.classList.remove('brand-gradient', 'text-white', 'shadow-md', 'border-[#15274d]'); el.classList.add('text-slate-600', 'hover:bg-slate-100'); });
+            const tabEl = document.getElementById(`tab-${tabId}`); if(tabEl) tabEl.classList.remove('view-hidden');
+            const btn = document.getElementById(`tab-btn-${tabId}`); 
+            if(btn) { btn.classList.remove('text-slate-600', 'hover:bg-slate-100'); btn.classList.add('brand-gradient', 'text-white', 'shadow-md', 'border', 'border-[#15274d]'); }
+            if(tabId === 'scanner') setTimeout(() => { const si = document.getElementById('scanner-input'); if(si) si.focus(); }, 100);
+            if(tabId === 'speaker') { renderAdminVipList(); }
+            if(tabId === 'hubconfig') { renderHubConfigAdmin(); renderHubConfigAdminBanners(); }
+            if(tabId === 'formsetup') initFormSetupTab();
+            if(tabId === 'live') { fetchLiveUpdates(); state.liveInterval = setInterval(fetchLiveUpdates, 3000); } else clearInterval(state.liveInterval);
+        };
+
+        // ============================================================
+        // 6. PATCH renderHubConfigAdmin to call banners separately
+        // ============================================================
+        const _origRHCA = renderHubConfigAdmin;
+        function renderHubConfigAdmin() {
+            renderHubConfigAdminBanners();
+            const lList = document.getElementById('config-links-list'); if(!lList) return;
+            lList.innerHTML = '';
+            if(hubConfig.links) hubConfig.links.forEach((link, i) => {
+                let imgOrIcon = link.icon && link.icon.startsWith('data:image') ? `<img src="${link.icon}" class="w-6 h-6 rounded object-cover">` : `<i data-lucide="${link.icon||'link'}" class="w-4 h-4"></i>`;
+                lList.innerHTML += `<div class="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-100"><div class="p-1 bg-slate-200 text-slate-600 rounded-md shrink-0 w-8 h-8 flex items-center justify-center">${imgOrIcon}</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-slate-700 truncate">${link.title}</p><p class="text-[9px] text-slate-400 truncate">${link.url}</p></div><button type="button" onclick="removeHubLink(${i})" class="text-red-500 p-1 shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
+            });
+            const fList = document.getElementById('config-fields-list'); if(!fList) return;
+            fList.innerHTML = '';
+            if(hubConfig.profileFields) hubConfig.profileFields.forEach((f, i) => fList.innerHTML += `<div class="bg-[#76a8d1]/10 text-[#203a70] border border-[#76a8d1]/20 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">${f} <button type="button" onclick="removeProfileField(${i})" class="text-red-500 hover:text-red-700"><i data-lucide="x" class="w-3 h-3"></i></button></div>`);
+            lucide.createIcons();
+        }
+
+        // ============================================================
+        // 7. BACKEND: global_vips in separate sheet (Code.gs patch note)
+        //    Front-end: store each VIP in separate key "vip_<otp>" instead of global_vips array
+        //    to avoid hitting 50k char limit on App_State rows
+        // ============================================================
+        // Override handleSpeakerReg to use per-VIP keys
+        async function handleSpeakerReg(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-gen-vip');
+            btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
+            try {
+                const name = document.getElementById('spk-name').value;
+                const qrs = await apiCall('registerSpeaker', { name, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value });
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                // Store each VIP separately to avoid 50k char limit
+                await apiCall('updateVipState', {key: `vip_${otp}`, value: { name, otp, qrs, active: true }});
+                // Keep an index of OTPs (small list)
+                const vipStateData = await apiCall('getVipState');
+                let otpIndex = vipStateData.vip_otp_index || [];
+                if(!otpIndex.includes(otp)) otpIndex.push(otp);
+                await apiCall('updateVipState', {key: 'vip_otp_index', value: otpIndex});
+
+                document.getElementById('vip-generated-otp').innerText = otp;
+                document.getElementById('vip-generated-result').classList.remove('hidden');
+                document.getElementById('spk-name').value = '';
+                showToast("VIP OTP Generated", "success");
+                await refreshCachedVips();
+                renderAdminVipList();
+                populateVipTargetSelector(cachedGlobalVips);
+            } catch (err) { showToast("Failed to generate VIP: " + err.message, "error"); }
+            finally { btn.innerHTML = `<i data-lucide="crown" class="w-4 h-4 inline"></i> Generate & Get OTP`; btn.disabled = false; lucide.createIcons({root: btn}); }
+        }
+
+        async function refreshCachedVips() {
+            const vipStateData = await apiCall('getVipState');
+            const otpIndex = vipStateData.vip_otp_index || [];
+            // Also support legacy global_vips
+            const legacyVips = vipStateData.global_vips || [];
+            const perVips = [];
+            for(const otp of otpIndex) {
+                const v = vipStateData[`vip_${otp}`];
+                if(v) perVips.push(v);
+            }
+            // Merge, dedup by otp
+            const all = [...perVips];
+            legacyVips.forEach(lv => { if(!all.find(v => v.otp === lv.otp)) all.push(lv); });
+            cachedGlobalVips = all;
+            return all;
+        }
+
+        // Override handleVipLogin to support both storage formats
+        async function handleVipLogin(e) {
+            e.preventDefault(); 
+            const otp = document.getElementById('vip-otp-input').value;
+            const btn = e.submitter;
+            if(btn) { btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true; }
+            try {
+                const vipStateData = await apiCall('getVipState');
+                // Try per-key first
+                const perKeyVip = vipStateData[`vip_${otp}`];
+                // Try legacy global_vips
+                const globalVips = vipStateData.global_vips || [];
+                const legacyVip = globalVips.find(v => v.otp === otp && v.active);
+                const vip = (perKeyVip && perKeyVip.active) ? perKeyVip : legacyVip;
+                
+                if(vip) {
+                    appSession = { type: 'vip', name: vip.name, qrs: vip.qrs, profile: {} };
+                    localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                    initApp();
+                } else {
+                    const localVip = hubConfig.vips.find(v => v.otp === otp && v.active);
+                    if (localVip) {
+                        appSession = { type: 'vip', name: localVip.name, qrs: localVip.qrs, profile: {} };
+                        localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                        initApp();
+                    } else showToast("Invalid or expired OTP", "error");
+                }
+            } catch(err) { showToast("Failed to verify OTP", "error"); }
+            finally { if(btn) { btn.innerHTML = `Verify & Enter`; btn.disabled = false; } }
+        }
+
+        // Override renderAdminVipList to use per-key storage
+        async function renderAdminVipList() {
+            const container = document.getElementById('vip-admin-list');
+            if(!container) return;
+            container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Loading VIPs...</p>';
+            try {
+                const vips = await refreshCachedVips();
+                populateVipTargetSelector(vips);
+                let hasVips = false;
+                container.innerHTML = '';
+                if(vips.length > 0) {
+                    hasVips = true;
+                    vips.slice().reverse().forEach((vip, idx) => {
+                        const realIdx = vips.length - 1 - idx;
+                        const subevent = vip.qrs && vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
+                        const card = document.createElement('div');
+                        card.className = "p-3 border border-slate-100 rounded-xl bg-white flex justify-between items-center gap-3 shadow-sm mb-3";
+                        card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${vip.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${subevent.replace(/\[#\d+\]\s/, '')}</p><div class="mt-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OTP: ${vip.otp}</div></div><div class="w-12 h-12 bg-slate-50 rounded-lg border border-slate-200 shrink-0 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors group relative" onclick="zoomAdminVipQr('${vip.otp}')" id="admin-vip-qr-${realIdx}"><div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 rounded-lg"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div></div>`;
+                        container.appendChild(card);
+                        if(vip.qrs && vip.qrs.length > 0) {
+                            const qrText = `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}`;
+                            new QRCode(document.getElementById(`admin-vip-qr-${realIdx}`), { text: qrText, width: 44, height: 44, colorDark:"#0f172a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
+                        }
+                    });
+                }
+                const dbVips = state.participants.filter(p => p.role === 'Speaker');
+                dbVips.forEach(dbVip => {
+                    const isGlobal = vips.find(v => v.name && v.name.toLowerCase() === dbVip.name.toLowerCase());
+                    if (!isGlobal) { hasVips = true; const card = document.createElement('div'); card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70"; card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p><div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div></div>`; container.appendChild(card); }
+                });
+                if(!hasVips) container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';
+                lucide.createIcons({root: container});
+                renderVipMiniScreens(vips);
+            } catch(e) { container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Failed to load VIPs.</p>'; }
+        }
+
+        // Override fetchGlobalState to use per-key VIP storage  
+        async function fetchGlobalState() {
+            try {
+                const newState = await apiCall('getVipState');
+                if (newState.notes !== undefined) {
+                    renderNotesWithLinks(newState.notes || '');
+                    if(document.getElementById('vip-notes-input') && !document.getElementById('vip-notes-input').matches(':focus')) {
+                        document.getElementById('vip-notes-input').value = newState.notes || '';
+                    }
+                }
+                if (newState.broadcast && newState.broadcast.ts > lastBroadcastTs) {
+                    const isRecent = (Date.now() - newState.broadcast.ts) < 15000;
+                    if (lastBroadcastTs !== 0 || isRecent) { 
+                        const targetOtp = newState.broadcast.targetOtp;
+                        let shouldShow = false;
+                        if(appSession.type === 'vip') {
+                            shouldShow = (!targetOtp || targetOtp === 'ALL');
+                            if(!shouldShow && cachedGlobalVips.length > 0) {
+                                const myVip = cachedGlobalVips.find(v => v.name === appSession.name);
+                                if(myVip && myVip.otp === targetOtp) shouldShow = true;
+                            }
+                        } else if(appSession.type === 'admin') { shouldShow = true; }
+                        if(shouldShow) {
+                            const ov = document.getElementById('vip-broadcast-overlay');
+                            if (ov) {
+                                document.getElementById('vip-broadcast-msg').innerText = newState.broadcast.msg;
+                                openModal('vip-broadcast-overlay');
+                                playSound('scan');
+                                const dismissSecs = newState.broadcast.dismissSecs || 0;
+                                clearTimeout(broadcastDismissTimeout);
+                                if(dismissSecs > 0) broadcastDismissTimeout = setTimeout(() => closeModal('vip-broadcast-overlay'), dismissSecs * 1000);
+                            }
+                        }
+                    }
+                    lastBroadcastTs = newState.broadcast.ts;
+                }
+                if (newState.timer) {
+                    globalVipState.timer = newState.timer;
+                    if(appSession.type === 'vip' && newState.timer.status === 'running' && lastTimerStatus !== 'running') {
+                        const mins = Math.round(newState.timer.duration / 60000);
+                        const announceMsg = document.getElementById('vip-timer-announce-msg');
+                        if (announceMsg) announceMsg.innerText = `Masa diberi ${mins} minit, terima kasih`;
+                        openModal('vip-timer-announcement'); playSound('success');
+                        setTimeout(() => { closeModal('vip-timer-announcement'); }, 3000);
+                    }
+                    if (appSession.type === 'vip') {
+                        const qrSec = document.getElementById('vip-qr-section');
+                        let isPassUsed = appSession.qrs && appSession.qrs.length > 0 && appSession.qrs[0].status === 'USED';
+                        if (qrSec) {
+                            if (newState.timer.status === 'running' || newState.timer.status === 'paused' || isPassUsed) {
+                                qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s';
+                                setTimeout(() => qrSec.classList.add('hidden'), 500); 
+                            } else {
+                                qrSec.classList.remove('hidden');
+                                setTimeout(() => { qrSec.style.opacity = '1'; qrSec.style.transition = 'opacity 0.5s'; }, 10);
+                                const qrBox = document.getElementById('vip-qr-box');
+                                if (qrBox) qrBox.style.opacity = '1';
+                            }
+                        }
+                    }
+                    lastTimerStatus = newState.timer.status;
+                }
+                globalVipState = newState;
+                if(appSession.type === 'admin') renderVipMiniScreens(cachedGlobalVips);
+                if(appSession.type === 'vip' && currentViewingQrId) {
+                    const statusRes = await robustCheckPassStatus(currentViewingQrId, appSession.name, appSession.qrs[0].subevent_name);
+                    if(statusRes && statusRes.status === 'USED') {
+                        currentViewingQrId = null; 
+                        if(appSession.qrs.length > 0) { appSession.qrs[0].status = 'USED'; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); }
+                        const qrSec = document.getElementById('vip-qr-section');
+                        const qrBox = document.getElementById('vip-qr-box');
+                        if (qrSec) {
+                            const badge = document.getElementById('vip-qr-scanned-badge');
+                            if (badge) badge.classList.remove('hidden');
+                            if (qrBox) { qrBox.style.opacity = '0.2'; qrBox.style.transition = 'opacity 0.5s'; }
+                            setTimeout(() => { qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s'; setTimeout(() => { qrSec.classList.add('hidden'); }, 500); }, 1000);
+                        }
+                        document.getElementById('success-overlay-name').innerText = appSession.name;
+                        document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
+                        openModal('participant-success-overlay'); playSound('success');
+                        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // ============================================================
+        // 8. SCANNER: show pass count per selected event
+        // ============================================================
+        // Patch updateScannerEventInfo to show event-specific pass count
+        function updateScannerEventInfo() {
+            const sel = document.getElementById('scanner-event-select'); if(!sel || !sel.value) return;
+            const ev = state.subEvents.find(e => e.subevent_id === sel.value);
+            if(ev) { 
+                const nameEl = document.getElementById('info-event-name'); if(nameEl) nameEl.innerText = ev.subevent_name; 
+                const titleEl = document.getElementById('scanner-main-title'); if(titleEl) titleEl.innerText = `SCANNER - ${ev.subevent_name.toUpperCase()}`; 
+                const timeEl = document.getElementById('info-event-time');
+                if(timeEl) {
+                    try { timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`; }
+                    catch(e) { timeEl.innerText = `${ev.start_time} - ${ev.end_time}`; }
+                }
+            }
+            // Total pass holders for this event
+            const eventPassCount = (state.qrCodes || []).filter(q => q.subevent_id === sel.value || q.subevent_id === 'ALL').length;
+            const totalReg = eventPassCount || state.participants.length; 
+            const trEl = document.getElementById('stat-total-reg'); if(trEl) trEl.innerText = totalReg; 
+            const ssEl = document.getElementById('stat-session-scans'); if(ssEl) ssEl.innerText = state.localSessionCount;
+            let percent = totalReg > 0 ? Math.min(100, Math.round((state.localSessionCount / totalReg) * 100)) : 0;
+            const pbEl = document.getElementById('stat-progress-bar'); if(pbEl) pbEl.style.width = `${percent}%`; 
+            const ptEl = document.getElementById('stat-progress-text'); if(ptEl) ptEl.innerText = `${percent}%`;
+            const subEl = document.getElementById('stat-progress-sub'); if(subEl) subEl.innerText = `${state.localSessionCount} / ${totalReg} Participants`;
+        }
+
+        // Patch loadAdminData to also load QR codes
+        async function loadAdminData() {
+            try {
+                const data = await apiCall('getAllData', { adminPass: state.adminPass });
+                state.subEvents = data.subEvents || []; 
+                state.participants = data.participants || []; 
+                state.logs = data.logs || [];
+                state.qrCodes = data.qrCodes || [];
+                renderSubEvents(); renderParticipants(); refreshEventDropdowns(); updateScannerEventInfo(); renderHubConfigAdmin(); renderAdminVipList();
+            } catch(e) {
+                console.error("loadAdminData Error:", e);
+                showToast("Failed to sync with database. Retrying...", "warning");
+            }
+        }
+
+</script>
 </body>
 </html>

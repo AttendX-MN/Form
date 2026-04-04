@@ -435,23 +435,40 @@
         <!-- VIEW: FORM SUBMISSION (before getting pass)    -->
         <!-- ============================================== -->
         <!-- Form Submit Modal (popup overlay — replaces the old view-form-submit page) -->
-        <div id="modal-form-submit" class="fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-sm hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300 px-4">
-            <div id="modal-form-submit-inner" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col transform scale-95 transition-transform duration-300 max-h-[90vh]">
-                <div class="w-full h-2 hub-gradient shrink-0"></div>
-                <div class="flex items-center justify-between px-6 pt-5 pb-3 shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
-                        <div>
-                            <h2 class="text-lg font-black text-slate-800 leading-tight" id="form-submit-title">Event Registration Form</h2>
-                            <p class="text-xs text-slate-500" id="form-submit-subtitle">Fill in all required fields to get your pass.</p>
-                        </div>
+        <div id="modal-form-submit" class="fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-sm hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+            <div id="modal-form-submit-inner" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col transform scale-95 transition-transform duration-300 max-h-[92vh]">
+                <!-- Top accent bar -->
+                <div class="w-full h-1.5 hub-gradient shrink-0"></div>
+
+                <!-- Header -->
+                <div class="flex items-start gap-3 px-6 pt-5 pb-3 shrink-0 border-b border-slate-100">
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                     </div>
-                    <button onclick="cancelFormSubmit()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full p-2 transition shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-lg font-black text-slate-800 leading-tight" id="form-submit-title">Event Registration Form</h2>
+                        <p class="text-xs text-slate-500 mt-0.5" id="form-submit-subtitle">Fill in all required fields to get your pass.</p>
+                    </div>
                 </div>
-                <div id="form-submit-fields" class="flex flex-col gap-4 px-6 py-2 overflow-y-auto flex-1"></div>
-                <div class="px-6 py-5 border-t border-slate-100 shrink-0">
-                    <button onclick="submitEventForm()" id="btn-submit-form" class="w-full brand-gradient text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
-                        <i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass
+
+                <!-- Mandatory notice banner -->
+                <div class="mx-6 mt-4 shrink-0 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                    <i data-lucide="lock" class="w-4 h-4 text-amber-600 shrink-0"></i>
+                    <p class="text-xs font-semibold text-amber-700">You <strong>must</strong> complete and submit this form to receive your pass.</p>
+                </div>
+
+                <!-- Scrollable fields -->
+                <div id="form-submit-fields" class="flex flex-col gap-4 px-6 py-4 overflow-y-auto flex-1 min-h-0"></div>
+
+                <!-- Footer actions -->
+                <div class="px-6 pb-6 pt-3 border-t border-slate-100 shrink-0 flex flex-col gap-2">
+                    <button onclick="submitEventForm()" id="btn-submit-form"
+                        class="w-full brand-gradient text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition active:scale-95 shadow-md">
+                        <i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get My Pass
+                    </button>
+                    <button onclick="cancelFormSubmit()"
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-semibold py-2.5 rounded-xl text-sm transition active:scale-95">
+                        Cancel &mdash; I don't want this pass
                     </button>
                 </div>
             </div>
@@ -1853,20 +1870,69 @@
         }
         
         function togglePassesModal() {
-            if(!appSession || appSession.type !== 'user' || !appSession.qrs || appSession.qrs.length === 0) { showToast("No passes available.", "warning"); return; }
+            if (!appSession || appSession.type !== 'user' || !appSession.qrs || appSession.qrs.length === 0) {
+                showToast("No passes available.", "warning"); return;
+            }
             const container = document.getElementById('hub-qr-container');
             container.innerHTML = '';
-            appSession.qrs.slice().reverse().forEach((data) => { 
-                const isExpired = data.status === 'USED';
-                const cleanName = data.subevent_name.replace(/\[#\d+\]\s/, '');
-                const card = document.createElement('div'); card.className = "w-full bg-white rounded-2xl border border-slate-200 p-4 shadow-sm relative overflow-hidden flex items-center gap-4 cursor-pointer hover:border-[#76a8d1] transition-colors group";
+
+            const passes = appSession.qrs.slice().reverse();
+            const qrDataMap = []; // collect {el, data} to render QRs after modal opens
+
+            passes.forEach((data) => {
+                const isExpired  = data.status === 'USED';
+                const cleanName  = data.subevent_name.replace(/\[#\d+\]\s/, '');
+                const statusBadge = isExpired
+                    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block bg-slate-100 text-slate-400">✕ USED</span>`
+                    : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block bg-emerald-50 text-emerald-600 border border-emerald-100">✓ VALID</span>`;
+
+                const card = document.createElement('div');
+                // shrink-0 is the critical fix — cards NEVER compress regardless of count
+                card.className = "shrink-0 w-full bg-white rounded-2xl border border-slate-200 shadow-sm relative flex items-center gap-3 cursor-pointer hover:border-[#76a8d1] hover:shadow-md transition-all group active:scale-[0.98]";
                 card.onclick = () => zoomUserBoardingPass(data);
-                card.innerHTML = `<div class="w-16 h-16 shrink-0 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center p-1 relative" id="pass-qr-${data.qr_id}"><div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 rounded-xl"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div></div><div class="flex-1 min-w-0"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${data.lajnah}</p><h4 class="font-bold text-slate-800 text-sm truncate">${cleanName}</h4><span class="text-[10px] font-bold px-2 py-0.5 rounded-sm mt-1 inline-block ${isExpired?'bg-slate-100 text-slate-500':'bg-[#76a8d1]/20 text-[#203a70]'}">${isExpired?'EXPIRED':'VALID'}</span></div>`;
+
+                const qrHolderId = `pass-qr-${data.qr_id}`;
+                card.innerHTML = `
+                    <div class="shrink-0 w-[72px] h-[72px] bg-slate-50 border-r border-slate-100 rounded-l-2xl flex items-center justify-center overflow-hidden relative" id="${qrHolderId}">
+                        <div class="absolute inset-0 bg-[#203a70]/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
+                            <i data-lucide="maximize-2" class="w-4 h-4 text-[#203a70]"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0 py-3 pr-4">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">${data.lajnah}</p>
+                        <h4 class="font-bold text-slate-800 text-sm leading-snug" style="word-break:break-word;white-space:normal;">${cleanName}</h4>
+                        <div class="mt-1.5">${statusBadge}</div>
+                    </div>
+                    <div class="shrink-0 pr-3 text-slate-300 group-hover:text-[#76a8d1] transition-colors">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </div>`;
+
                 container.appendChild(card);
-                new QRCode(document.getElementById(`pass-qr-${data.qr_id}`), { text: `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`, width: 60, height: 60, colorDark: isExpired?"#94a3b8":"#0f172a", correctLevel: QRCode.CorrectLevel.L });
+                qrDataMap.push({ id: qrHolderId, data, isExpired });
             });
-            lucide.createIcons({root: container});
+
+            lucide.createIcons({ root: container });
             openModal('modal-passes');
+
+            // Render QR codes AFTER the modal is visible to avoid layout jank
+            setTimeout(() => {
+                qrDataMap.forEach(({ id, data, isExpired }) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    try {
+                        new QRCode(el, {
+                            text: `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`,
+                            width: 64, height: 64,
+                            colorDark:  isExpired ? '#94a3b8' : '#0f172a',
+                            colorLight: '#f8fafc',
+                            correctLevel: QRCode.CorrectLevel.L
+                        });
+                        // Scale the generated img/canvas to exactly fill container
+                        const child = el.querySelector('img, canvas');
+                        if (child) { child.style.width = '100%'; child.style.height = '100%'; child.style.display = 'block'; }
+                    } catch(e) {}
+                });
+            }, 350); // wait for modal open animation
         }
 
         function zoomUserBoardingPass(data) {
@@ -2647,15 +2713,31 @@
         // ============================================================
 
         async function handleGetPassClick(eventId, eventName, btnEl) {
-            // Always load latest form config from server before deciding
-            await loadFormConfigFromServer();
-            const form = getFormForEvent(eventId);
-            if (form && form.questions && form.questions.length > 0) {
-                pendingFormEventId  = eventId;
-                pendingFormEventEl  = btnEl;
-                openFormView(form, eventName, eventId);
-            } else {
-                claimEventPass(eventId, btnEl);
+            // Show loading state on button immediately
+            const origHtml = btnEl ? btnEl.innerHTML : '';
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = `<div class="loader mx-auto" style="width:14px;height:14px;border-width:2px;border-top-color:white;"></div>`;
+            }
+
+            try {
+                // Always fetch latest form config from server before deciding
+                await loadFormConfigFromServer();
+                const form = getFormForEvent(eventId);
+
+                if (form && form.questions && form.questions.length > 0) {
+                    // Form exists → MUST complete form to get pass
+                    pendingFormEventId = eventId;
+                    pendingFormEventEl = btnEl;
+                    openFormView(form, eventName, eventId);
+                    // Keep button disabled — it will re-enable when renderAvailableEvents is called after claim
+                } else {
+                    // No form configured by admin → claim directly
+                    await claimEventPass(eventId, btnEl);
+                }
+            } catch(e) {
+                showToast("Could not load form. Please try again.", "error");
+                if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = origHtml; lucide.createIcons({root: btnEl}); }
             }
         }
 
@@ -2715,60 +2797,85 @@
         }
 
         function cancelFormSubmit() {
-            pendingFormEventId = null; pendingFormEventEl = null;
             closeModal('modal-form-submit');
+            // Re-enable the Get Pass button so user can try again if they change their mind
+            if (pendingFormEventEl) {
+                pendingFormEventEl.disabled = false;
+                pendingFormEventEl.innerHTML = `<i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i>Get Pass`;
+                lucide.createIcons({ root: pendingFormEventEl });
+            }
+            pendingFormEventId = null;
+            pendingFormEventEl = null;
         }
 
         async function submitEventForm() {
             const form = getFormForEvent(pendingFormEventId);
-            if(!form) { await claimEventPass(pendingFormEventId, pendingFormEventEl); closeModal('modal-form-submit'); return; }
+            const btn  = document.getElementById('btn-submit-form');
+
+            // Edge case: no form on server anymore — claim directly
+            if (!form || !form.questions || form.questions.length === 0) {
+                btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
+                try { await claimEventPass(pendingFormEventId, null); closeModal('modal-form-submit'); }
+                finally { pendingFormEventId = null; pendingFormEventEl = null; }
+                return;
+            }
+
+            // Collect & validate answers
             const fieldsEl = document.getElementById('form-submit-fields');
-            const answers = {};
+            const answers  = {};
             let valid = true;
-            (form.questions || []).forEach(q => {
+
+            for (const q of form.questions) {
                 let val;
-                if(q.type === 'checkbox') {
+                if (q.type === 'checkbox') {
                     val = [...fieldsEl.querySelectorAll(`[data-cbgroup="${q.id}"]:checked`)].map(cb => cb.value);
-                    if(q.required && val.length === 0) { valid = false; showToast(`"${q.label}" is required`, "warning"); }
-                } else if(q.type === 'attendance') {
-                    const radioVal = fieldsEl.querySelector(`input[name="${q.id}"]:checked`);
-                    if(q.required && !radioVal) { valid = false; showToast(`"${q.label}" is required`, "warning"); return; }
-                    val = radioVal ? radioVal.value : '';
-                    if(val === 'Tidak Hadir') {
+                    if (q.required && val.length === 0) { valid = false; showToast(`"${q.label}" is required`, "warning"); break; }
+                } else if (q.type === 'attendance') {
+                    const r = fieldsEl.querySelector(`input[name="${q.id}"]:checked`);
+                    if (q.required && !r) { valid = false; showToast(`"${q.label}" is required`, "warning"); break; }
+                    val = r ? r.value : '';
+                    if (val === 'Tidak Hadir') {
                         const reasonInput = fieldsEl.querySelector(`[data-qid="${q.id}-reason"]`);
                         const reason = reasonInput ? reasonInput.value.trim() : '';
                         val = reason ? `Tidak Hadir (${reason})` : 'Tidak Hadir';
                     }
-                } else if(['radio','yesno','scale'].includes(q.type)) {
+                } else if (['radio', 'yesno', 'scale'].includes(q.type)) {
                     const r = fieldsEl.querySelector(`input[name="${q.id}"]:checked`);
-                    if(q.required && !r) { valid = false; showToast(`"${q.label}" is required`, "warning"); return; }
+                    if (q.required && !r) { valid = false; showToast(`"${q.label}" is required`, "warning"); break; }
                     val = r ? r.value : '';
                 } else {
                     const el = fieldsEl.querySelector(`[data-qid="${q.id}"]`);
                     val = el ? el.value.trim() : '';
-                    if(q.required && !val) { valid = false; showToast(`"${q.label}" is required`, "warning"); }
+                    if (q.required && !val) { valid = false; showToast(`"${q.label}" is required`, "warning"); break; }
                 }
                 answers[q.id] = val;
-            });
-            if(!valid) return;
+            }
+            if (!valid) return;
 
             // Save response locally
-            const evName = (state.subEvents.find(e => e.subevent_id === pendingFormEventId)||{}).subevent_name || pendingFormEventId;
-            formResponses.push({ name: appSession.name, userId: appSession.id, eventId: pendingFormEventId, eventName: evName, ts: Date.now(), answers, questions: form.questions });
+            const evName = (state.subEvents.find(e => e.subevent_id === pendingFormEventId) || {}).subevent_name || pendingFormEventId;
+            formResponses.push({
+                name: appSession.name, userId: appSession.id,
+                eventId: pendingFormEventId, eventName: evName,
+                ts: Date.now(), answers, questions: form.questions
+            });
             localStorage.setItem('myclub_formresponses', JSON.stringify(formResponses));
 
-            const btn = document.getElementById('btn-submit-form');
+            // Claim pass
+            btn.innerHTML = `<div class="loader mx-auto"></div> Getting your pass...`;
+            btn.disabled = true;
             const savedEventId = pendingFormEventId;
-            const savedBtnEl = pendingFormEventEl;
-            btn.innerHTML = `<div class="loader mx-auto"></div> Processing...`; btn.disabled = true;
+
             try {
                 await claimEventPass(savedEventId, null);
                 closeModal('modal-form-submit');
-                showToast("Form submitted & pass claimed! 🎉", "success");
+                showToast("Form submitted — pass claimed! 🎉", "success");
+                renderAvailableEvents(); // refresh so the button shows "Pass Claimed"
             } catch(e) {
-                btn.innerHTML = `<i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass`; 
+                btn.innerHTML = `<i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get My Pass`;
                 btn.disabled = false;
-                lucide.createIcons({root: btn});
+                lucide.createIcons({ root: btn });
+                showToast(e.message || "Claim failed, please try again.", "error");
             } finally {
                 pendingFormEventId = null; pendingFormEventEl = null;
             }

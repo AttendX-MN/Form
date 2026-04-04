@@ -129,7 +129,6 @@
         .scan-line { position: absolute; width: 80%; left: 10%; height: 3px; background: #76a8d1; box-shadow: 0 0 10px #76a8d1; animation: scanAnim 2.5s infinite ease-in-out; z-index: 10; }
         @keyframes scanAnim { 0% { top: 20%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 80%; opacity: 0; } }
 
-        .view-hidden { display: none !important; }
         .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
 
         /* Fullscreen White Background Fix */
@@ -163,6 +162,23 @@
             display: inline-block;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Button touch feedback */
+        button:not(:disabled) { -webkit-tap-highlight-color: transparent; }
+        button:not(:disabled):active { opacity: 0.85; transform: scale(0.97); transition: transform 0.1s, opacity 0.1s; }
+
+        /* Smooth page transitions */
+        .view-hidden { display: none !important; }
+        [id^="view-"]:not(.view-hidden) { animation: fadeSlideIn 0.3s ease forwards; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Banner loading skeleton */
+        .banner-skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
         /* VIP Mini Preview Screens */
         .vip-mini-screen {
@@ -298,8 +314,11 @@
 
             <!-- Banner Carousel -->
             <div class="w-full h-44 md:h-56 rounded-[28px] overflow-hidden relative shadow-xl border border-slate-200/50 bg-slate-100 cursor-pointer" onclick="handleBannerClick()">
-                <img id="hub-banner-img" src="" class="w-full h-full object-cover transition-opacity duration-700 ease-in-out"/>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div id="hub-banner-skeleton" class="absolute inset-0 banner-skeleton z-10 flex items-center justify-center">
+                    <i data-lucide="image" class="w-10 h-10 text-slate-300"></i>
+                </div>
+                <img id="hub-banner-img" src="" class="w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0" onload="this.classList.add('opacity-100'); document.getElementById('hub-banner-skeleton').style.display='none';"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div>
                 <div class="absolute bottom-4 left-6 right-6 flex justify-between items-end">
                     <h3 class="text-white font-bold text-lg tracking-wide drop-shadow-md">Updates & Announcements</h3>
                     <div id="hub-banner-indicators" class="flex gap-1.5"></div>
@@ -455,47 +474,116 @@
         </div>
 
         <!-- Big Boarding Pass Modal (Zoom View for users) -->
-        <div id="modal-boarding-pass" class="fixed inset-0 z-[90] bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transform scale-95 transition-transform duration-300 w-full max-w-sm relative" id="modal-boarding-pass-inner">
-                <button onclick="closeModal('modal-boarding-pass')" class="absolute top-4 right-4 bg-white/20 text-white rounded-full p-1 hover:bg-white/40 transition-colors z-20"><i data-lucide="x" class="w-5 h-5"></i></button>
-                
-                <div id="user-bp-header" class="px-6 py-4 flex justify-between items-center text-white brand-gradient relative z-10">
-                    <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2"><i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS</span>
-                    <i data-lucide="book-user" class="w-5 h-5 opacity-80"></i>
-                </div>
-                
-                <div class="p-6 relative bg-white">
-                    <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
-                    <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
-                    <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
-                    
-                    <div class="flex flex-col items-center mt-4">
-                        <div id="user-bp-qr" class="mb-5 p-3 border-2 border-slate-100 rounded-2xl bg-white shadow-sm transition-all duration-300"></div>
-                        <h3 id="user-bp-name" class="text-2xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight mb-2"></h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest" id="user-bp-role"></p>
+        <div id="modal-boarding-pass" class="fixed inset-0 z-[90] bg-slate-900/85 backdrop-blur-md hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+            <div class="w-full max-w-sm transform scale-95 transition-transform duration-300 relative" id="modal-boarding-pass-inner">
+                <button onclick="closeModal('modal-boarding-pass')" class="absolute -top-3 -right-3 bg-white text-slate-600 rounded-full p-2 shadow-lg hover:bg-slate-100 transition-colors z-20 border border-slate-200">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Boarding Pass Card -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-2xl">
+                    <!-- Header -->
+                    <div id="user-bp-header" class="px-6 py-5 text-white brand-gradient relative overflow-hidden">
+                        <div class="absolute -top-8 -right-8 w-28 h-28 bg-white/10 rounded-full"></div>
+                        <div class="absolute -bottom-6 -left-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                        <div class="flex items-center justify-between relative z-10">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-widest opacity-70 flex items-center gap-1.5 mb-1">
+                                    <i data-lucide="ticket" class="w-3 h-3"></i> Entry Pass
+                                </p>
+                                <h3 id="user-bp-name" class="text-xl font-black uppercase tracking-wide leading-tight"></h3>
+                                <p class="text-xs opacity-70 mt-0.5 font-semibold" id="user-bp-role"></p>
+                            </div>
+                            <div class="shrink-0">
+                                <i data-lucide="book-user" class="w-8 h-8 opacity-40"></i>
+                            </div>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-6 border border-slate-100">
-                        <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p><p id="user-bp-lajnah" class="font-bold text-slate-700 text-sm truncate"></p></div>
-                        <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Session</p><p id="user-bp-event" class="font-bold text-slate-700 text-sm truncate"></p></div>
+
+                    <!-- Info strip -->
+                    <div class="grid grid-cols-2 divide-x divide-slate-100 bg-slate-50 border-b border-slate-100">
+                        <div class="px-5 py-3">
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Lajnah</p>
+                            <p id="user-bp-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
+                        </div>
+                        <div class="px-5 py-3">
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Session</p>
+                            <p id="user-bp-event" class="font-bold text-slate-700 text-sm truncate"></p>
+                        </div>
+                    </div>
+
+                    <!-- Tear separator -->
+                    <div class="relative flex items-center py-0">
+                        <div class="absolute -left-4 w-8 h-8 bg-slate-900/85 rounded-full z-10"></div>
+                        <div class="absolute -right-4 w-8 h-8 bg-slate-900/85 rounded-full z-10"></div>
+                        <div class="flex-1 border-t-2 border-dashed border-slate-200 mx-4"></div>
+                    </div>
+
+                    <!-- QR section -->
+                    <div class="flex flex-col items-center px-6 py-6">
+                        <div id="user-bp-qr" class="p-3 border-2 border-slate-100 rounded-2xl bg-white shadow-sm transition-all duration-500 mb-3"></div>
+                        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Scan to check in</p>
+                    </div>
+
+                    <!-- Footer bar -->
+                    <div class="bg-slate-50 border-t border-slate-100 px-6 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[#b11f24] text-xs font-black">My</span><span class="text-[#203a70] text-xs font-black">Nuqoba</span><span class="text-[#76a8d1] text-xs font-semibold">/Pass</span>
+                        </div>
+                        <div class="flex gap-1">
+                            <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                            <div class="w-2 h-2 rounded-full bg-slate-200"></div>
+                            <div class="w-2 h-2 rounded-full bg-slate-200"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- GLOBAL SUCCESS OVERLAY FOR PARTICIPANTS / VIPS (No. X) -->
-        <div id="participant-success-overlay" class="fixed inset-0 z-[9999] bg-emerald-500/95 backdrop-blur-md hidden flex-col items-center justify-center p-6 text-center animate-pop text-white cursor-pointer" onclick="closeModal('participant-success-overlay')">
-            <div class="w-24 h-24 bg-white text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-xl">
-                <i data-lucide="check-circle-2" class="w-12 h-12"></i>
+        <!-- GLOBAL SUCCESS OVERLAY FOR PARTICIPANTS / VIPS (No. X) - Boarding Pass Style -->
+        <div id="participant-success-overlay" class="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 cursor-pointer" onclick="closeModal('participant-success-overlay')">
+            <div id="participant-success-overlay-inner" class="w-full max-w-sm transform scale-95 transition-transform duration-300">
+                <!-- Boarding Pass Card -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+                    <!-- Header stripe -->
+                    <div class="bg-emerald-500 px-6 pt-6 pb-8 relative overflow-hidden">
+                        <div class="absolute -top-6 -right-6 w-32 h-32 bg-emerald-400/30 rounded-full"></div>
+                        <div class="absolute -bottom-10 -left-8 w-40 h-40 bg-emerald-600/20 rounded-full"></div>
+                        <div class="flex items-center justify-between mb-4 relative z-10">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="ticket" class="w-4 h-4 text-white"></i>
+                                </div>
+                                <span class="text-white/80 text-[10px] font-bold uppercase tracking-widest">Boarding Pass</span>
+                            </div>
+                            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                            </div>
+                        </div>
+                        <h2 class="text-2xl font-black text-white uppercase tracking-wide leading-tight relative z-10" id="success-overlay-name">Nama</h2>
+                        <p class="text-emerald-100 text-xs font-semibold mt-1 uppercase tracking-wider relative z-10">Dipersilakan Masuk ✓</p>
+                    </div>
+                    <!-- Tear line -->
+                    <div class="relative flex items-center">
+                        <div class="absolute -left-4 w-8 h-8 bg-slate-900/90 rounded-full"></div>
+                        <div class="absolute -right-4 w-8 h-8 bg-slate-900/90 rounded-full"></div>
+                        <div class="flex-1 border-t-2 border-dashed border-slate-200 mx-4"></div>
+                    </div>
+                    <!-- Body -->
+                    <div class="px-6 py-5 bg-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">No. Ketibaan</p>
+                                <p class="text-5xl font-black text-slate-800 tracking-tight" id="success-overlay-number">–</p>
+                            </div>
+                            <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center border-2 border-emerald-100">
+                                <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-500"></i>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-4 text-center">(Ketuk di mana-mana untuk tutup)</p>
+                    </div>
+                </div>
             </div>
-            <h2 class="text-3xl font-black mb-2 shadow-sm drop-shadow-md">SELAMAT DATANG</h2>
-            <p class="text-2xl font-bold mb-2 drop-shadow-md" id="success-overlay-name">Nama</p>
-            <p class="text-sm mb-8 font-medium uppercase tracking-widest opacity-90 drop-shadow-md">Dipersilakan Masuk</p>
-            
-            <div class="bg-white/20 backdrop-blur-sm px-10 py-5 rounded-3xl border border-white/30 shadow-lg w-full max-w-[250px]">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-90">Ketibaan</p>
-                <p class="text-5xl font-black" id="success-overlay-number">No. -</p>
-            </div>
-            <p class="text-xs mt-8 opacity-70">(Tap anywhere to dismiss)</p>
         </div>
 
         <!-- Admin VIP Zoom Modal -->
@@ -722,26 +810,56 @@
                         </div>
                     </div>
 
-                    <!-- SCAN RESULT OVERLAY -->
-                    <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl opacity-0">
-                        <div id="scan-result-card-inner" class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col transition-transform duration-300 transform scale-95">
-                            <div id="bp-header" class="px-6 py-4 flex justify-between items-center text-white bg-slate-800">
-                                <span class="text-xs font-bold tracking-widest uppercase opacity-90 flex items-center gap-2"><i data-lucide="ticket" class="w-4 h-4"></i> ENTRY PASS</span>
-                                <i data-lucide="book-user" class="w-6 h-6 opacity-80"></i>
-                            </div>
-                            <div class="p-6 relative bg-white">
-                                <div class="absolute -left-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-r border-slate-200"></div>
-                                <div class="absolute -right-4 top-[-20px] w-8 h-8 bg-slate-900/80 rounded-full shadow-inner bp-cutout border-l border-slate-200"></div>
-                                <div class="absolute top-0 left-6 right-6 border-t-2 border-dashed border-slate-200"></div>
-                                <div class="flex flex-col items-center mt-4">
-                                    <div id="scan-icon" class="mb-4 z-10 relative"></div>
-                                    <div id="scan-status-badge" class="mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-sm"></div>
-                                    <h3 id="scan-name" class="text-3xl font-black text-slate-800 uppercase tracking-wide text-center leading-tight mb-2"></h3>
-                                    <div id="scan-arrival-num" class="hidden bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 mb-4 text-emerald-800 font-bold text-lg">No. -</div>
+                    <!-- SCAN RESULT OVERLAY — Boarding Pass Style -->
+                    <div id="scan-result-card" class="hidden absolute inset-0 z-[60] flex-col items-center justify-center bg-slate-900/85 backdrop-blur-sm transition-opacity duration-300 p-4 rounded-2xl opacity-0">
+                        <div id="scan-result-card-inner" class="w-full max-w-sm transition-transform duration-300 transform scale-95">
+                            <!-- Boarding pass ticket -->
+                            <div class="bg-white rounded-3xl overflow-hidden shadow-2xl">
+                                <!-- Coloured header (changes per result) -->
+                                <div id="bp-header" class="px-6 py-5 text-white bg-slate-800 relative overflow-hidden">
+                                    <div class="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full"></div>
+                                    <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-white/10 rounded-full"></div>
+                                    <div class="flex items-center justify-between relative z-10">
+                                        <div>
+                                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-1 flex items-center gap-1.5">
+                                                <i data-lucide="ticket" class="w-3 h-3"></i> Entry Pass — Scan Result
+                                            </p>
+                                            <div id="scan-status-badge" class="inline-block px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase mb-2"></div>
+                                            <div id="scan-name" class="text-xl font-black uppercase tracking-wide leading-tight"></div>
+                                        </div>
+                                        <div id="scan-icon" class="shrink-0 opacity-90"></div>
+                                    </div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 mt-8 border border-slate-100">
-                                    <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Lajnah</p><p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p></div>
-                                    <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Session / Event</p><p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p></div>
+
+                                <!-- Tear line -->
+                                <div class="relative flex items-center">
+                                    <div class="absolute -left-4 w-8 h-8 bg-slate-900/85 rounded-full"></div>
+                                    <div class="absolute -right-4 w-8 h-8 bg-slate-900/85 rounded-full"></div>
+                                    <div class="flex-1 border-t-2 border-dashed border-slate-200 mx-4"></div>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="px-6 py-5">
+                                    <div class="flex items-center justify-between mb-5">
+                                        <div id="scan-arrival-num" class="hidden">
+                                            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">No. Ketibaan</p>
+                                            <p class="text-4xl font-black text-emerald-600">–</p>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 w-full">
+                                            <div>
+                                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Lajnah</p>
+                                                <p id="scan-lajnah" class="font-bold text-slate-700 text-sm truncate"></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Session</p>
+                                                <p id="scan-event" class="font-bold text-slate-700 text-sm truncate"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[10px] text-slate-400 font-semibold border-t border-slate-100 pt-3">
+                                        <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Auto-dismiss in 4s</span>
+                                        <span class="flex items-center gap-1 font-black"><span class="text-[#b11f24]">My</span><span class="text-[#203a70]">Nuqoba</span><span class="text-[#76a8d1]">/Pass</span></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1215,6 +1333,9 @@
                 if(appSession && appSession.type === 'user') renderAvailableEvents();
             } catch(e) { console.warn("Initial data load failed:", e); }
             
+            // Load banners from server so all users see admin's banner settings
+            loadBannersFromServer();
+            
             setInterval(updateTimerUI, 1000);
         };
 
@@ -1368,12 +1489,13 @@
             const btn = document.getElementById('btn-user-login'); 
             btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
             try {
-                const loginId = document.getElementById('login-name').value;
+                const loginId = document.getElementById('login-name').value.trim();
                 const password = document.getElementById('login-password').value;
                 const qrs = await apiCall('participantLogin', { login_id: loginId, name: loginId, password: password });
                 if(qrs.length === 0) showToast("No passes found.", "warning");
                 else { 
-                    appSession = { type: 'user', name: qrs[0].name, qrs: qrs, id: "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {}, password: password }; 
+                    const userName = qrs[0].name || loginId;
+                    appSession = { type: 'user', name: userName, qrs: qrs, id: "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {}, password: password }; 
                     localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
                     initApp(); 
                 }
@@ -1490,6 +1612,23 @@
             const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             const linked = escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:underline;word-break:break-all;">$1</a>');
             el.innerHTML = linked.replace(/\n/g, '<br>');
+        }
+
+        let successOverlayShownForQr = null; // prevent double popup
+
+        async function showSuccessOverlay(name, arrivalNumber) {
+            if (successOverlayShownForQr === currentViewingQrId) return; // already shown
+            successOverlayShownForQr = currentViewingQrId;
+            document.getElementById('success-overlay-name').innerText = name;
+            document.getElementById('success-overlay-number').innerText = arrivalNumber || '–';
+            // Close boarding pass modal first, then show success
+            closeModal('modal-boarding-pass');
+            setTimeout(() => {
+                openModal('participant-success-overlay');
+                lucide.createIcons({ root: document.getElementById('participant-success-overlay') });
+                playSound('success');
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
+            }, 350);
         }
 
         let broadcastDismissTimeout = null;
@@ -1673,16 +1812,23 @@
         }
 
         async function claimEventPass(eventId, btnEl) {
-            if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = `<div class="loader-dark inline-block mr-1"></div> Claiming...`; btnEl.className = "bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-not-allowed border border-slate-300"; }
+            if (btnEl) { 
+                btnEl.disabled = true; 
+                btnEl.innerHTML = `<div class="loader-dark inline-block mr-1.5" style="width:12px;height:12px;border-width:2px;"></div> Claiming...`; 
+                btnEl.className = "bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-not-allowed border border-slate-300 flex items-center"; 
+            }
             try {
-                if(!appSession.password) throw new Error("Please re-login to claim passes.");
+                if(!appSession || !appSession.password) throw new Error("Session expired. Please re-login.");
                 const newPass = await apiCall('claimEventPass', { name: appSession.name, password: appSession.password, subevent_id: eventId });
                 if(!appSession.qrs) appSession.qrs = [];
                 appSession.qrs.push(newPass);
                 localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
-                showToast("Pass claimed successfully!", "success");
+                showToast("Pass claimed successfully! 🎉", "success");
                 renderAvailableEvents();
-            } catch(err) { showToast(err.message || "Failed to claim pass", "error"); renderAvailableEvents(); }
+            } catch(err) { 
+                showToast(err.message || "Failed to claim pass", "error"); 
+                renderAvailableEvents(); 
+            }
         }
         
         function togglePassesModal() {
@@ -1704,6 +1850,7 @@
 
         function zoomUserBoardingPass(data) {
             closeModal('modal-passes');
+            successOverlayShownForQr = null; // reset guard for this new pass view
             const cleanName = data.subevent_name.replace(/\[#\d+\]\s/, '');
             document.getElementById('user-bp-name').innerText = data.name;
             document.getElementById('user-bp-role').innerText = data.role;
@@ -1726,11 +1873,8 @@
                         if(passIdx > -1) { appSession.qrs[passIdx].status = 'USED'; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); }
                         qrBox.classList.add('grayscale', 'opacity-30');
                         document.getElementById('user-bp-header').className = "px-6 py-4 flex justify-between items-center text-white bg-slate-500 relative z-10";
-                        document.getElementById('success-overlay-name').innerText = data.name;
-                        document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
-                        openModal('participant-success-overlay');
-                        playSound('success');
-                        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
+                        // Use unified success overlay — single popup only
+                        showSuccessOverlay(data.name, `No. ${statusRes.arrival_number || '-'}`);
                     }
                 }, 2000);
             } else {
@@ -1781,7 +1925,30 @@
             else if (toolName === 'live') { sb.classList.add('hidden', 'md:hidden'); switchAdminTab('live'); } 
             else if (toolName === 'admin') { sb.classList.remove('hidden', 'md:hidden'); switchAdminTab('subevents'); }
         }
-        function saveHubConfig() { localStorage.setItem('mynuqoba_hub', JSON.stringify(hubConfig)); renderHubConfigAdmin(); renderAdminVipList(); }
+        function saveHubConfig() { 
+            localStorage.setItem('mynuqoba_hub', JSON.stringify(hubConfig)); 
+            renderHubConfigAdmin(); 
+            renderAdminVipList(); 
+            // Sync banners to server so all users see admin's banner settings
+            syncBannersToServer();
+        }
+        
+        async function syncBannersToServer() {
+            try {
+                await apiCall('updateVipState', { key: 'hub_banners', value: hubConfig.banners });
+            } catch(e) { console.warn('Banner sync failed:', e); }
+        }
+        
+        async function loadBannersFromServer() {
+            try {
+                const vipState = await apiCall('getVipState');
+                if (vipState.hub_banners && Array.isArray(vipState.hub_banners) && vipState.hub_banners.length > 0) {
+                    hubConfig.banners = vipState.hub_banners;
+                    localStorage.setItem('mynuqoba_hub', JSON.stringify(hubConfig));
+                    if (document.getElementById('hub-banner-img')) startBannerRotator();
+                }
+            } catch(e) { console.warn('Banner load failed:', e); }
+        }
         function addHubBanner(e) { e.preventDefault(); hubConfig.banners.push(document.getElementById('hub-banner-url').value); document.getElementById('hub-banner-url').value=''; saveHubConfig(); }
         function removeHubBanner(idx) { hubConfig.banners.splice(idx, 1); saveHubConfig(); }
         function addHubLink(e) { 
@@ -1839,7 +2006,11 @@
                 triggerScannerUI(displayObj);
                 apiCall('scanQR', { qr_id: actualQrId, expected_subevent_id: expectedEventId }).then(res => {
                     const arrEl = document.getElementById('scan-arrival-num');
-                    if(arrEl && !arrEl.classList.contains('hidden') && res.arrival_number) { arrEl.innerText = `No. ${res.arrival_number}`; }
+                    if(arrEl && !arrEl.classList.contains('hidden') && res.arrival_number) { 
+                        const numEl = arrEl.querySelector('p:last-child');
+                        if(numEl) numEl.innerText = `${res.arrival_number}`; 
+                        else arrEl.innerText = `No. ${res.arrival_number}`;
+                    }
                 }).catch(e => console.error(e));
             }
         }
@@ -1874,37 +2045,66 @@
         }
 
         function triggerScannerUI(res) {
-            const resultWrapper = document.getElementById('scan-result-card'), cardInner = document.getElementById('scan-result-card-inner'), headerBar = document.getElementById('bp-header'), iconBox = document.getElementById('scan-icon'), nameEl = document.getElementById('scan-name'), badge = document.getElementById('scan-status-badge');
-            const arrivalEl = document.getElementById('scan-arrival-num');
+            const resultWrapper = document.getElementById('scan-result-card');
+            const cardInner     = document.getElementById('scan-result-card-inner');
+            const headerBar     = document.getElementById('bp-header');
+            const iconBox       = document.getElementById('scan-icon');
+            const nameEl        = document.getElementById('scan-name');
+            const badge         = document.getElementById('scan-status-badge');
+            const arrivalEl     = document.getElementById('scan-arrival-num');
+            const lajnahEl      = document.getElementById('scan-lajnah');
+            const eventEl       = document.getElementById('scan-event');
+
             if(res.scan_result === 'SUCCESS') state.localSessionCount++;
             updateScannerEventInfo();
-
-            // Add to recent scans table immediately
             addRecentScanRow(res);
-            
+
+            // Populate common fields
+            if(lajnahEl) lajnahEl.innerText = res.lajnah || '-';
+            if(eventEl)  eventEl.innerText  = (res.subevent_name || '-').replace(/\[#\d+\]\s/, '');
+
             if (res.scan_result === 'SUCCESS') {
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">SELAMAT DATANG,</span>${res.name}`; badge.innerText = "DIPERSILAKAN MASUK";
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-emerald-500"; iconBox.innerHTML = `<i data-lucide="check-circle-2" class="w-16 h-16 text-emerald-500 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-emerald-100 text-emerald-700"; playSound('success');
-                arrivalEl.innerText = `No. ${res.arrival_number || '-'}`; arrivalEl.classList.remove('hidden');
+                nameEl.innerHTML = `<span class="block text-sm font-semibold opacity-70 mb-0.5">SELAMAT DATANG,</span>${res.name}`;
+                badge.innerText = 'DIPERSILAKAN MASUK';
+                badge.className = 'inline-block px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase bg-white/25 text-white mb-2';
+                headerBar.className = 'px-6 py-5 text-white bg-emerald-500 relative overflow-hidden';
+                iconBox.innerHTML = `<i data-lucide="check-circle-2" class="w-14 h-14 text-white/80"></i>`;
+                playSound('success');
+                arrivalEl.classList.remove('hidden');
+                arrivalEl.querySelector('p:last-child').innerText = `${res.arrival_number || 'Syncing...'}`;
+                arrivalEl.className = 'block';
             } else if (res.scan_result === 'DUPLICATE') {
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name}`; badge.innerText = "QR TELAH DIGUNAKAN";
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-amber-500"; iconBox.innerHTML = `<i data-lucide="alert-circle" class="w-16 h-16 text-amber-500 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-amber-100 text-amber-700"; playSound('error');
-                arrivalEl.classList.add('hidden');
+                nameEl.innerHTML = `<span class="block text-sm font-semibold opacity-70 mb-0.5">RALAT</span>${res.name}`;
+                badge.innerText = 'QR TELAH DIGUNAKAN';
+                badge.className = 'inline-block px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase bg-white/25 text-white mb-2';
+                headerBar.className = 'px-6 py-5 text-white bg-amber-500 relative overflow-hidden';
+                iconBox.innerHTML = `<i data-lucide="alert-circle" class="w-14 h-14 text-white/80"></i>`;
+                playSound('error');
+                arrivalEl.className = 'hidden';
             } else if (res.scan_result === 'NOT VALID') {
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">PAS TIDAK SAH</span>${res.name}`; badge.innerText = "AKSES DITOLAK - PAS TIDAK SAH";
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-rose-600"; iconBox.innerHTML = `<i data-lucide="shield-x" class="w-16 h-16 text-rose-600 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-rose-100 text-rose-700"; playSound('error');
-                arrivalEl.classList.add('hidden');
+                nameEl.innerHTML = `<span class="block text-sm font-semibold opacity-70 mb-0.5">PAS TIDAK SAH</span>${res.name}`;
+                badge.innerText = 'AKSES DITOLAK';
+                badge.className = 'inline-block px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase bg-white/25 text-white mb-2';
+                headerBar.className = 'px-6 py-5 text-white bg-rose-600 relative overflow-hidden';
+                iconBox.innerHTML = `<i data-lucide="shield-x" class="w-14 h-14 text-white/80"></i>`;
+                playSound('error');
+                arrivalEl.className = 'hidden';
             } else {
-                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name}`; badge.innerText = "SALAH ACARA / AKSES DITOLAK";
-                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-rose-600"; iconBox.innerHTML = `<i data-lucide="x-circle" class="w-16 h-16 text-rose-600 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-rose-100 text-rose-700"; playSound('error');
-                arrivalEl.classList.add('hidden');
+                nameEl.innerHTML = `<span class="block text-sm font-semibold opacity-70 mb-0.5">RALAT</span>${res.name}`;
+                badge.innerText = 'SALAH ACARA / DITOLAK';
+                badge.className = 'inline-block px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase bg-white/25 text-white mb-2';
+                headerBar.className = 'px-6 py-5 text-white bg-rose-600 relative overflow-hidden';
+                iconBox.innerHTML = `<i data-lucide="x-circle" class="w-14 h-14 text-white/80"></i>`;
+                playSound('error');
+                arrivalEl.className = 'hidden';
             }
-            lucide.createIcons({root: cardInner}); 
+
+            lucide.createIcons({root: cardInner});
             openModal('scan-result-card');
             const scInput = document.getElementById('scanner-input');
             if(scInput) scInput.focus();
             clearTimeout(scanResetTimeout);
-            scanResetTimeout = setTimeout(() => { closeModal('scan-result-card'); setTimeout(() => {if(scInput) scInput.focus();}, 300); }, 4000);
+            scanResetTimeout = setTimeout(() => { closeModal('scan-result-card'); setTimeout(() => { if(scInput) scInput.focus(); }, 300); }, 4000);
         }
 
         async function fetchLiveUpdates() {
@@ -2144,13 +2344,22 @@
             stopBannerRotator();
             if (!hubConfig.banners || hubConfig.banners.length === 0) return;
             const img = document.getElementById('hub-banner-img');
+            const skeleton = document.getElementById('hub-banner-skeleton');
             const badge = document.getElementById('hub-banner-link-badge');
             const setImg = () => {
-                img.style.opacity = 0;
+                if(img) img.style.opacity = '0';
+                if(skeleton) { skeleton.style.display = ''; skeleton.style.opacity = '1'; }
                 setTimeout(() => {
                     const b = hubConfig.banners[bannerIdx];
-                    img.src = getBannerSrc(b);
-                    img.style.opacity = 1;
+                    const src = getBannerSrc(b);
+                    if(img) {
+                        img.src = src;
+                        img.onload = () => {
+                            img.style.opacity = '1';
+                            if(skeleton) { skeleton.style.opacity = '0'; setTimeout(() => { if(skeleton) skeleton.style.display = 'none'; }, 400); }
+                        };
+                        img.onerror = () => { if(skeleton) skeleton.style.display = 'none'; };
+                    }
                     renderHubBanners();
                     if(badge) {
                         const link = getBannerLink(b);
@@ -2433,22 +2642,26 @@
             });
             if(!valid) return;
 
-            // Save response
+            // Save response locally
             const evName = (state.subEvents.find(e => e.subevent_id === pendingFormEventId)||{}).subevent_name || pendingFormEventId;
             formResponses.push({ name: appSession.name, userId: appSession.id, eventId: pendingFormEventId, eventName: evName, ts: Date.now(), answers, questions: form.questions });
             localStorage.setItem('mynuqoba_formresponses', JSON.stringify(formResponses));
 
             const btn = document.getElementById('btn-submit-form');
-            btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
+            const savedEventId = pendingFormEventId;
+            const savedBtnEl = pendingFormEventEl;
+            btn.innerHTML = `<div class="loader mx-auto"></div> Processing...`; btn.disabled = true;
             try {
-                await claimEventPass(pendingFormEventId, null);
+                await claimEventPass(savedEventId, null);
                 closeModal('modal-form-submit');
-                showToast("Form submitted & pass claimed!", "success");
+                showToast("Form submitted & pass claimed! 🎉", "success");
             } catch(e) {
-                btn.innerHTML = `<i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass`; btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass`; 
+                btn.disabled = false;
                 lucide.createIcons({root: btn});
+            } finally {
+                pendingFormEventId = null; pendingFormEventEl = null;
             }
-            pendingFormEventId = null; pendingFormEventEl = null;
         }
 
         // ============================================================
@@ -2668,6 +2881,7 @@
                 if(appSession.type === 'vip' && currentViewingQrId) {
                     const statusRes = await robustCheckPassStatus(currentViewingQrId, appSession.name, appSession.qrs[0].subevent_name);
                     if(statusRes && statusRes.status === 'USED') {
+                        const qrIdWas = currentViewingQrId;
                         currentViewingQrId = null; 
                         if(appSession.qrs.length > 0) { appSession.qrs[0].status = 'USED'; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); }
                         const qrSec = document.getElementById('vip-qr-section');
@@ -2678,10 +2892,16 @@
                             if (qrBox) { qrBox.style.opacity = '0.2'; qrBox.style.transition = 'opacity 0.5s'; }
                             setTimeout(() => { qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s'; setTimeout(() => { qrSec.classList.add('hidden'); }, 500); }, 1000);
                         }
-                        document.getElementById('success-overlay-name').innerText = appSession.name;
-                        document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
-                        openModal('participant-success-overlay'); playSound('success');
-                        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
+                        // Use unified success overlay (single popup only)
+                        if (successOverlayShownForQr !== qrIdWas) {
+                            successOverlayShownForQr = qrIdWas;
+                            document.getElementById('success-overlay-name').innerText = appSession.name;
+                            document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
+                            openModal('participant-success-overlay'); 
+                            lucide.createIcons({ root: document.getElementById('participant-success-overlay') });
+                            playSound('success');
+                            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
+                        }
                     }
                 }
             } catch(e) {}

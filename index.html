@@ -415,19 +415,26 @@
         <!-- ============================================== -->
         <!-- VIEW: FORM SUBMISSION (before getting pass)    -->
         <!-- ============================================== -->
-        <div id="view-form-submit" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in w-full max-w-lg">
-            <div class="ios-card w-full p-6 relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-2 hub-gradient"></div>
-                <button onclick="cancelFormSubmit()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <div class="text-center mt-4 mb-6">
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="clipboard-list" class="w-6 h-6"></i></div>
-                    <h2 class="text-xl font-black text-slate-800" id="form-submit-title">Event Registration Form</h2>
-                    <p class="text-xs text-slate-500 mt-1" id="form-submit-subtitle">Please fill in all required fields to get your pass.</p>
+        <!-- Form Submit Modal (popup overlay — replaces the old view-form-submit page) -->
+        <div id="modal-form-submit" class="fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-sm hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+            <div id="modal-form-submit-inner" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col transform scale-95 transition-transform duration-300 max-h-[90vh]">
+                <div class="w-full h-2 hub-gradient shrink-0"></div>
+                <div class="flex items-center justify-between px-6 pt-5 pb-3 shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
+                        <div>
+                            <h2 class="text-lg font-black text-slate-800 leading-tight" id="form-submit-title">Event Registration Form</h2>
+                            <p class="text-xs text-slate-500" id="form-submit-subtitle">Fill in all required fields to get your pass.</p>
+                        </div>
+                    </div>
+                    <button onclick="cancelFormSubmit()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full p-2 transition shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
                 </div>
-                <div id="form-submit-fields" class="flex flex-col gap-4 mb-6"></div>
-                <button onclick="submitEventForm()" id="btn-submit-form" class="w-full brand-gradient text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
-                    <i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass
-                </button>
+                <div id="form-submit-fields" class="flex flex-col gap-4 px-6 py-2 overflow-y-auto flex-1"></div>
+                <div class="px-6 py-5 border-t border-slate-100 shrink-0">
+                    <button onclick="submitEventForm()" id="btn-submit-form" class="w-full brand-gradient text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                        <i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1080,6 +1087,7 @@
 
         let bannerIdx = 0; let bannerInterval = null;
         let timerInterval = null; let vipPollInterval = null;
+        let userEventPollInterval = null; // polls for new events for logged-in users
         let globalVipState = { timer: {status: 'idle', elapsed: 0, duration: 300000}, notes: '', broadcast: {ts: 0, msg: '', dismissSecs: 0} };
         let lastTimerStatus = 'idle'; let lastBroadcastTs = 0;
         let tempAppIconBase64 = null;
@@ -1237,12 +1245,14 @@
                 else { 
                     routeTo('hub'); renderHub();
                     if(state.subEvents.length > 0) renderAvailableEvents();
+                    clearInterval(userEventPollInterval);
+                    userEventPollInterval = setInterval(pollUserEvents, 8000);
                 }
             } else { routeTo('landing'); }
         }
 
         function routeTo(view) {
-            ['view-landing', 'view-register', 'view-user-login', 'view-vip-login', 'view-admin-login', 'view-hub', 'view-tools', 'view-profile', 'view-vip-dashboard', 'view-form-submit'].forEach(v => {
+            ['view-landing', 'view-register', 'view-user-login', 'view-vip-login', 'view-admin-login', 'view-hub', 'view-tools', 'view-profile', 'view-vip-dashboard'].forEach(v => {
                 const el = document.getElementById(v); if(el) el.classList.add('view-hidden');
             });
             const target = document.getElementById(`view-${view}`);
@@ -1270,7 +1280,29 @@
         function logout() { 
             appSession = null; localStorage.removeItem('mynuqoba_session'); state.adminPass = ''; 
             vipDashboardStarted = false;
-            routeTo('landing'); clearInterval(vipPollInterval); clearInterval(passSyncInterval); 
+            routeTo('landing'); clearInterval(vipPollInterval); clearInterval(passSyncInterval); clearInterval(userEventPollInterval); 
+        }
+
+        // Poll server every 8s to detect new active events for logged-in users
+        async function pollUserEvents() {
+            if(!appSession || appSession.type !== 'user') return;
+            try {
+                const data = await apiCall('getInitialData');
+                const newSubEvents = data.subEvents || [];
+                // Check if any new ACTIVE event appeared that we didn't have before
+                const oldIds = new Set(state.subEvents.map(e => e.subevent_id));
+                const hasNew = newSubEvents.some(e => e.status === 'ACTIVE' && !oldIds.has(e.subevent_id));
+                const hasStatusChange = newSubEvents.some(e => {
+                    const old = state.subEvents.find(o => o.subevent_id === e.subevent_id);
+                    return old && old.status !== e.status;
+                });
+                if(hasNew || hasStatusChange) {
+                    state.subEvents = newSubEvents;
+                    renderAvailableEvents();
+                } else {
+                    state.subEvents = newSubEvents;
+                }
+            } catch(e) {}
         }
 
         // ============================================================
@@ -1358,56 +1390,6 @@
         // ============================================================
         // VIP PORTAL & ADMIN CONTROLS 
         // ============================================================
-        async function handleSpeakerReg(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-gen-vip');
-            btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
-            try {
-                const name = document.getElementById('spk-name').value;
-                const qrs = await apiCall('registerSpeaker', { name, lajnah: 'VIP', subeventId: document.getElementById('spk-event').value });
-                const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                
-                const vipStateData = await apiCall('getVipState');
-                let globalVips = vipStateData.global_vips || [];
-                globalVips.push({ name, otp, qrs, active: true });
-                await apiCall('updateVipState', {key: 'global_vips', value: globalVips});
-                cachedGlobalVips = globalVips;
-
-                document.getElementById('vip-generated-otp').innerText = otp;
-                document.getElementById('vip-generated-result').classList.remove('hidden');
-                document.getElementById('spk-name').value = '';
-                showToast("VIP OTP Generated", "success");
-                renderAdminVipList();
-                populateVipTargetSelector(globalVips);
-            } catch (err) { showToast("Failed to generate VIP", "error"); }
-            finally { btn.innerHTML = `<i data-lucide="crown" class="w-4 h-4 inline"></i> Generate & Get OTP`; btn.disabled = false; lucide.createIcons({root: btn}); }
-        }
-
-        async function handleVipLogin(e) {
-            e.preventDefault(); 
-            const otp = document.getElementById('vip-otp-input').value;
-            const btn = e.submitter;
-            if(btn) { btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true; }
-            try {
-                const vipStateData = await apiCall('getVipState');
-                const globalVips = vipStateData.global_vips || [];
-                const vip = globalVips.find(v => v.otp === otp && v.active);
-                
-                if(vip) {
-                    appSession = { type: 'vip', name: vip.name, qrs: vip.qrs, profile: {} };
-                    localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
-                    initApp();
-                } else {
-                    const localVip = hubConfig.vips.find(v => v.otp === otp && v.active);
-                    if (localVip) {
-                        appSession = { type: 'vip', name: localVip.name, qrs: localVip.qrs, profile: {} };
-                        localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
-                        initApp();
-                    } else showToast("Invalid or expired OTP", "error");
-                }
-            } catch(err) { showToast("Failed to verify OTP", "error"); }
-            finally { if(btn) { btn.innerHTML = `Verify & Enter`; btn.disabled = false; } }
-        }
 
         function populateVipTargetSelector(vips) {
             const sel = document.getElementById('admin-vip-target');
@@ -1416,66 +1398,6 @@
             sel.innerHTML = '<option value="ALL">🌟 All VIPs</option>';
             (vips || []).forEach(v => { sel.innerHTML += `<option value="${v.otp}">${v.name}</option>`; });
             if(current) sel.value = current;
-        }
-
-        async function renderAdminVipList() {
-            const container = document.getElementById('vip-admin-list');
-            if(!container) return;
-            container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Loading VIPs...</p>';
-            
-            try {
-                const vipStateData = await apiCall('getVipState');
-                const globalVips = vipStateData.global_vips || [];
-                cachedGlobalVips = globalVips;
-                populateVipTargetSelector(globalVips);
-                
-                let hasVips = false;
-                container.innerHTML = '';
-
-                if(globalVips.length > 0) {
-                    hasVips = true;
-                    globalVips.slice().reverse().forEach((vip, idx) => {
-                        const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name : 'Universal Master Pass';
-                        const card = document.createElement('div');
-                        card.className = "p-3 border border-slate-100 rounded-xl bg-white flex justify-between items-center gap-3 shadow-sm mb-3";
-                        card.innerHTML = `
-                            <div class="flex-1 min-w-0">
-                                <p class="font-bold text-sm text-slate-800 truncate">${vip.name}</p>
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">${subevent.replace(/\[#\d+\]\s/, '')}</p>
-                                <div class="mt-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OTP: ${vip.otp}</div>
-                            </div>
-                            <div class="w-12 h-12 bg-slate-50 rounded-lg border border-slate-200 shrink-0 flex items-center justify-center cursor-pointer hover:border-sky-500 transition-colors group relative" onclick="zoomAdminVipQr('${vip.otp}')" id="admin-vip-qr-${globalVips.length - 1 - idx}">
-                                <div class="absolute inset-0 bg-white/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 rounded-lg"><i data-lucide="maximize" class="w-4 h-4 text-slate-800"></i></div>
-                            </div>
-                        `;
-                        container.appendChild(card);
-                        const qrContainerId = `admin-vip-qr-${globalVips.length - 1 - idx}`;
-                        if(vip.qrs.length > 0) {
-                            const qrText = `${vip.qrs[0].qr_id}|${vip.name}|VIP|Speaker|${vip.qrs[0].subevent_name}`;
-                            new QRCode(document.getElementById(qrContainerId), { text: qrText, width: 44, height: 44, colorDark:"#0f172a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
-                        }
-                    });
-                }
-
-                const dbVips = state.participants.filter(p => p.role === 'Speaker');
-                dbVips.forEach(dbVip => {
-                    const isGlobal = globalVips.find(v => v.name.toLowerCase() === dbVip.name.toLowerCase());
-                    if (!isGlobal) {
-                        hasVips = true;
-                        const card = document.createElement('div');
-                        card.className = "p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center gap-3 shadow-sm mb-3 opacity-70";
-                        card.innerHTML = `<div class="flex-1 min-w-0"><p class="font-bold text-sm text-slate-800 truncate">${dbVip.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Legacy Pass (No OTP)</p><div class="mt-1.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold px-2 py-1 rounded inline-block tracking-widest">OLD DB RECORD</div></div>`;
-                        container.appendChild(card);
-                    }
-                });
-
-                if(!hasVips) container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">No VIPs generated yet.</p>';
-                lucide.createIcons({root: container});
-                renderVipMiniScreens(globalVips);
-
-            } catch(e) {
-                container.innerHTML = '<p class="text-xs text-slate-400 italic px-2">Failed to load VIPs.</p>';
-            }
         }
 
         // FIX: Use cached VIPs for instant QR zoom — no API call needed
@@ -1738,9 +1660,10 @@
                     const isClaimed = hasUniversalPass || myEventIds.has(ev.subevent_id);
                     const card = document.createElement('div');
                     card.className = "ios-card p-4 flex justify-between items-center border border-[#76a8d1]/30 shadow-sm";
+                    const safeName = ev.subevent_name.replace(/'/g, "\\'");
                     let actionBtn = isClaimed 
                         ? `<button disabled class="bg-slate-200 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-none cursor-not-allowed border border-slate-300 opacity-70 select-none"><i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Pass Claimed</button>`
-                        : `<button onclick="claimEventPass('${ev.subevent_id}', this)" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition active:scale-95"><i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i>Get Pass</button>`;
+                        : `<button onclick="handleGetPassClick('${ev.subevent_id}','${safeName}',this)" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition active:scale-95"><i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i>Get Pass</button>`;
                     card.innerHTML = `<div class="flex-1 pr-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Available Session</p><h4 class="font-bold text-slate-800 text-sm leading-tight">${ev.subevent_name}</h4></div>${actionBtn}`;
                     grid.appendChild(card);
                 });
@@ -1821,11 +1744,6 @@
             if (!hubConfig.banners || hubConfig.banners.length <= 1) return;
             hubConfig.banners.forEach((_, i) => { cont.innerHTML += `<div class="w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === bannerIdx ? 'bg-white scale-125' : 'bg-white/40'}"></div>`; });
         }
-        function startBannerRotator() {
-            stopBannerRotator(); if (!hubConfig.banners || hubConfig.banners.length === 0) return; const img = document.getElementById('hub-banner-img');
-            const setImg = () => { img.style.opacity = 0; setTimeout(() => { img.src = hubConfig.banners[bannerIdx]; img.style.opacity = 1; renderHubBanners(); }, 300); };
-            setImg(); if (hubConfig.banners.length > 1) bannerInterval = setInterval(() => { bannerIdx = (bannerIdx + 1) % hubConfig.banners.length; setImg(); }, 5000);
-        }
         function stopBannerRotator() { clearInterval(bannerInterval); }
         
         function handleAppIconUpload(e) {
@@ -1879,25 +1797,8 @@
         function removeProfileField(idx) { hubConfig.profileFields.splice(idx, 1); saveHubConfig(); }
 
         // ============================================================
-        // SCANNER LOGIC — FIX: recent scans now populate table
+        // SCANNER LOGIC
         // ============================================================
-        function updateScannerEventInfo() {
-            const sel = document.getElementById('scanner-event-select'); if(!sel || !sel.value) return;
-            const ev = state.subEvents.find(e => e.subevent_id === sel.value);
-            if(ev) { 
-                const nameEl = document.getElementById('info-event-name'); if(nameEl) nameEl.innerText = ev.subevent_name; 
-                const titleEl = document.getElementById('scanner-main-title'); if(titleEl) titleEl.innerText = `SCANNER - ${ev.subevent_name.toUpperCase()}`; 
-                const timeEl = document.getElementById('info-event-time');
-                if(timeEl) timeEl.innerText = `${new Date(ev.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(ev.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-            }
-            const totalReg = state.participants.length; 
-            const trEl = document.getElementById('stat-total-reg'); if(trEl) trEl.innerText = totalReg; 
-            const ssEl = document.getElementById('stat-session-scans'); if(ssEl) ssEl.innerText = state.localSessionCount;
-            let percent = totalReg > 0 ? Math.min(100, Math.round((state.localSessionCount / totalReg) * 100)) : 0;
-            const pbEl = document.getElementById('stat-progress-bar'); if(pbEl) pbEl.style.width = `${percent}%`; 
-            const ptEl = document.getElementById('stat-progress-text'); if(ptEl) ptEl.innerText = `${percent}%`;
-            const subEl = document.getElementById('stat-progress-sub'); if(subEl) subEl.innerText = `${state.localSessionCount} / ${totalReg} Participants Scanned`;
-        }
 
         const scannerInput = document.getElementById('scanner-input');
         if(scannerInput) {
@@ -1909,16 +1810,29 @@
         function processScan(code) {
             const expectedEventId = document.getElementById('scanner-event-select').value;
             if(!expectedEventId) { showToast("Please select an Event to scan for first!", "warning"); return; }
-            let actualQrId = code, optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-';
+            let actualQrId = code, optName = 'Unknown', optLajnah = '-', optRole = '-', optSubevent = '-', optSubeventId = null;
             const nowStr = new Date().toLocaleString('en-GB');
             if (code.includes('|')) { const parts = code.split('|'); actualQrId = parts[0]; optName = parts[1] || 'Participant'; optLajnah = parts[2] || '-'; optRole = parts[3] || 'Participant'; optSubevent = parts[4] || '-'; }
             if (sessionScanned.has(actualQrId)) { triggerScannerUI({ scan_result: 'DUPLICATE', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: '-', scan_time: nowStr }); return; }
-            let expectedEventName = "";
-            const infoNameEl = document.getElementById('info-event-name');
-            if(infoNameEl) expectedEventName = infoNameEl.innerText;
+
+            // Strict subevent_id match: look up QR code's subevent_id from state
+            const matchedQr = (state.qrCodes || []).find(q => q.qr_id === actualQrId);
+            if(matchedQr) { optSubeventId = matchedQr.subevent_id; }
+            // Also extract subevent_id from the QR string if it was embedded (parts[5])
+            if (!optSubeventId && code.includes('|')) { const parts = code.split('|'); if(parts[5]) optSubeventId = parts[5]; }
+
+            // Universal Master Pass always valid
+            const isUniversal = optSubevent === 'Universal Master Pass' || optSubeventId === 'ALL';
+            // Strict ID match: QR subevent_id must match selected scanner event
+            const idMatch = optSubeventId ? (optSubeventId === expectedEventId || optSubeventId === 'ALL') : null;
+            // Fallback name match if no ID available
+            const expectedEventName = (document.getElementById('info-event-name') || {}).innerText || '';
             const qrEventNameBase = optSubevent.replace(/\[#\d+\]\s/, '');
-            if(optSubevent !== 'Universal Master Pass' && qrEventNameBase !== expectedEventName && expectedEventName !== 'Select an event...') {
-                triggerScannerUI({ scan_result: 'WRONG EVENT', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Expected: ${expectedEventName}`, status: '-', scan_time: nowStr });
+            const nameMatch = isUniversal || qrEventNameBase === expectedEventName;
+            const isValid = isUniversal || (idMatch !== null ? idMatch : nameMatch);
+
+            if(!isValid) {
+                triggerScannerUI({ scan_result: 'NOT VALID', name: optName, lajnah: optLajnah, role: optRole, subevent_name: `Pas Tidak Sah`, status: '-', scan_time: nowStr });
             } else {
                 sessionScanned.add(actualQrId); setTimeout(() => sessionScanned.delete(actualQrId), 10000); 
                 let displayObj = { scan_result: 'SUCCESS', name: optName, lajnah: optLajnah, role: optRole, subevent_name: optSubevent, status: 'ON TIME', scan_time: nowStr, arrival_number: 'Syncing...' };
@@ -1941,6 +1855,7 @@
                 'SUCCESS': 'bg-emerald-100 text-emerald-700',
                 'DUPLICATE': 'bg-amber-100 text-amber-700',
                 'WRONG EVENT': 'bg-rose-100 text-rose-700',
+                'NOT VALID': 'bg-rose-100 text-rose-700',
                 'INVALID': 'bg-slate-100 text-slate-500'
             };
             const statusColor = colorMap[res.scan_result] || 'bg-slate-100 text-slate-500';
@@ -1974,6 +1889,10 @@
             } else if (res.scan_result === 'DUPLICATE') {
                 nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name}`; badge.innerText = "QR TELAH DIGUNAKAN";
                 headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-amber-500"; iconBox.innerHTML = `<i data-lucide="alert-circle" class="w-16 h-16 text-amber-500 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-amber-100 text-amber-700"; playSound('error');
+                arrivalEl.classList.add('hidden');
+            } else if (res.scan_result === 'NOT VALID') {
+                nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">PAS TIDAK SAH</span>${res.name}`; badge.innerText = "AKSES DITOLAK - PAS TIDAK SAH";
+                headerBar.className = "px-6 py-4 flex justify-between items-center text-white bg-rose-600"; iconBox.innerHTML = `<i data-lucide="shield-x" class="w-16 h-16 text-rose-600 mx-auto"></i>`; badge.className = "mb-5 inline-block px-5 py-1.5 rounded-full text-xs font-black uppercase bg-rose-100 text-rose-700"; playSound('error');
                 arrivalEl.classList.add('hidden');
             } else {
                 nameEl.innerHTML = `<span class="block text-lg font-bold text-slate-500 mb-1">RALAT</span>${res.name}`; badge.innerText = "SALAH ACARA / AKSES DITOLAK";
@@ -2407,32 +2326,6 @@
         // ============================================================
         // 4. FORM SUBMISSION FLOW: intercept "Get Pass" 
         // ============================================================
-        // renderAvailableEventsWithForm overrides renderAvailableEvents for form gating
-        function renderAvailableEventsWithForm() {
-            const sec = document.getElementById('hub-available-events-section');
-            const grid = document.getElementById('hub-available-events-grid');
-            if(!sec || !grid || !state.subEvents) return;
-            const myEventIds = new Set((appSession.qrs || []).map(q => q.subevent_id));
-            const hasUniversalPass = myEventIds.has('ALL');
-            const activeEvents = state.subEvents.filter(e => e.status === 'ACTIVE' && e.subevent_id !== 'ALL');
-            if(activeEvents.length > 0) {
-                grid.innerHTML = '';
-                activeEvents.forEach(ev => {
-                    const isClaimed = hasUniversalPass || myEventIds.has(ev.subevent_id);
-                    const card = document.createElement('div');
-                    card.className = "ios-card p-4 flex justify-between items-center border border-[#76a8d1]/30 shadow-sm";
-                    let actionBtn = isClaimed 
-                        ? `<button disabled class="bg-slate-200 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-none cursor-not-allowed border border-slate-300 opacity-70 select-none"><i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Pass Claimed</button>`
-                        : `<button onclick="handleGetPassClick('${ev.subevent_id}','${ev.subevent_name.replace(/'/g,"\'")}',this)" class="brand-gradient text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm hover:shadow-md transition active:scale-95"><i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i>Get Pass</button>`;
-                    card.innerHTML = `<div class="flex-1 pr-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Available Session</p><h4 class="font-bold text-slate-800 text-sm leading-tight">${ev.subevent_name}</h4></div>${actionBtn}`;
-                    grid.appendChild(card);
-                });
-                sec.classList.remove('hidden'); sec.classList.add('flex');
-            } else { sec.classList.add('hidden'); sec.classList.remove('flex'); }
-            lucide.createIcons({root: grid});
-        }
-        // Replace the function
-        renderAvailableEvents = renderAvailableEventsWithForm;
 
         function handleGetPassClick(eventId, eventName, btnEl) {
             const form = getFormForEvent(eventId);
@@ -2456,7 +2349,8 @@
                 fieldsEl.appendChild(buildFormField(q));
             });
             lucide.createIcons({root: fieldsEl});
-            routeTo('form-submit');
+            // Show as modal popup instead of routing away
+            openModal('modal-form-submit');
         }
 
         function buildFormField(q) {
@@ -2503,12 +2397,12 @@
 
         function cancelFormSubmit() {
             pendingFormEventId = null; pendingFormEventEl = null;
-            routeTo('hub');
+            closeModal('modal-form-submit');
         }
 
         async function submitEventForm() {
             const form = getFormForEvent(pendingFormEventId);
-            if(!form) { await claimEventPass(pendingFormEventId, pendingFormEventEl); routeTo('hub'); return; }
+            if(!form) { await claimEventPass(pendingFormEventId, pendingFormEventEl); closeModal('modal-form-submit'); return; }
             const fieldsEl = document.getElementById('form-submit-fields');
             const answers = {};
             let valid = true;
@@ -2548,7 +2442,7 @@
             btn.innerHTML = `<div class="loader mx-auto"></div>`; btn.disabled = true;
             try {
                 await claimEventPass(pendingFormEventId, null);
-                routeTo('hub');
+                closeModal('modal-form-submit');
                 showToast("Form submitted & pass claimed!", "success");
             } catch(e) {
                 btn.innerHTML = `<i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get Pass`; btn.disabled = false;

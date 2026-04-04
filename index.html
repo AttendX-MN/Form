@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MyNuqobaPass - Hub</title>
+    <title>MyClubPass - Hub</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -257,7 +257,7 @@
                 <i data-lucide="book-user" class="w-5 h-5"></i>
             </div>
             <h1 class="text-xl md:text-2xl leading-none tracking-tight flex items-baseline select-none">
-                <span class="text-[#b11f24] font-black">My</span><span class="text-[#203a70] font-black">Nuqoba</span><span class="text-[#76a8d1] font-normal text-xl mx-0.5 transform rotate-12 relative -top-[1px]">/</span><span class="text-[#76a8d1] font-semibold">Pass</span>
+                <span class="text-[#b11f24] font-black">My</span><span class="text-[#203a70] font-black">Club</span><span class="text-[#76a8d1] font-normal text-xl mx-0.5 transform rotate-12 relative -top-[1px]">/</span><span class="text-[#76a8d1] font-semibold">Pass</span>
             </h1>
         </div>
         <div id="nav-actions"></div>
@@ -326,18 +326,18 @@
                 <div id="hub-banner-link-badge" class="hidden absolute top-3 right-3 bg-black/40 text-white text-[9px] font-bold px-2 py-1 rounded-full backdrop-blur-sm flex items-center gap-1"><i data-lucide="external-link" class="w-3 h-3"></i> Tap to open</div>
             </div>
 
-            <!-- Available/New Events -->
-            <div id="hub-available-events-section" class="hidden flex-col gap-4">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest px-2">Available Sessions</h3>
-                <div id="hub-available-events-grid" class="flex flex-col gap-3"></div>
-            </div>
-
             <!-- App Launcher Grid -->
             <div>
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 px-2">Apps & Tools</h3>
                 <div id="hub-app-grid" class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 gap-y-6 gap-x-2 justify-items-center">
                     <!-- Apps injected via JS -->
                 </div>
+            </div>
+
+            <!-- Available/New Events -->
+            <div id="hub-available-events-section" class="hidden flex-col gap-4">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest px-2">Available Sessions</h3>
+                <div id="hub-available-events-grid" class="flex flex-col gap-3"></div>
             </div>
         </div>
 
@@ -356,7 +356,7 @@
                 <h2 class="text-2xl font-black text-slate-800" id="prof-name">User Name</h2>
                 <div class="bg-slate-100 px-3 py-1 rounded-full mt-2 inline-flex items-center gap-2 border border-slate-200">
                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ID</span>
-                    <span class="font-mono font-bold text-slate-700 text-sm tracking-widest" id="prof-nuqoba-id">NQ-000000</span>
+                    <span class="font-mono font-bold text-slate-700 text-sm tracking-widest" id="prof-club-id">NC-000000</span>
                 </div>
             </div>
 
@@ -467,7 +467,7 @@
                 <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-6"></div>
                 <button onclick="closeModal('modal-passes')" class="absolute top-5 right-5 bg-slate-200 text-slate-600 rounded-full p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button>
                 <h2 class="text-2xl font-black text-slate-800 mb-6">My Digital Passes</h2>
-                <div id="hub-qr-container" class="flex flex-col gap-4 overflow-y-auto pb-8 px-1">
+                <div id="hub-qr-container" class="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 pb-4 px-1">
                     <!-- QRs injected here -->
                 </div>
             </div>
@@ -528,7 +528,7 @@
                     <!-- Footer bar -->
                     <div class="bg-slate-50 border-t border-slate-100 px-6 py-3 flex items-center justify-between">
                         <div class="flex items-center gap-1.5">
-                            <span class="text-[#b11f24] text-xs font-black">My</span><span class="text-[#203a70] text-xs font-black">Nuqoba</span><span class="text-[#76a8d1] text-xs font-semibold">/Pass</span>
+                            <span class="text-[#b11f24] text-xs font-black">My</span><span class="text-[#203a70] text-xs font-black">Club</span><span class="text-[#76a8d1] text-xs font-semibold">/Pass</span>
                         </div>
                         <div class="flex gap-1">
                             <div class="w-2 h-2 rounded-full bg-slate-300"></div>
@@ -858,7 +858,7 @@
                                     </div>
                                     <div class="flex items-center justify-between text-[10px] text-slate-400 font-semibold border-t border-slate-100 pt-3">
                                         <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Auto-dismiss in 4s</span>
-                                        <span class="flex items-center gap-1 font-black"><span class="text-[#b11f24]">My</span><span class="text-[#203a70]">Nuqoba</span><span class="text-[#76a8d1]">/Pass</span></span>
+                                        <span class="flex items-center gap-1 font-black"><span class="text-[#b11f24]">My</span><span class="text-[#203a70]">Club</span><span class="text-[#76a8d1]">/Pass</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -1194,9 +1194,26 @@
         let state = { lajnahs: [], subEvents: [], participants: [], localSessionScans: [], localSessionCount: 0, adminPass: '' };
         let sessionScanned = new Set(); let scanResetTimeout = null;
 
+        // ── BRAND MIGRATION: auto-migrate old 'mynuqoba_*' keys to new 'myclub_*' keys ──
+        (function migrateStorage() {
+            const keyMap = {
+                'mynuqoba_session': 'myclub_session',
+                'mynuqoba_hub':     'myclub_hub',
+                'mynuqoba_formconfig':   'myclub_formconfig',
+                'mynuqoba_formresponses':'myclub_formresponses'
+            };
+            for (const [oldKey, newKey] of Object.entries(keyMap)) {
+                const old = localStorage.getItem(oldKey);
+                if (old && !localStorage.getItem(newKey)) {
+                    localStorage.setItem(newKey, old);
+                }
+                if (old) localStorage.removeItem(oldKey);
+            }
+        })();
+
         // --- HUB SESSION & CONFIG ---
-        let appSession = JSON.parse(localStorage.getItem('mynuqoba_session')) || null;
-        let hubConfig = JSON.parse(localStorage.getItem('mynuqoba_hub')) || {};
+        let appSession = JSON.parse(localStorage.getItem('myclub_session')) || null;
+        let hubConfig  = JSON.parse(localStorage.getItem('myclub_hub'))     || {};
         
         if (!hubConfig.banners) hubConfig.banners = ['https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80'];
         if (!hubConfig.links) hubConfig.links = [];
@@ -1322,19 +1339,20 @@
             initApp();
             try {
                 const data = await apiCall('getInitialData');
-                state.lajnahs = data.lajnahs || [];
-                state.subEvents = data.subEvents || [];
+                state.lajnahs   = data.lajnahs   || [];
+                state.subEvents = data.subEvents  || [];
                 const lajnahSelect = document.getElementById('reg-lajnah');
                 if (lajnahSelect) {
                     lajnahSelect.innerHTML = '<option value="" disabled selected>Select Lajnah</option>';
                     state.lajnahs.forEach(l => lajnahSelect.innerHTML += `<option value="${l}">${l}</option>`);
                 }
                 refreshEventDropdowns();
-                if(appSession && appSession.type === 'user') renderAvailableEvents();
+                if (appSession && appSession.type === 'user') renderAvailableEvents();
             } catch(e) { console.warn("Initial data load failed:", e); }
             
-            // Load banners from server so all users see admin's banner settings
-            loadBannersFromServer();
+            // Load all hub data + form config from server on startup
+            await loadHubDataFromServer();
+            await loadFormConfigFromServer();
             
             setInterval(updateTimerUI, 1000);
         };
@@ -1354,20 +1372,25 @@
             vipDashboardStarted = false;
             if (appSession) {
                 appSession.profile = appSession.profile || {};
-                if(appSession.type === 'admin') { 
+                if (appSession.type === 'admin') { 
                     state.adminPass = 'adminsaje';
                     loadAdminData(); startGlobalStateSync(); routeTo('hub'); renderHub(); 
                 }
-                else if(appSession.type === 'vip') { 
+                else if (appSession.type === 'vip') { 
                     routeTo('vip-dashboard'); 
-                    if(!vipDashboardStarted) { startVipDashboard(); vipDashboardStarted = true; }
+                    if (!vipDashboardStarted) { startVipDashboard(); vipDashboardStarted = true; }
                     startGlobalStateSync(); 
                 }
                 else { 
                     routeTo('hub'); renderHub();
-                    if(state.subEvents.length > 0) renderAvailableEvents();
+                    if (state.subEvents.length > 0) renderAvailableEvents();
                     clearInterval(userEventPollInterval);
-                    userEventPollInterval = setInterval(pollUserEvents, 8000);
+                    // Poll events + hub config + form config every 1 second for live updates
+                    userEventPollInterval = setInterval(async () => {
+                        await pollUserEvents();
+                        await loadHubDataFromServer();
+                        await loadFormConfigFromServer();
+                    }, 1000);
                 }
             } else { routeTo('landing'); }
         }
@@ -1399,12 +1422,10 @@
 
         function switchView(v) { routeTo(v); }
         function logout() { 
-            appSession = null; localStorage.removeItem('mynuqoba_session'); state.adminPass = ''; 
+            appSession = null; localStorage.removeItem('myclub_session'); state.adminPass = ''; 
             vipDashboardStarted = false;
             routeTo('landing'); clearInterval(vipPollInterval); clearInterval(passSyncInterval); clearInterval(userEventPollInterval); 
         }
-
-        // Poll server every 8s to detect new active events for logged-in users
         async function pollUserEvents() {
             if(!appSession || appSession.type !== 'user') return;
             try {
@@ -1473,10 +1494,10 @@
                     email: document.getElementById('reg-email').value,
                     password: pwd
                 };
-                const id = "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+                const id = "NC-" + Math.random().toString(36).substr(2, 6).toUpperCase();
                 const qrs = await apiCall('registerUser', payload);
                 appSession = { type: 'user', name: payload.name, qrs: qrs, id: id, profile: { phone: payload.phone }, password: pwd };
-                localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                localStorage.setItem('myclub_session', JSON.stringify(appSession));
                 showToast("Account Created!", "success"); 
                 document.getElementById('form-register').reset();
                 initApp();
@@ -1495,8 +1516,8 @@
                 if(qrs.length === 0) showToast("No passes found.", "warning");
                 else { 
                     const userName = qrs[0].name || loginId;
-                    appSession = { type: 'user', name: userName, qrs: qrs, id: "NQ-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {}, password: password }; 
-                    localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); 
+                    appSession = { type: 'user', name: userName, qrs: qrs, id: "NC-" + Math.random().toString(36).substr(2, 6).toUpperCase(), profile: {}, password: password }; 
+                    localStorage.setItem('myclub_session', JSON.stringify(appSession)); 
                     initApp(); 
                 }
             } catch (err) { showToast(err.message || "Invalid credentials.", "error"); } 
@@ -1505,7 +1526,7 @@
 
         function handleAdminLogin(e) {
             e.preventDefault(); const pass = document.getElementById('admin-pass').value;
-            if (pass === 'adminsaje') { state.adminPass = pass; appSession = { type: 'admin', name: 'Administrator', profile: {} }; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); initApp(); } 
+            if (pass === 'adminsaje') { state.adminPass = pass; appSession = { type: 'admin', name: 'Administrator', profile: {} }; localStorage.setItem('myclub_session', JSON.stringify(appSession)); initApp(); } 
             else showToast("Incorrect password", "error");
         }
 
@@ -1718,11 +1739,11 @@
             if (!appSession) return;
             if (!appSession.profile) appSession.profile = {}; 
             const profName = document.getElementById('prof-name');
-            const profId = document.getElementById('prof-nuqoba-id');
+            const profId = document.getElementById('prof-club-id');
             const profImg = document.getElementById('profile-img');
             const profPhone = document.getElementById('prof-phone');
             if(profName) profName.innerText = appSession.name || 'User';
-            if(profId) profId.innerText = appSession.id || "NQ-UNKNOWN";
+            if(profId) profId.innerText = appSession.id || "NC-UNKNOWN";
             if(profImg && appSession.photo) profImg.src = appSession.photo;
             if(profPhone) profPhone.value = appSession.profile.phone || '';
             const dynCont = document.getElementById('prof-custom-fields'); 
@@ -1747,7 +1768,7 @@
                     ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, 300, 300);
                     const base64 = canvas.toDataURL('image/jpeg', 0.6); 
                     document.getElementById('profile-img').src = base64;
-                    appSession.photo = base64; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                    appSession.photo = base64; localStorage.setItem('myclub_session', JSON.stringify(appSession));
                 }; img.src = event.target.result;
             }; reader.readAsDataURL(file);
         }
@@ -1765,7 +1786,7 @@
                     if(dynInput) appSession.profile[safeId] = dynInput.value;
                 });
             }
-            localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+            localStorage.setItem('myclub_session', JSON.stringify(appSession));
             showToast("Profile saved locally!", "success");
         }
 
@@ -1822,7 +1843,7 @@
                 const newPass = await apiCall('claimEventPass', { name: appSession.name, password: appSession.password, subevent_id: eventId });
                 if(!appSession.qrs) appSession.qrs = [];
                 appSession.qrs.push(newPass);
-                localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                localStorage.setItem('myclub_session', JSON.stringify(appSession));
                 showToast("Pass claimed successfully! 🎉", "success");
                 renderAvailableEvents();
             } catch(err) { 
@@ -1849,38 +1870,69 @@
         }
 
         function zoomUserBoardingPass(data) {
+            // Close the passes list first, then open boarding pass after animation completes
             closeModal('modal-passes');
-            successOverlayShownForQr = null; // reset guard for this new pass view
-            const cleanName = data.subevent_name.replace(/\[#\d+\]\s/, '');
-            document.getElementById('user-bp-name').innerText = data.name;
-            document.getElementById('user-bp-role').innerText = data.role;
+            successOverlayShownForQr = null;
+
+            const cleanName  = data.subevent_name.replace(/\[#\d+\]\s/, '');
+            const isExpired  = data.status === 'USED';
+
+            // Pre-populate all text fields immediately (before modal opens)
+            document.getElementById('user-bp-name').innerText  = data.name;
+            document.getElementById('user-bp-role').innerText  = data.role;
             document.getElementById('user-bp-lajnah').innerText = data.lajnah;
-            document.getElementById('user-bp-event').innerText = cleanName;
+            document.getElementById('user-bp-event').innerText  = cleanName;
+
+            const headerEl = document.getElementById('user-bp-header');
+            headerEl.className = isExpired
+                ? "px-6 py-5 text-white bg-slate-500 relative overflow-hidden"
+                : "px-6 py-5 text-white brand-gradient relative overflow-hidden";
+
+            // Clear old QR and show a placeholder spinner while we wait for modal to open
             const qrBox = document.getElementById('user-bp-qr');
-            qrBox.innerHTML = ''; qrBox.classList.remove('grayscale', 'opacity-30');
-            document.getElementById('user-bp-header').className = "px-6 py-4 flex justify-between items-center text-white brand-gradient relative z-10";
-            const isExpired = data.status === 'USED';
-            new QRCode(qrBox, { text: `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`, width: 200, height: 200, colorDark: isExpired?"#94a3b8":"#0f172a" });
-            openModal('modal-boarding-pass');
-            if(!isExpired) {
-                currentViewingQrId = data.qr_id;
-                clearInterval(passSyncInterval);
-                passSyncInterval = setInterval(async () => {
-                    const statusRes = await robustCheckPassStatus(currentViewingQrId, data.name, data.subevent_name);
-                    if(statusRes && statusRes.status === 'USED') {
-                        clearInterval(passSyncInterval);
-                        let passIdx = appSession.qrs.findIndex(q => q.qr_id === currentViewingQrId);
-                        if(passIdx > -1) { appSession.qrs[passIdx].status = 'USED'; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); }
-                        qrBox.classList.add('grayscale', 'opacity-30');
-                        document.getElementById('user-bp-header').className = "px-6 py-4 flex justify-between items-center text-white bg-slate-500 relative z-10";
-                        // Use unified success overlay — single popup only
-                        showSuccessOverlay(data.name, `No. ${statusRes.arrival_number || '-'}`);
-                    }
-                }, 2000);
-            } else {
-                qrBox.classList.add('grayscale', 'opacity-30');
-                document.getElementById('user-bp-header').className = "px-6 py-4 flex justify-between items-center text-white bg-slate-500 relative z-10";
-            }
+            qrBox.innerHTML = `<div class="flex items-center justify-center" style="width:200px;height:200px">
+                <div class="loader-dark" style="width:36px;height:36px;border-width:4px;"></div>
+            </div>`;
+            qrBox.classList.remove('grayscale', 'opacity-30');
+
+            // Wait for modal-passes close animation (300ms) + a small buffer, then open boarding pass
+            setTimeout(() => {
+                openModal('modal-boarding-pass');
+                lucide.createIcons({ root: document.getElementById('modal-boarding-pass') });
+
+                // Generate QR inside rAF so the modal paint happens first (eliminates white flash)
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        qrBox.innerHTML = '';
+                        new QRCode(qrBox, {
+                            text:       `${data.qr_id}|${data.name}|${data.lajnah}|${data.role}|${data.subevent_name}`,
+                            width:      200, height: 200,
+                            colorDark:  isExpired ? '#94a3b8' : '#0f172a',
+                            colorLight: '#ffffff'
+                        });
+                        if (isExpired) qrBox.classList.add('grayscale', 'opacity-30');
+                    });
+                });
+
+                if (!isExpired) {
+                    currentViewingQrId = data.qr_id;
+                    clearInterval(passSyncInterval);
+                    passSyncInterval = setInterval(async () => {
+                        const statusRes = await robustCheckPassStatus(currentViewingQrId, data.name, data.subevent_name);
+                        if (statusRes && statusRes.status === 'USED') {
+                            clearInterval(passSyncInterval);
+                            let passIdx = appSession.qrs.findIndex(q => q.qr_id === currentViewingQrId);
+                            if (passIdx > -1) {
+                                appSession.qrs[passIdx].status = 'USED';
+                                localStorage.setItem('myclub_session', JSON.stringify(appSession));
+                            }
+                            qrBox.classList.add('grayscale', 'opacity-30');
+                            headerEl.className = "px-6 py-5 text-white bg-slate-500 relative overflow-hidden";
+                            showSuccessOverlay(data.name, `No. ${statusRes.arrival_number || '-'}`);
+                        }
+                    }, 2000);
+                }
+            }, 320);
         }
 
         function renderHubBanners() {
@@ -1926,29 +1978,73 @@
             else if (toolName === 'admin') { sb.classList.remove('hidden', 'md:hidden'); switchAdminTab('subevents'); }
         }
         function saveHubConfig() { 
-            localStorage.setItem('mynuqoba_hub', JSON.stringify(hubConfig)); 
+            localStorage.setItem('myclub_hub', JSON.stringify(hubConfig)); 
             renderHubConfigAdmin(); 
             renderAdminVipList(); 
-            // Sync banners to server so all users see admin's banner settings
-            syncBannersToServer();
+            // Sync banners + full hub config to server so all users see admin's settings
+            syncHubConfigToServer();
         }
         
-        async function syncBannersToServer() {
+        // Sync full hub config (banners, links, profileFields) to server
+        async function syncHubConfigToServer() {
             try {
-                await apiCall('updateVipState', { key: 'hub_banners', value: hubConfig.banners });
-            } catch(e) { console.warn('Banner sync failed:', e); }
+                await apiCall('updateVipState', { key: 'hub_banners',       value: hubConfig.banners });
+                await apiCall('updateVipState', { key: 'hub_profile_fields', value: hubConfig.profileFields });
+                await apiCall('updateVipState', { key: 'hub_links',          value: hubConfig.links });
+            } catch(e) { console.warn('Hub config sync failed:', e); }
         }
-        
-        async function loadBannersFromServer() {
+
+        // Legacy: keep old name as alias
+        async function syncBannersToServer() { return syncHubConfigToServer(); }
+
+        // Load all hub data from server — called at startup AND periodically for all users
+        async function loadHubDataFromServer() {
             try {
                 const vipState = await apiCall('getVipState');
+                let changed = false;
+
+                // ── Banners ──
                 if (vipState.hub_banners && Array.isArray(vipState.hub_banners) && vipState.hub_banners.length > 0) {
-                    hubConfig.banners = vipState.hub_banners;
-                    localStorage.setItem('mynuqoba_hub', JSON.stringify(hubConfig));
-                    if (document.getElementById('hub-banner-img')) startBannerRotator();
+                    const newSig = JSON.stringify(vipState.hub_banners);
+                    if (newSig !== JSON.stringify(hubConfig.banners)) {
+                        hubConfig.banners = vipState.hub_banners;
+                        changed = true;
+                        const bannerImg = document.getElementById('hub-banner-img');
+                        if (bannerImg) { bannerIdx = 0; startBannerRotator(); }
+                    }
                 }
-            } catch(e) { console.warn('Banner load failed:', e); }
+
+                // ── Profile fields (respect empty array from admin = no custom fields) ──
+                if (Object.prototype.hasOwnProperty.call(vipState, 'hub_profile_fields')) {
+                    const newFields = Array.isArray(vipState.hub_profile_fields) ? vipState.hub_profile_fields : [];
+                    if (JSON.stringify(newFields) !== JSON.stringify(hubConfig.profileFields)) {
+                        hubConfig.profileFields = newFields;
+                        changed = true;
+                    }
+                }
+
+                // ── App links ──
+                if (vipState.hub_links && Array.isArray(vipState.hub_links)) {
+                    const newLinks = vipState.hub_links;
+                    if (JSON.stringify(newLinks) !== JSON.stringify(hubConfig.links)) {
+                        hubConfig.links = newLinks;
+                        changed = true;
+                    }
+                }
+
+                if (changed) {
+                    localStorage.setItem('myclub_hub', JSON.stringify(hubConfig));
+                    // Only re-render app grid if user is currently on hub view
+                    const hubView = document.getElementById('view-hub');
+                    if (hubView && !hubView.classList.contains('view-hidden') && appSession) {
+                        renderHub();
+                    }
+                }
+            } catch(e) { /* silent — use cached data */ }
         }
+
+        // Legacy alias
+        async function loadBannersFromServer() { return loadHubDataFromServer(); }
         function addHubBanner(e) { e.preventDefault(); hubConfig.banners.push(document.getElementById('hub-banner-url').value); document.getElementById('hub-banner-url').value=''; saveHubConfig(); }
         function removeHubBanner(idx) { hubConfig.banners.splice(idx, 1); saveHubConfig(); }
         function addHubLink(e) { 
@@ -2188,7 +2284,7 @@
                 const data = await apiCall('getAllData', { adminPass: state.adminPass }); const logs = data.logs || [];
                 if(logs.length === 0) { showToast("No data to export", "warning"); return; }
                 const ws = XLSX.utils.json_to_sheet(logs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Attendance_Log");
-                XLSX.writeFile(wb, `MyNuqobaPass_Export_${new Date().toISOString().split('T')[0]}.xlsx`); showToast("Export complete!", "success");
+                XLSX.writeFile(wb, `MyClubPass_Export_${new Date().toISOString().split('T')[0]}.xlsx`); showToast("Export complete!", "success");
             } catch (err) { showToast("Failed to export Excel", "error"); }
         }
 
@@ -2396,9 +2492,9 @@
         // 3. FORM SETUP SYSTEM
         // ============================================================
         // formConfig stored in localStorage per event; responses stored in localStorage
-        let formConfig = JSON.parse(localStorage.getItem('mynuqoba_formconfig')) || {};
+        let formConfig = JSON.parse(localStorage.getItem('myclub_formconfig')) || {};
         // formConfig = { ALL: { title, questions: [{id,label,type,options,required}] }, eventId: {...} }
-        let formResponses = JSON.parse(localStorage.getItem('mynuqoba_formresponses')) || [];
+        let formResponses = JSON.parse(localStorage.getItem('myclub_formresponses')) || [];
         // formResponses = [{name, userId, eventId, eventName, ts, answers: {qId: value}}]
 
         let pendingFormEventId = null; // set when user clicks "Get Pass" but form is needed
@@ -2409,9 +2505,23 @@
             const eventId = document.getElementById('form-event-assign').value || 'ALL';
             const questions = getFormQuestions();
             formConfig[eventId] = { title, questions };
-            localStorage.setItem('mynuqoba_formconfig', JSON.stringify(formConfig));
-            showToast("Form config saved!", "success");
+            localStorage.setItem('myclub_formconfig', JSON.stringify(formConfig));
+            // Sync to server so ALL users get the latest form config
+            apiCall('updateVipState', { key: 'hub_form_config', value: formConfig })
+                .then(() => showToast("Form config saved & synced to all users!", "success"))
+                .catch(() => showToast("Form config saved locally (sync failed).", "warning"));
             renderFormResponses();
+        }
+
+        // Load form config from server — overwrites local if server has newer version
+        async function loadFormConfigFromServer() {
+            try {
+                const vipState = await apiCall('getVipState');
+                if (vipState.hub_form_config && typeof vipState.hub_form_config === 'object') {
+                    formConfig = vipState.hub_form_config;
+                    localStorage.setItem('myclub_formconfig', JSON.stringify(formConfig));
+                }
+            } catch(e) { /* silent fail — use local cache */ }
         }
 
         function getFormForEvent(eventId) {
@@ -2536,15 +2646,15 @@
         // 4. FORM SUBMISSION FLOW: intercept "Get Pass" 
         // ============================================================
 
-        function handleGetPassClick(eventId, eventName, btnEl) {
+        async function handleGetPassClick(eventId, eventName, btnEl) {
+            // Always load latest form config from server before deciding
+            await loadFormConfigFromServer();
             const form = getFormForEvent(eventId);
-            if(form && form.questions && form.questions.length > 0) {
-                // Show form first
-                pendingFormEventId = eventId;
-                pendingFormEventEl = btnEl;
+            if (form && form.questions && form.questions.length > 0) {
+                pendingFormEventId  = eventId;
+                pendingFormEventEl  = btnEl;
                 openFormView(form, eventName, eventId);
             } else {
-                // No form, claim directly
                 claimEventPass(eventId, btnEl);
             }
         }
@@ -2645,7 +2755,7 @@
             // Save response locally
             const evName = (state.subEvents.find(e => e.subevent_id === pendingFormEventId)||{}).subevent_name || pendingFormEventId;
             formResponses.push({ name: appSession.name, userId: appSession.id, eventId: pendingFormEventId, eventName: evName, ts: Date.now(), answers, questions: form.questions });
-            localStorage.setItem('mynuqoba_formresponses', JSON.stringify(formResponses));
+            localStorage.setItem('myclub_formresponses', JSON.stringify(formResponses));
 
             const btn = document.getElementById('btn-submit-form');
             const savedEventId = pendingFormEventId;
@@ -2764,13 +2874,13 @@
                 
                 if(vip) {
                     appSession = { type: 'vip', name: vip.name, qrs: vip.qrs, profile: {} };
-                    localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                    localStorage.setItem('myclub_session', JSON.stringify(appSession));
                     initApp();
                 } else {
                     const localVip = hubConfig.vips.find(v => v.otp === otp && v.active);
                     if (localVip) {
                         appSession = { type: 'vip', name: localVip.name, qrs: localVip.qrs, profile: {} };
-                        localStorage.setItem('mynuqoba_session', JSON.stringify(appSession));
+                        localStorage.setItem('myclub_session', JSON.stringify(appSession));
                         initApp();
                     } else showToast("Invalid or expired OTP", "error");
                 }
@@ -2883,7 +2993,7 @@
                     if(statusRes && statusRes.status === 'USED') {
                         const qrIdWas = currentViewingQrId;
                         currentViewingQrId = null; 
-                        if(appSession.qrs.length > 0) { appSession.qrs[0].status = 'USED'; localStorage.setItem('mynuqoba_session', JSON.stringify(appSession)); }
+                        if(appSession.qrs.length > 0) { appSession.qrs[0].status = 'USED'; localStorage.setItem('myclub_session', JSON.stringify(appSession)); }
                         const qrSec = document.getElementById('vip-qr-section');
                         const qrBox = document.getElementById('vip-qr-box');
                         if (qrSec) {

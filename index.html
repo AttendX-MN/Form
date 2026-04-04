@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -182,38 +183,40 @@
 
         /* VIP Mini Preview Screens */
         .vip-mini-screen {
-            background: #f8fafc;
+            background: #ffffff;
             border: 1.5px solid #e2e8f0;
             border-radius: 12px;
             overflow: hidden;
-            position: relative;
+            width: 140px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .vip-mini-screen-header {
             background: linear-gradient(135deg, #f59e0b, #d97706);
-            padding: 4px 8px;
+            padding: 5px 8px;
             display: flex;
             align-items: center;
             gap: 4px;
         }
         .vip-mini-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.6); }
         .vip-mini-content {
-            padding: 6px 8px;
+            padding: 7px 8px;
             font-size: 9px;
             color: #475569;
-            min-height: 60px;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
         }
         .vip-mini-timer {
             font-family: monospace;
             font-weight: 900;
-            font-size: 14px;
+            font-size: 13px;
             color: #dc2626;
             text-align: center;
             background: #1e293b;
-            padding: 2px 4px;
+            padding: 3px 4px;
             border-radius: 4px;
+            letter-spacing: 1px;
         }
         .vip-mini-name {
             font-size: 8px;
@@ -231,6 +234,10 @@
             border-radius: 3px;
             padding: 1px 4px;
             display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         /* VIP Dashboard - landscape / tablet layout helper */
@@ -253,11 +260,20 @@
     <!-- MAIN NAV -->
     <nav class="glass-nav sticky top-0 z-40 px-4 md:px-6 py-3 flex justify-between items-center w-full">
         <div class="flex items-center gap-2 cursor-pointer shrink-0" onclick="routeTo('hub')">
-            <div class="p-1.5 bg-gradient-to-br from-[#203a70] to-[#15274d] rounded-lg text-white shadow-md border border-slate-700">
-                <i data-lucide="book-user" class="w-5 h-5"></i>
-            </div>
-            <h1 class="text-xl md:text-2xl leading-none tracking-tight flex items-baseline select-none">
-                <span class="text-[#b11f24] font-black">My</span><span class="text-[#203a70] font-black">Club</span><span class="text-[#76a8d1] font-normal text-xl mx-0.5 transform rotate-12 relative -top-[1px]">/</span><span class="text-[#76a8d1] font-semibold">Pass</span>
+            <!-- M-shaped logo matching brand image -->
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Left red wing -->
+                <path d="M4 28 L4 10 L12 18 L12 28 Z" fill="#e03131" rx="2"/>
+                <path d="M4 8 L12 16 L12 8 Z" fill="#c92a2a"/>
+                <!-- Center blue body -->
+                <path d="M12 8 L18 14 L24 8 L24 28 L18 22 L12 28 Z" fill="#1971c2"/>
+                <path d="M12 8 L18 14 L24 8 L18 4 Z" fill="#339af0"/>
+                <!-- Right blue wing -->
+                <path d="M24 10 L32 4 L32 24 L24 18 Z" fill="#74c0fc"/>
+                <path d="M24 18 L32 24 L32 28 L24 28 Z" fill="#1971c2"/>
+            </svg>
+            <h1 class="text-xl md:text-2xl leading-none tracking-tight flex items-baseline select-none font-black">
+                <span style="color:#e03131;">My</span><span style="color:#1864ab;">Club</span><span style="color:#339af0;">Pass</span>
             </h1>
         </div>
         <div id="nav-actions"></div>
@@ -924,8 +940,8 @@
                             </button>
                         </div>
                         <div id="vip-mini-screens-wrapper" class="mt-3">
-                            <div id="vip-mini-screens-grid" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">
-                                <p class="text-xs text-slate-400 italic col-span-full">No VIPs yet.</p>
+                            <div id="vip-mini-screens-grid" class="flex flex-wrap gap-3">
+                                <p class="text-xs text-slate-400 italic">No VIPs yet.</p>
                             </div>
                         </div>
                     </div>
@@ -1170,19 +1186,30 @@
 
                         <!-- Form Responses -->
                         <div class="ios-card p-6 flex flex-col gap-4">
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
                                 <div class="flex items-center gap-2"><i data-lucide="bar-chart-2" class="text-sky-500 w-5 h-5"></i><h2 class="text-lg font-black text-slate-800">Form Responses</h2></div>
-                                <select id="form-response-event-filter" class="input-style rounded-lg px-2 py-1 text-xs font-bold" onchange="renderFormResponses()">
-                                    <option value="ALL">All Events</option>
-                                </select>
+                                <div class="flex items-center gap-2">
+                                    <select id="form-response-event-filter" class="input-style rounded-lg px-2 py-1 text-xs font-bold" onchange="renderFormResponses()">
+                                        <option value="ALL">All Events</option>
+                                    </select>
+                                    <button onclick="openFormFullResults()" class="bg-[#203a70] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-[#15274d] transition">
+                                        <i data-lucide="table-2" class="w-3 h-3"></i> Full Results
+                                    </button>
+                                </div>
                             </div>
+                            <!-- Summary stats -->
                             <div id="form-response-summary" class="grid grid-cols-2 gap-3"></div>
+                            <!-- Donut chart -->
+                            <div id="form-charts-area" class="hidden flex flex-col gap-4">
+                                <canvas id="form-donut-chart" height="180"></canvas>
+                                <canvas id="form-bar-chart" height="160"></canvas>
+                            </div>
                             <div class="border-t border-slate-100 pt-3">
                                 <div class="flex items-center justify-between mb-2">
-                                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">All Submissions</h3>
+                                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Latest Submissions</h3>
                                     <input type="text" id="form-response-search" placeholder="Search name..." class="input-style rounded-lg px-2 py-1 text-xs w-32" oninput="renderFormResponses()">
                                 </div>
-                                <div id="form-responses-table" class="overflow-y-auto max-h-[400px] flex flex-col gap-2"></div>
+                                <div id="form-responses-table" class="overflow-y-auto max-h-[360px] flex flex-col gap-2"></div>
                             </div>
                         </div>
                     </div>
@@ -1203,6 +1230,63 @@
         </div>
 
         <button onclick="routeTo('profile')" class="flex flex-col items-center text-slate-400 hover:text-[#203a70] w-16 group transition-colors"><i data-lucide="user-circle" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span class="text-[9px] font-bold mt-1">Profile</span></button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- FORM FULL RESULTS MODAL                                       -->
+    <!-- ============================================================ -->
+    <div id="modal-form-full-results" class="fixed inset-0 z-[95] bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-3 opacity-0 transition-opacity duration-300">
+        <div id="modal-form-full-results-inner" class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl flex flex-col transform scale-95 transition-transform duration-300 max-h-[95vh] overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-sky-50 text-sky-600 rounded-xl"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800">Form Full Results</h2>
+                        <p class="text-xs text-slate-400" id="fr-subtitle">All event responses</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-form-full-results')" class="bg-slate-100 text-slate-600 rounded-full p-2 hover:bg-slate-200 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Summary KPI bar -->
+            <div id="fr-kpi-bar" class="grid grid-cols-3 divide-x divide-slate-100 bg-slate-50 border-b border-slate-100 shrink-0"></div>
+
+            <!-- Charts row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-4 border-b border-slate-100 shrink-0 bg-white">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Attendance Breakdown</p>
+                    <div class="flex items-center gap-4">
+                        <canvas id="fr-donut" width="110" height="110"></canvas>
+                        <div id="fr-donut-legend" class="flex flex-col gap-1.5 text-xs"></div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Submissions Per Event</p>
+                    <canvas id="fr-bar" height="110"></canvas>
+                </div>
+            </div>
+
+            <!-- Per-question breakdown -->
+            <div id="fr-question-breakdown" class="px-6 py-3 border-b border-slate-100 shrink-0 overflow-x-auto">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Question Breakdown</p>
+                <div id="fr-question-charts" class="flex gap-4 pb-1"></div>
+            </div>
+
+            <!-- Submissions table -->
+            <div class="flex items-center justify-between px-6 pt-3 pb-1 shrink-0">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">All Submissions (<span id="fr-count">0</span>)</h3>
+                <input type="text" id="fr-search" placeholder="Search name…" class="input-style rounded-lg px-2 py-1 text-xs w-36" oninput="renderFullResultsTable()">
+            </div>
+            <div id="fr-table-wrap" class="overflow-y-auto flex-1 px-6 pb-6">
+                <table class="w-full text-left text-xs mt-1">
+                    <thead class="sticky top-0 bg-white z-10 border-b border-slate-100">
+                        <tr id="fr-table-head" class="text-slate-400 text-[10px] uppercase tracking-widest"></tr>
+                    </thead>
+                    <tbody id="fr-table-body" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1579,27 +1663,34 @@
         // Mini VIP screen previews
         function renderVipMiniScreens(vips) {
             const grid = document.getElementById('vip-mini-screens-grid');
-            if(!grid) return;
-            if(!vips || vips.length === 0) { grid.innerHTML = '<p class="text-xs text-slate-400 italic col-span-full">No VIPs yet.</p>'; return; }
+            if (!grid) return;
+            if (!vips || vips.length === 0) {
+                grid.innerHTML = '<p class="text-xs text-slate-400 italic">No VIPs yet.</p>';
+                return;
+            }
 
-            // Single VIP → 1 screen; multiple → multi grid
-            const cols = vips.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(130px, 1fr))';
-            grid.style.gridTemplateColumns = cols;
+            // Reset grid style — flex-wrap handles any count naturally
+            grid.style.gridTemplateColumns = '';
 
             grid.innerHTML = '';
             const timerState = globalVipState.timer || { status: 'idle', elapsed: 0, duration: 300000 };
             let totalElapsed = timerState.elapsed || 0;
-            if(timerState.status === 'running') totalElapsed += (Date.now() - timerState.startTs);
+            if (timerState.status === 'running') totalElapsed += (Date.now() - timerState.startTs);
             let remaining = Math.max(0, (timerState.duration || 300000) - totalElapsed);
-            const s = Math.ceil(remaining / 1000);
-            const hrs = String(Math.floor(s / 3600)).padStart(2,'0');
-            const mins = String(Math.floor((s % 3600)/60)).padStart(2,'0');
-            const secs = String(s % 60).padStart(2,'0');
+            const s    = Math.ceil(remaining / 1000);
+            const hrs  = String(Math.floor(s / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+            const secs = String(s % 60).padStart(2, '0');
             const timerStr = `${hrs}:${mins}:${secs}`;
 
+            const statusColors = { running: '#10b981', paused: '#f59e0b', idle: '#94a3b8' };
+            const statusDot = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${statusColors[timerState.status] || '#94a3b8'};margin-right:3px;vertical-align:middle;"></span>`;
+
             vips.forEach(vip => {
-                const subevent = vip.qrs.length > 0 ? vip.qrs[0].subevent_name.replace(/\[#\d+\]\s/, '') : 'Master Pass';
-                const notesText = (globalVipState.notes || 'No notes').substring(0, 40);
+                const subevent   = vip.qrs && vip.qrs.length > 0 ? vip.qrs[0].subevent_name.replace(/\[#\d+\]\s/, '') : 'Master Pass';
+                const notesText  = (globalVipState.notes || '—').substring(0, 28);
+                const isScanned  = vip.qrs && vip.qrs.length > 0 && vip.qrs[0].status === 'USED';
+
                 const mini = document.createElement('div');
                 mini.className = 'vip-mini-screen';
                 mini.innerHTML = `
@@ -1607,15 +1698,14 @@
                         <div class="vip-mini-dot"></div>
                         <div class="vip-mini-dot"></div>
                         <div class="vip-mini-dot"></div>
-                        <span style="font-size:8px;color:rgba(255,255,255,0.9);font-weight:700;margin-left:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${vip.name}</span>
+                        <span style="font-size:8px;color:rgba(255,255,255,0.95);font-weight:700;margin-left:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${vip.name}</span>
                     </div>
                     <div class="vip-mini-content">
-                        <span class="vip-mini-badge">${subevent.substring(0,20)}</span>
+                        <span class="vip-mini-badge">${subevent.substring(0, 18)}</span>
                         <div class="vip-mini-timer">${timerStr}</div>
-                        <div style="font-size:8px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${notesText}${notesText.length >= 40 ? '...' : ''}</div>
-                        <div style="font-size:8px;color:#94a3b8;">Status: ${timerState.status.toUpperCase()}</div>
-                    </div>
-                `;
+                        <div style="font-size:7.5px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${notesText}${notesText.length >= 28 ? '…' : ''}</div>
+                        <div style="font-size:7.5px;color:#94a3b8;display:flex;align-items:center;">${statusDot}${timerState.status.toUpperCase()}${isScanned ? ' &nbsp;·&nbsp; <span style="color:#10b981;font-weight:700;">SCANNED ✓</span>' : ''}</div>
+                    </div>`;
                 grid.appendChild(mini);
             });
         }
@@ -2653,39 +2743,205 @@
         }
         function removeQuestion(idx) { tempQuestions.splice(idx, 1); renderAdminQuestionsList(); }
 
+        // Chart.js instances (destroy before re-creating to avoid canvas reuse error)
+        let _donutChart = null, _barChart = null, _frDonut = null, _frBar = null;
+        function safeDestroyChart(ref) { try { if(ref) ref.destroy(); } catch(e){} }
+
         function renderFormResponses() {
             const eventFilter = document.getElementById('form-response-event-filter') ? document.getElementById('form-response-event-filter').value : 'ALL';
             const search = document.getElementById('form-response-search') ? document.getElementById('form-response-search').value.toLowerCase() : '';
             let filtered = formResponses.filter(r => (eventFilter === 'ALL' || r.eventId === eventFilter));
             if(search) filtered = filtered.filter(r => (r.name||'').toLowerCase().includes(search));
 
-            // Summary
+            // ── Summary stats ──
             const summary = document.getElementById('form-response-summary'); if(!summary) return;
             const totalHadir = filtered.filter(r => Object.values(r.answers||{}).some(v => typeof v==='string' && v.toLowerCase().includes('hadir') && !v.toLowerCase().includes('tidak'))).length;
             const totalTidak = filtered.filter(r => Object.values(r.answers||{}).some(v => typeof v==='string' && v.toLowerCase().includes('tidak hadir'))).length;
+            const totalOther = filtered.length - totalHadir - totalTidak;
             summary.innerHTML = `
-                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center"><p class="text-2xl font-black text-emerald-700">${filtered.length}</p><p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Total Submitted</p></div>
-                <div class="bg-sky-50 border border-sky-200 rounded-xl p-3 text-center"><p class="text-2xl font-black text-sky-700">${totalHadir}</p><p class="text-[10px] font-bold text-sky-600 uppercase tracking-widest">Hadir</p></div>
-                ${totalTidak > 0 ? `<div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center col-span-2"><p class="text-2xl font-black text-rose-700">${totalTidak}</p><p class="text-[10px] font-bold text-rose-600 uppercase tracking-widest">Tidak Hadir</p></div>` : ''}
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center col-span-2">
+                    <p class="text-2xl font-black text-emerald-700">${filtered.length}</p>
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Total Submitted</p>
+                </div>
+                ${totalHadir > 0 ? `<div class="bg-sky-50 border border-sky-200 rounded-xl p-3 text-center"><p class="text-2xl font-black text-sky-700">${totalHadir}</p><p class="text-[10px] font-bold text-sky-600 uppercase tracking-widest">Hadir</p></div>` : ''}
+                ${totalTidak > 0 ? `<div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center"><p class="text-2xl font-black text-rose-700">${totalTidak}</p><p class="text-[10px] font-bold text-rose-600 uppercase tracking-widest">Tidak Hadir</p></div>` : ''}
             `;
 
+            // ── Charts (only when there is data) ──
+            const chartsArea = document.getElementById('form-charts-area');
+            if(filtered.length > 0 && chartsArea) {
+                chartsArea.classList.remove('hidden'); chartsArea.classList.add('flex');
+
+                // Donut — attendance breakdown
+                safeDestroyChart(_donutChart);
+                const donutCtx = document.getElementById('form-donut-chart');
+                if(donutCtx && (totalHadir + totalTidak + totalOther) > 0) {
+                    _donutChart = new Chart(donutCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Hadir','Tidak Hadir','Other'],
+                            datasets: [{ data: [totalHadir, totalTidak, totalOther], backgroundColor: ['#10b981','#ef4444','#94a3b8'], borderWidth: 2 }]
+                        },
+                        options: { plugins: { legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 12 } } }, cutout: '65%', responsive: true, maintainAspectRatio: false }
+                    });
+                }
+
+                // Bar — per event submissions
+                safeDestroyChart(_barChart);
+                const barCtx = document.getElementById('form-bar-chart');
+                if(barCtx) {
+                    const byEvent = {};
+                    formResponses.forEach(r => { byEvent[r.eventName || 'Global'] = (byEvent[r.eventName || 'Global'] || 0) + 1; });
+                    _barChart = new Chart(barCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(byEvent),
+                            datasets: [{ label: 'Submissions', data: Object.values(byEvent), backgroundColor: '#3b82f6', borderRadius: 6 }]
+                        },
+                        options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 9 } } }, y: { ticks: { font: { size: 9 }, stepSize: 1 }, beginAtZero: true } }, responsive: true, maintainAspectRatio: false }
+                    });
+                }
+            } else if (chartsArea) {
+                chartsArea.classList.add('hidden'); chartsArea.classList.remove('flex');
+            }
+
+            // ── Submissions list ──
             const table = document.getElementById('form-responses-table'); if(!table) return;
             table.innerHTML = '';
             if(filtered.length === 0) { table.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">No submissions yet.</p>'; return; }
-            filtered.slice().reverse().forEach(r => {
+            filtered.slice().reverse().slice(0, 20).forEach(r => {
                 const answersHtml = Object.entries(r.answers||{}).map(([qid, val]) => {
                     const q = (r.questions||[]).find(qq => qq.id === qid);
                     const label = q ? q.label : qid;
                     return `<p class="text-[10px] text-slate-500"><span class="font-bold">${label}:</span> ${Array.isArray(val) ? val.join(', ') : val}</p>`;
                 }).join('');
                 table.innerHTML += `<div class="p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
+                    <div class="flex justify-between items-start mb-1">
                         <p class="font-bold text-sm text-slate-800">${r.name||'Unknown'}</p>
-                        <p class="text-[10px] text-slate-400 font-mono">${r.eventName||''}</p>
+                        <p class="text-[10px] text-slate-400 font-mono shrink-0">${r.eventName||''}</p>
                     </div>
                     ${answersHtml}
                     <p class="text-[9px] text-slate-300 mt-1">${new Date(r.ts).toLocaleString('en-GB')}</p>
                 </div>`;
+            });
+            if(filtered.length > 20) {
+                table.innerHTML += `<p class="text-xs text-slate-400 italic text-center py-2">Showing 20 of ${filtered.length}. Open "Full Results" to see all.</p>`;
+            }
+        }
+
+        // ── Full Results Modal ──────────────────────────────────────────
+        function openFormFullResults() {
+            openModal('modal-form-full-results');
+            lucide.createIcons({ root: document.getElementById('modal-form-full-results') });
+            renderFullResultsModal();
+        }
+
+        function renderFullResultsModal() {
+            const eventFilter = document.getElementById('form-response-event-filter') ? document.getElementById('form-response-event-filter').value : 'ALL';
+            const allFiltered = formResponses.filter(r => (eventFilter === 'ALL' || r.eventId === eventFilter));
+            document.getElementById('fr-subtitle').innerText = eventFilter === 'ALL' ? 'All events combined' : (allFiltered[0]?.eventName || eventFilter);
+
+            // KPI bar
+            const totalHadir = allFiltered.filter(r => Object.values(r.answers||{}).some(v => typeof v==='string' && v.toLowerCase().includes('hadir') && !v.toLowerCase().includes('tidak'))).length;
+            const totalTidak = allFiltered.filter(r => Object.values(r.answers||{}).some(v => typeof v==='string' && v.toLowerCase().includes('tidak hadir'))).length;
+            const totalOther = allFiltered.length - totalHadir - totalTidak;
+            document.getElementById('fr-kpi-bar').innerHTML = `
+                <div class="px-6 py-3 text-center"><p class="text-2xl font-black text-slate-800">${allFiltered.length}</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</p></div>
+                <div class="px-6 py-3 text-center"><p class="text-2xl font-black text-emerald-600">${totalHadir}</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hadir</p></div>
+                <div class="px-6 py-3 text-center"><p class="text-2xl font-black text-rose-500">${totalTidak}</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tidak Hadir</p></div>`;
+
+            // Donut
+            safeDestroyChart(_frDonut);
+            const dCtx = document.getElementById('fr-donut');
+            if(dCtx) {
+                _frDonut = new Chart(dCtx, {
+                    type: 'doughnut',
+                    data: { labels: ['Hadir','Tidak Hadir','Other'], datasets: [{ data: [totalHadir, totalTidak, totalOther], backgroundColor: ['#10b981','#ef4444','#94a3b8'], borderWidth: 2 }] },
+                    options: { plugins: { legend: { display: false } }, cutout: '60%', responsive: false }
+                });
+                const legend = document.getElementById('fr-donut-legend');
+                if(legend) legend.innerHTML = [['Hadir','#10b981',totalHadir],['Tidak Hadir','#ef4444',totalTidak],['Other','#94a3b8',totalOther]].map(([l,c,n]) =>
+                    `<div class="flex items-center gap-1.5"><span style="width:10px;height:10px;border-radius:2px;background:${c};display:inline-block;flex-shrink:0;"></span><span class="text-slate-600">${l}: <b>${n}</b></span></div>`).join('');
+            }
+
+            // Bar — per event
+            safeDestroyChart(_frBar);
+            const bCtx = document.getElementById('fr-bar');
+            if(bCtx) {
+                const byEvent = {};
+                allFiltered.forEach(r => { byEvent[r.eventName || 'Global'] = (byEvent[r.eventName||'Global']||0) + 1; });
+                _frBar = new Chart(bCtx, {
+                    type: 'bar',
+                    data: { labels: Object.keys(byEvent), datasets: [{ label: 'Submissions', data: Object.values(byEvent), backgroundColor: '#3b82f6', borderRadius: 6 }] },
+                    options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 9 } } }, y: { ticks: { font: { size: 9 }, stepSize: 1 }, beginAtZero: true } }, responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            // Per-question mini bar charts
+            const qChartsEl = document.getElementById('fr-question-charts');
+            if(qChartsEl && allFiltered.length > 0) {
+                // Gather all question definitions
+                const allQuestions = [];
+                allFiltered.forEach(r => { (r.questions||[]).forEach(q => { if(!allQuestions.find(aq => aq.id === q.id)) allQuestions.push(q); }); });
+                qChartsEl.innerHTML = '';
+                allQuestions.forEach(q => {
+                    if(['short','long','date','number'].includes(q.type)) return; // skip free text
+                    const counts = {};
+                    allFiltered.forEach(r => {
+                        const val = r.answers?.[q.id];
+                        if(!val) return;
+                        const vals = Array.isArray(val) ? val : [val];
+                        vals.forEach(v => { counts[v] = (counts[v]||0) + 1; });
+                    });
+                    if(!Object.keys(counts).length) return;
+                    const wrap = document.createElement('div');
+                    wrap.style.cssText = 'min-width:160px;max-width:200px;flex-shrink:0;';
+                    wrap.innerHTML = `<p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1 truncate">${q.label}</p><canvas id="qc-${q.id}" height="100"></canvas>`;
+                    qChartsEl.appendChild(wrap);
+                    setTimeout(() => {
+                        const ctx = document.getElementById(`qc-${q.id}`);
+                        if(!ctx) return;
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'], borderRadius: 4 }] },
+                            options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 8 } } }, y: { ticks: { font: { size: 8 }, stepSize: 1 }, beginAtZero: true } }, responsive: true, maintainAspectRatio: false }
+                        });
+                    }, 50);
+                });
+            }
+
+            // Count + table
+            document.getElementById('fr-count').innerText = allFiltered.length;
+            renderFullResultsTable();
+        }
+
+        function renderFullResultsTable() {
+            const search = (document.getElementById('fr-search')?.value || '').toLowerCase();
+            const eventFilter = document.getElementById('form-response-event-filter') ? document.getElementById('form-response-event-filter').value : 'ALL';
+            let rows = formResponses.filter(r => (eventFilter === 'ALL' || r.eventId === eventFilter));
+            if(search) rows = rows.filter(r => (r.name||'').toLowerCase().includes(search));
+
+            const allQs = [];
+            rows.forEach(r => { (r.questions||[]).forEach(q => { if(!allQs.find(aq => aq.id === q.id)) allQs.push(q); }); });
+
+            const thead = document.getElementById('fr-table-head');
+            const tbody = document.getElementById('fr-table-body');
+            if(!thead || !tbody) return;
+
+            thead.innerHTML = `<th class="p-2 font-bold whitespace-nowrap">Name</th><th class="p-2 font-bold whitespace-nowrap">Event</th><th class="p-2 font-bold whitespace-nowrap">Time</th>${allQs.map(q=>`<th class="p-2 font-bold whitespace-nowrap">${q.label}</th>`).join('')}`;
+            tbody.innerHTML = '';
+            if(!rows.length) { tbody.innerHTML = `<tr><td colspan="${3 + allQs.length}" class="p-4 text-center text-slate-400 text-xs italic">No submissions yet.</td></tr>`; return; }
+            rows.slice().reverse().forEach(r => {
+                const cells = allQs.map(q => {
+                    const v = r.answers?.[q.id];
+                    return `<td class="p-2 text-slate-600">${Array.isArray(v) ? v.join(', ') : (v||'—')}</td>`;
+                }).join('');
+                tbody.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-50">
+                    <td class="p-2 font-semibold text-slate-800 whitespace-nowrap">${r.name||'?'}</td>
+                    <td class="p-2 text-slate-500 whitespace-nowrap text-[10px]">${r.eventName||'—'}</td>
+                    <td class="p-2 text-slate-400 whitespace-nowrap text-[10px] font-mono">${new Date(r.ts).toLocaleString('en-GB')}</td>
+                    ${cells}
+                </tr>`;
             });
         }
 
@@ -3099,25 +3355,35 @@
                     const statusRes = await robustCheckPassStatus(currentViewingQrId, appSession.name, appSession.qrs[0].subevent_name);
                     if(statusRes && statusRes.status === 'USED') {
                         const qrIdWas = currentViewingQrId;
-                        currentViewingQrId = null; 
+                        currentViewingQrId = null; // stop further polling
                         if(appSession.qrs.length > 0) { appSession.qrs[0].status = 'USED'; localStorage.setItem('myclub_session', JSON.stringify(appSession)); }
+
+                        // Fade out the QR section smoothly
                         const qrSec = document.getElementById('vip-qr-section');
                         const qrBox = document.getElementById('vip-qr-box');
                         if (qrSec) {
                             const badge = document.getElementById('vip-qr-scanned-badge');
                             if (badge) badge.classList.remove('hidden');
                             if (qrBox) { qrBox.style.opacity = '0.2'; qrBox.style.transition = 'opacity 0.5s'; }
-                            setTimeout(() => { qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s'; setTimeout(() => { qrSec.classList.add('hidden'); }, 500); }, 1000);
+                            setTimeout(() => {
+                                qrSec.style.opacity = '0'; qrSec.style.transition = 'opacity 0.5s';
+                                setTimeout(() => qrSec.classList.add('hidden'), 500);
+                            }, 800);
                         }
-                        // Use unified success overlay (single popup only)
+
+                        // Show boarding pass success overlay ONCE — guard by successOverlayShownForQr
                         if (successOverlayShownForQr !== qrIdWas) {
                             successOverlayShownForQr = qrIdWas;
-                            document.getElementById('success-overlay-name').innerText = appSession.name;
-                            document.getElementById('success-overlay-number').innerText = `No. ${statusRes.arrival_number || '-'}`;
-                            openModal('participant-success-overlay'); 
-                            lucide.createIcons({ root: document.getElementById('participant-success-overlay') });
-                            playSound('success');
-                            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
+                            const arrNum = statusRes.arrival_number || '—';
+                            // Small delay so QR fade starts first
+                            setTimeout(() => {
+                                document.getElementById('success-overlay-name').innerText   = appSession.name;
+                                document.getElementById('success-overlay-number').innerText = `No. ${arrNum}`;
+                                openModal('participant-success-overlay');
+                                lucide.createIcons({ root: document.getElementById('participant-success-overlay') });
+                                playSound('success');
+                                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 10000 });
+                            }, 400);
                         }
                     }
                 }

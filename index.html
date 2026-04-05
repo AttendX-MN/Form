@@ -452,7 +452,7 @@
         <!-- ============================================== -->
         <!-- Form Submit Modal (popup overlay — replaces the old view-form-submit page) -->
         <div id="modal-form-submit" class="fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-sm hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300 px-4">
-            <div id="modal-form-submit-inner" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col transform scale-95 transition-transform duration-300 max-h-[92vh]">
+            <div id="modal-form-submit-inner" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col transform scale-95 transition-transform duration-300" style="max-height:92vh;">
                 <!-- Top accent bar -->
                 <div class="w-full h-1.5 hub-gradient shrink-0"></div>
 
@@ -473,14 +473,14 @@
                     <p class="text-xs font-semibold text-amber-700">You <strong>must</strong> complete and submit this form to receive your pass.</p>
                 </div>
 
-                <!-- Scrollable fields -->
-                <div id="form-submit-fields" class="flex flex-col gap-4 px-6 py-4 overflow-y-auto flex-1 min-h-0"></div>
+                <!-- Scrollable fields — padded at bottom so last field clears the sticky footer -->
+                <div id="form-submit-fields" class="flex flex-col gap-4 px-6 py-4 overflow-y-auto" style="flex:1 1 auto; min-height:0; padding-bottom:1.5rem;"></div>
 
-                <!-- Footer actions -->
-                <div class="px-6 pb-6 pt-3 border-t border-slate-100 shrink-0 flex flex-col gap-2">
+                <!-- Footer actions — sticky at bottom, never overlaps fields -->
+                <div class="px-6 pb-6 pt-3 border-t border-slate-100 shrink-0 flex flex-col gap-2 bg-white">
                     <button onclick="submitEventForm()" id="btn-submit-form"
                         class="w-full brand-gradient text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition active:scale-95 shadow-md">
-                        <i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get My Pass
+                        <i data-lucide="ticket" class="w-4 h-4"></i> Submit &amp; Get My Pass
                     </button>
                     <button onclick="cancelFormSubmit()"
                         class="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-semibold py-2.5 rounded-xl text-sm transition active:scale-95">
@@ -631,20 +631,89 @@
             </div>
         </div>
 
-        <!-- VIP Timer Announcement Overlay -->
-        <div id="vip-timer-announcement" class="fixed inset-0 z-[9999] bg-sky-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white text-center opacity-0 transition-opacity duration-300">
-            <i data-lucide="clock" class="w-24 h-24 mb-6 animate-pulse text-white/80"></i>
-            <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight px-4 animate-pop" id="vip-timer-announce-msg">Masa Diberi, Terima Kasih</h1>
-        </div>
-
-        <!-- VIP Live Broadcast Overlay -->
-        <div id="vip-broadcast-overlay" class="fixed inset-0 z-[9999] bg-rose-600/95 backdrop-blur-md hidden flex-col items-center justify-center text-white cursor-pointer px-6 text-center opacity-0 transition-opacity duration-300" onclick="closeModal('vip-broadcast-overlay')">
-            <div id="vip-broadcast-overlay-inner" class="flex flex-col items-center transform scale-95 transition-transform duration-300">
-                <i data-lucide="radio" class="w-20 h-20 mb-6 animate-pulse text-white/80"></i>
-                <h1 class="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider leading-tight" id="vip-broadcast-msg">MESSAGE</h1>
-                <p class="text-sm mt-8 font-semibold opacity-70 bg-black/20 px-4 py-2 rounded-full">(Tap anywhere to dismiss)</p>
+        <!-- VIP Timer Announcement — Boarding Pass Style -->
+        <div id="vip-timer-announcement" class="fixed inset-0 z-[9999] hidden items-center justify-center p-5 opacity-0 transition-opacity duration-300" style="background:rgba(15,23,42,0.80);backdrop-filter:blur(8px);">
+            <div id="vip-timer-announce-inner" class="w-full max-w-sm transform scale-90 transition-transform duration-300">
+                <!-- Card -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-[#15274d]">
+                    <!-- Top stripe -->
+                    <div class="bg-[#15274d] px-6 py-4 flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                            <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-white/70 text-xs font-bold uppercase tracking-widest">MASA AKTIVITI</p>
+                            <p class="text-white text-sm font-black">TIMER DIMULAKAN</p>
+                        </div>
+                    </div>
+                    <!-- Perforated divider -->
+                    <div class="flex items-center px-4">
+                        <div class="w-5 h-5 rounded-full bg-slate-100 -ml-7 shrink-0"></div>
+                        <div class="flex-1 border-t-2 border-dashed border-slate-200 mx-2"></div>
+                        <div class="w-5 h-5 rounded-full bg-slate-100 -mr-7 shrink-0"></div>
+                    </div>
+                    <!-- Body -->
+                    <div class="px-6 py-6 text-center">
+                        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest mb-2">Masa Diberikan</p>
+                        <p class="text-6xl font-black text-[#15274d] leading-none mb-1" id="vip-timer-announce-msg">5 MINIT</p>
+                        <p class="text-slate-400 text-sm mt-3">Sila mulakan aktiviti anda sekarang.</p>
+                    </div>
+                    <!-- Countdown strip — shown only in last 10s -->
+                    <div id="timer-announce-countdown-strip" class="hidden bg-rose-600 px-6 py-4 text-center">
+                        <p class="text-white text-xs font-bold uppercase tracking-widest mb-1">Masa Hampir Tamat!</p>
+                        <p class="text-white text-5xl font-black font-mono" id="timer-announce-countdown">10</p>
+                    </div>
+                    <!-- Bottom -->
+                    <div class="px-6 pb-6 pt-2 text-center">
+                        <p class="text-slate-300 text-xs">Overlay ini akan tutup secara automatik</p>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- VIP Broadcast — Boarding Pass Style with Alert Animation -->
+        <div id="vip-broadcast-overlay" class="fixed inset-0 z-[9999] hidden items-center justify-center p-5 opacity-0 transition-opacity duration-300 cursor-pointer" style="background:rgba(15,23,42,0.80);backdrop-filter:blur(8px);" onclick="closeModal('vip-broadcast-overlay')">
+            <div id="vip-broadcast-overlay-inner" class="w-full max-w-sm transform scale-90 transition-transform duration-300">
+                <!-- Card -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-[#15274d]" id="vip-broadcast-card">
+                    <!-- Top stripe with pulsing alert bar -->
+                    <div class="bg-[#15274d] px-6 py-4 flex items-center gap-3 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-white/10 broadcast-alert-bar"></div>
+                        <div class="w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center shrink-0 relative z-10">
+                            <i data-lucide="bell" class="w-6 h-6 text-[#15274d]"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-white/70 text-xs font-bold uppercase tracking-widest">PENGUMUMAN</p>
+                            <p class="text-white text-sm font-black">SIARAN LANGSUNG</p>
+                        </div>
+                    </div>
+                    <!-- Perforated divider -->
+                    <div class="flex items-center px-4">
+                        <div class="w-5 h-5 rounded-full bg-slate-100 -ml-7 shrink-0"></div>
+                        <div class="flex-1 border-t-2 border-dashed border-slate-200 mx-2"></div>
+                        <div class="w-5 h-5 rounded-full bg-slate-100 -mr-7 shrink-0"></div>
+                    </div>
+                    <!-- Message body — large text for elderly readability -->
+                    <div class="px-6 py-8 text-center">
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">Mesej Pentadbir</p>
+                        <p class="text-3xl font-black text-slate-800 leading-snug" id="vip-broadcast-msg">MESSAGE</p>
+                    </div>
+                    <!-- Bottom tap hint -->
+                    <div class="bg-slate-50 border-t border-slate-100 px-6 py-4 text-center">
+                        <p class="text-slate-400 text-sm font-semibold">👆 Ketuk untuk tutup</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            @keyframes alertBar { 0%,100%{opacity:0} 50%{opacity:1} }
+            .broadcast-alert-bar { animation: alertBar 1.2s ease-in-out infinite; }
+            @keyframes boardingPop { 0%{transform:scale(0.85) translateY(30px);opacity:0} 100%{transform:scale(1) translateY(0);opacity:1} }
+            .boarding-pop { animation: boardingPop 0.45s cubic-bezier(0.16,1,0.3,1) forwards; }
+            @keyframes timerCountdownPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+            .countdown-pulse { animation: timerCountdownPulse 0.6s ease-in-out infinite; }
+        </style>
 
         <!-- AUTH VIEWS (Register, Login, VIP Login, Admin Login) -->
         <div id="view-register" class="container mx-auto px-4 py-8 flex flex-col items-center view-hidden fade-in">
@@ -1801,6 +1870,31 @@
                     else el.className = 'font-mono text-3xl md:text-4xl font-black text-slate-500 tracking-wider';
                 }
             });
+            // ── 10-second countdown strip in timer announcement overlay ──
+            if (appSession && appSession.type === 'vip' && st.status === 'running') {
+                const announceOverlay = document.getElementById('vip-timer-announcement');
+                const strip = document.getElementById('timer-announce-countdown-strip');
+                const countEl = document.getElementById('timer-announce-countdown');
+                if (strip && countEl && s <= 10 && s > 0) {
+                    // Show the announcement overlay if not already visible, then show strip
+                    if (announceOverlay && announceOverlay.classList.contains('hidden')) {
+                        const inner = document.getElementById('vip-timer-announce-inner');
+                        if (inner) { inner.classList.remove('boarding-pop'); void inner.offsetWidth; inner.classList.add('boarding-pop'); }
+                        openModal('vip-timer-announcement');
+                        playSound('scan');
+                    }
+                    strip.classList.remove('hidden');
+                    countEl.innerText = s;
+                    countEl.classList.add('countdown-pulse');
+                } else if (strip) {
+                    if (s === 0 || s > 10) strip.classList.add('hidden');
+                    if (countEl) countEl.classList.remove('countdown-pulse');
+                }
+                // Auto-close announcement when timer hits 0
+                if (s === 0 && announceOverlay && !announceOverlay.classList.contains('hidden')) {
+                    setTimeout(() => closeModal('vip-timer-announcement'), 2000);
+                }
+            }
         }
 
         async function ctrlTimer(action) {
@@ -2159,78 +2253,95 @@
             syncHubConfigToServer();
         }
         
-        // Sync full hub config (banners, links, profileFields) to server
+        // Sync hub config (banners, profileFields only) — apps stored in Hub_Apps sheet
         async function syncHubConfigToServer() {
             try {
-                await apiCall('updateVipState', { key: 'hub_banners',       value: hubConfig.banners });
+                await apiCall('updateVipState', { key: 'hub_banners',        value: hubConfig.banners });
                 await apiCall('updateVipState', { key: 'hub_profile_fields', value: hubConfig.profileFields });
-                await apiCall('updateVipState', { key: 'hub_links',          value: hubConfig.links });
             } catch(e) { console.warn('Hub config sync failed:', e); }
         }
 
-        // Legacy: keep old name as alias
         async function syncBannersToServer() { return syncHubConfigToServer(); }
 
-        // Load all hub data from server — called at startup AND periodically for all users
+        // Load all hub data from server — called at startup AND every 2s for all users
         async function loadHubDataFromServer() {
             try {
                 const vipState = await apiCall('getVipState');
-                let changed = false;
 
                 // ── Banners ──
                 if (vipState.hub_banners && Array.isArray(vipState.hub_banners) && vipState.hub_banners.length > 0) {
-                    const newSig = JSON.stringify(vipState.hub_banners);
-                    if (newSig !== JSON.stringify(hubConfig.banners)) {
+                    if (JSON.stringify(vipState.hub_banners) !== JSON.stringify(hubConfig.banners)) {
                         hubConfig.banners = vipState.hub_banners;
-                        changed = true;
                         const bannerImg = document.getElementById('hub-banner-img');
                         if (bannerImg) { bannerIdx = 0; startBannerRotator(); }
                     }
                 }
-
-                // ── Profile fields (respect empty array from admin = no custom fields) ──
+                // ── Profile fields ──
                 if (Object.prototype.hasOwnProperty.call(vipState, 'hub_profile_fields')) {
-                    const newFields = Array.isArray(vipState.hub_profile_fields) ? vipState.hub_profile_fields : [];
-                    if (JSON.stringify(newFields) !== JSON.stringify(hubConfig.profileFields)) {
-                        hubConfig.profileFields = newFields;
-                        changed = true;
+                    const nf = Array.isArray(vipState.hub_profile_fields) ? vipState.hub_profile_fields : [];
+                    if (JSON.stringify(nf) !== JSON.stringify(hubConfig.profileFields)) hubConfig.profileFields = nf;
+                }
+
+                // ── Apps — load from Hub_Apps sheet (1 row per app, never lost) ──
+                try {
+                    const apps = await apiCall('getHubApps');
+                    if (Array.isArray(apps)) {
+                        const newLinks = apps.map(a => ({ id: a.app_id, title: a.title, url: a.url, icon: a.icon }));
+                        if (JSON.stringify(newLinks) !== JSON.stringify(hubConfig.links)) {
+                            hubConfig.links = newLinks;
+                        }
                     }
-                }
+                } catch(e) { /* Hub_Apps sheet may not exist on old deploy — silent */ }
 
-                // ── App links — always sync from server (source of truth) ──
-                if (Object.prototype.hasOwnProperty.call(vipState, 'hub_links')) {
-                    const newLinks = Array.isArray(vipState.hub_links) ? vipState.hub_links : [];
-                    if (JSON.stringify(newLinks) !== JSON.stringify(hubConfig.links)) {
-                        hubConfig.links = newLinks;
-                        changed = true;
-                    }
-                }
-
-                if (changed) {
-                    localStorage.setItem('myclub_hub', JSON.stringify(hubConfig));
-                }
-
-                // Always re-render hub app grid when user is on hub view so apps appear immediately
+                localStorage.setItem('myclub_hub', JSON.stringify(hubConfig));
                 const hubView = document.getElementById('view-hub');
-                if (hubView && !hubView.classList.contains('view-hidden') && appSession) {
-                    renderHub();
-                }
+                if (hubView && !hubView.classList.contains('view-hidden') && appSession) renderHub();
             } catch(e) { /* silent — use cached data */ }
         }
 
-        // Legacy alias
         async function loadBannersFromServer() { return loadHubDataFromServer(); }
         function addHubBanner(e) { e.preventDefault(); hubConfig.banners.push(document.getElementById('hub-banner-url').value); document.getElementById('hub-banner-url').value=''; saveHubConfig(); }
         function removeHubBanner(idx) { hubConfig.banners.splice(idx, 1); saveHubConfig(); }
-        function addHubLink(e) { 
-            e.preventDefault(); 
-            let finalIcon = tempAppIconBase64 || 'link';
-            hubConfig.links.push({ id: 'link'+Date.now(), title: document.getElementById('hub-link-title').value, url: document.getElementById('hub-link-url').value, icon: finalIcon }); 
-            document.getElementById('hub-link-title').value=''; document.getElementById('hub-link-url').value=''; 
-            tempAppIconBase64 = null; document.getElementById('hub-link-preview').classList.add('hidden'); document.getElementById('hub-link-icon-placeholder').classList.remove('hidden');
-            saveHubConfig(); 
+
+        async function addHubLink(e) {
+            e.preventDefault();
+            const title = (document.getElementById('hub-link-title').value || '').trim();
+            const url   = (document.getElementById('hub-link-url').value   || '').trim();
+            if (!title || !url) { showToast('Please enter a title and URL.', 'warning'); return; }
+            const appId = 'app_' + Date.now();
+            const icon  = tempAppIconBase64 || 'link';
+            // Optimistically add to local list so admin sees it instantly
+            hubConfig.links.push({ id: appId, title, url, icon });
+            localStorage.setItem('myclub_hub', JSON.stringify(hubConfig));
+            renderHubConfigAdmin();
+            if (appSession) renderHub();
+            // Reset form fields
+            document.getElementById('hub-link-title').value = '';
+            document.getElementById('hub-link-url').value   = '';
+            tempAppIconBase64 = null;
+            const prev = document.getElementById('hub-link-preview');
+            const ph   = document.getElementById('hub-link-icon-placeholder');
+            if (prev) prev.classList.add('hidden');
+            if (ph)   ph.classList.remove('hidden');
+            // Persist to Hub_Apps sheet
+            try {
+                await apiCall('saveHubApp', { app_id: appId, title, url, icon });
+                showToast('App added — visible to all users!', 'success');
+            } catch(err) {
+                showToast('App added locally (deploy Code_v6.gs to persist).', 'warning');
+            }
         }
-        function removeHubLink(idx) { hubConfig.links.splice(idx, 1); saveHubConfig(); }
+
+        async function removeHubLink(idx) {
+            const app = hubConfig.links[idx];
+            if (!app) return;
+            hubConfig.links.splice(idx, 1);
+            localStorage.setItem('myclub_hub', JSON.stringify(hubConfig));
+            renderHubConfigAdmin();
+            if (appSession) renderHub();
+            try { await apiCall('removeHubApp', { app_id: app.id }); } catch(e) { /* silent */ }
+        }
+
         function addProfileField(e) { e.preventDefault(); hubConfig.profileFields.push(document.getElementById('hub-field-name').value); document.getElementById('hub-field-name').value=''; saveHubConfig(); }
         function removeProfileField(idx) { hubConfig.profileFields.splice(idx, 1); saveHubConfig(); }
 
@@ -2845,18 +2956,34 @@
             table.innerHTML = '';
             if(filtered.length === 0) { table.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">No submissions yet.</p>'; return; }
             filtered.slice().reverse().slice(0, 20).forEach(r => {
-                const answersHtml = Object.entries(r.answers||{}).map(([qid, val]) => {
-                    const q = (r.questions||[]).find(qq => qq.id === qid);
-                    const label = q ? q.label : qid;
-                    return `<p class="text-[10px] text-slate-500"><span class="font-bold">${label}:</span> ${Array.isArray(val) ? val.join(', ') : val}</p>`;
-                }).join('');
+                // answers may be a JSON string (from server) or already an object
+                let answers = r.answers || {};
+                if (typeof answers === 'string') { try { answers = JSON.parse(answers); } catch(e) { answers = {}; } }
+                let questions = r.questions || [];
+                if (typeof questions === 'string') { try { questions = JSON.parse(questions); } catch(e) { questions = []; } }
+                const answerEntries = Object.entries(answers);
+                let answersHtml = '';
+                if (answerEntries.length > 0) {
+                    answersHtml = answerEntries.map(([qid, val]) => {
+                        const q = questions.find(qq => qq && qq.id === qid);
+                        const label = (q && q.label) ? q.label : qid;
+                        const displayVal = Array.isArray(val) ? val.join(', ') : (val || '—');
+                        return `<div class="flex gap-2 items-start py-1 border-b border-slate-50 last:border-0">
+                            <span class="text-[10px] font-bold text-slate-600 min-w-0 flex-1">${label}</span>
+                            <span class="text-[10px] text-slate-800 font-medium text-right shrink-0 max-w-[55%] break-words">${displayVal}</span>
+                        </div>`;
+                    }).join('');
+                } else {
+                    answersHtml = '<p class="text-[10px] text-slate-400 italic">No answers recorded.</p>';
+                }
+                const ts = r.ts ? new Date(r.ts).toLocaleString('en-GB') : (r.submitted_at || '');
                 table.innerHTML += `<div class="p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
-                    <div class="flex justify-between items-start mb-1">
+                    <div class="flex justify-between items-start mb-2">
                         <p class="font-bold text-sm text-slate-800">${r.name||'Unknown'}</p>
-                        <p class="text-[10px] text-slate-400 font-mono shrink-0">${r.eventName||''}</p>
+                        <span class="text-[9px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full shrink-0 ml-2">${r.eventName||''}</span>
                     </div>
-                    ${answersHtml}
-                    <p class="text-[9px] text-slate-300 mt-1">${new Date(r.ts).toLocaleString('en-GB')}</p>
+                    <div class="bg-slate-50 rounded-lg px-2 py-1 mb-1">${answersHtml}</div>
+                    <p class="text-[9px] text-slate-300 mt-1">${ts}</p>
                 </div>`;
             });
             if(filtered.length > 20) {
@@ -3042,6 +3169,13 @@
                 fieldsEl.appendChild(buildFormField(q));
             });
             lucide.createIcons({root: fieldsEl});
+            // Always reset submit button to normal state when opening the form
+            const btn = document.getElementById('btn-submit-form');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="ticket" class="w-4 h-4"></i> Submit & Get My Pass`;
+                lucide.createIcons({root: btn});
+            }
             // Show as modal popup instead of routing away
             openModal('modal-form-submit');
         }
@@ -3364,7 +3498,11 @@
                             const ov = document.getElementById('vip-broadcast-overlay');
                             if (ov) {
                                 document.getElementById('vip-broadcast-msg').innerText = newState.broadcast.msg;
+                                // Boarding-pop animation on the card
+                                const inner = document.getElementById('vip-broadcast-overlay-inner');
+                                if (inner) { inner.classList.remove('boarding-pop'); void inner.offsetWidth; inner.classList.add('boarding-pop'); }
                                 openModal('vip-broadcast-overlay');
+                                lucide.createIcons({ root: ov });
                                 playSound('scan');
                                 const dismissSecs = newState.broadcast.dismissSecs || 0;
                                 clearTimeout(broadcastDismissTimeout);
@@ -3377,11 +3515,23 @@
                 if (newState.timer) {
                     globalVipState.timer = newState.timer;
                     if(appSession.type === 'vip' && newState.timer.status === 'running' && lastTimerStatus !== 'running') {
-                        const mins = Math.round(newState.timer.duration / 60000);
+                        const totalSecs = Math.round((newState.timer.duration || 300000) / 1000);
+                        const mins = Math.floor(totalSecs / 60);
+                        const secs = totalSecs % 60;
                         const announceMsg = document.getElementById('vip-timer-announce-msg');
-                        if (announceMsg) announceMsg.innerText = `Masa diberi ${mins} minit, terima kasih`;
+                        if (announceMsg) {
+                            announceMsg.innerText = mins > 0
+                                ? (secs > 0 ? `${mins} MINIT ${secs} SAAT` : `${mins} MINIT`)
+                                : `${secs} SAAT`;
+                        }
+                        // Hide countdown strip on open
+                        const strip = document.getElementById('timer-announce-countdown-strip');
+                        if (strip) strip.classList.add('hidden');
+                        // Boarding-pop animation on inner card
+                        const inner = document.getElementById('vip-timer-announce-inner');
+                        if (inner) { inner.classList.remove('boarding-pop'); void inner.offsetWidth; inner.classList.add('boarding-pop'); }
                         openModal('vip-timer-announcement'); playSound('success');
-                        setTimeout(() => { closeModal('vip-timer-announcement'); }, 3000);
+                        setTimeout(() => { closeModal('vip-timer-announcement'); }, 5000);
                     }
                     if (appSession.type === 'vip') {
                         const qrSec = document.getElementById('vip-qr-section');
